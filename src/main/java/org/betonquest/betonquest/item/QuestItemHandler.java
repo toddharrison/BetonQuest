@@ -32,6 +32,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.ListIterator;
@@ -42,6 +43,7 @@ import java.util.ListIterator;
 @SuppressWarnings({"PMD.GodClass", "PMD.TooManyMethods", "PMD.CommentRequired"})
 public class QuestItemHandler implements Listener {
     private static final HandlerList HANDLERS = new HandlerList();
+    private static final String ITEM_PROTECTION_BLOCK = "Protection Block";
 
     /**
      * Registers the quest item handler as Listener.
@@ -211,8 +213,13 @@ public class QuestItemHandler implements Listener {
         if (event.getPlayer().getGameMode() == GameMode.CREATIVE) {
             return;
         }
+
         // this prevents players from placing "quest item" blocks
-        if (Utils.isQuestItem(event.getItemInHand())) {
+        @NotNull ItemStack itemInHand = event.getItemInHand();
+        if (Utils.isQuestItem(itemInHand)) {
+            if (isProtectionBlockQuestItem(itemInHand)) {
+                return;
+            }
             event.setCancelled(true);
         }
     }
@@ -248,6 +255,9 @@ public class QuestItemHandler implements Listener {
         if (!EnchantmentTarget.TOOL.includes(item.getType())) {
             final String playerID = PlayerConverter.getID(event.getPlayer());
             if (Journal.isJournal(playerID, item) || Utils.isQuestItem(item)) {
+                if (Utils.isQuestItem(item) && isProtectionBlockQuestItem(item)) {
+                    return;
+                }
                 event.setCancelled(true);
             }
 
@@ -277,5 +287,9 @@ public class QuestItemHandler implements Listener {
 
     public HandlerList getHandlers() {
         return HANDLERS;
+    }
+
+    private boolean isProtectionBlockQuestItem(final ItemStack item) {
+        return item != null && item.toString().contains(ITEM_PROTECTION_BLOCKqq);
     }
 }

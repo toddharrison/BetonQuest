@@ -290,6 +290,6 @@ public class QuestItemHandler implements Listener {
     }
 
     private boolean isProtectionBlockQuestItem(final ItemStack item) {
-        return item != null && item.toString().contains(ITEM_PROTECTION_BLOCKqq);
+        return item != null && item.toString().contains(ITEM_PROTECTION_BLOCK);
     }
 }

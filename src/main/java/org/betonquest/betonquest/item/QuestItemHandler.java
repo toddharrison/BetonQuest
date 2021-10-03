@@ -43,6 +43,8 @@ import java.util.ListIterator;
 @SuppressWarnings({"PMD.GodClass", "PMD.TooManyMethods", "PMD.CommentRequired"})
 public class QuestItemHandler implements Listener {
     private static final HandlerList HANDLERS = new HandlerList();
+
+    // TODO: Added hard-coded claim protection stone name component
     private static final String ITEM_PROTECTION_BLOCK = "Protection Block";
 
     /**
@@ -217,9 +219,11 @@ public class QuestItemHandler implements Listener {
         // this prevents players from placing "quest item" blocks
         @NotNull ItemStack itemInHand = event.getItemInHand();
         if (Utils.isQuestItem(itemInHand)) {
+            // TODO: Allow placement of "quest items" that are claim protection blocks
             if (isProtectionBlockQuestItem(itemInHand)) {
                 return;
             }
+
             event.setCancelled(true);
         }
     }
@@ -253,11 +257,14 @@ public class QuestItemHandler implements Listener {
         }
 
         if (!EnchantmentTarget.TOOL.includes(item.getType())) {
+            // this prevents players from interacting with "quest item" blocks
             final String playerID = PlayerConverter.getID(event.getPlayer());
             if (Journal.isJournal(playerID, item) || Utils.isQuestItem(item)) {
+                // TODO: Allow interaction of "quest items" that are claim protection blocks
                 if (Utils.isQuestItem(item) && isProtectionBlockQuestItem(item)) {
                     return;
                 }
+
                 event.setCancelled(true);
             }
 
@@ -289,6 +296,11 @@ public class QuestItemHandler implements Listener {
         return HANDLERS;
     }
 
+    /**
+     * TODO: Determine if the specified ItemStack is a claim protection block.
+     * @param item The item to test.
+     * @return True if the specified ItemStack is a claim protection block, false otherwise.
+     */
     private boolean isProtectionBlockQuestItem(final ItemStack item) {
         return item != null && item.toString().contains(ITEM_PROTECTION_BLOCK);
     }

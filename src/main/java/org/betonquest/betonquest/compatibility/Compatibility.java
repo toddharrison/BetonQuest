@@ -3,6 +3,7 @@ package org.betonquest.betonquest.compatibility;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.CustomLog;
 import org.betonquest.betonquest.BetonQuest;
+import org.betonquest.betonquest.compatibility.aureliumskills.AureliumSkillsIntegrator;
 import org.betonquest.betonquest.compatibility.brewery.BreweryIntegrator;
 import org.betonquest.betonquest.compatibility.citizens.CitizensIntegrator;
 import org.betonquest.betonquest.compatibility.denizen.DenizenIntegrator;
@@ -10,6 +11,7 @@ import org.betonquest.betonquest.compatibility.effectlib.EffectLibIntegrator;
 import org.betonquest.betonquest.compatibility.heroes.HeroesIntegrator;
 import org.betonquest.betonquest.compatibility.holographicdisplays.HolographicDisplaysIntegrator;
 import org.betonquest.betonquest.compatibility.jobsreborn.JobsRebornIntegrator;
+import org.betonquest.betonquest.compatibility.luckperms.LuckPermsIntegrator;
 import org.betonquest.betonquest.compatibility.magic.MagicIntegrator;
 import org.betonquest.betonquest.compatibility.mcmmo.McMMOIntegrator;
 import org.betonquest.betonquest.compatibility.mmogroup.mmocore.MMOCoreIntegrator;
@@ -79,6 +81,8 @@ public class Compatibility implements Listener {
         integrators.put("ProtocolLib", new ProtocolLibIntegrator());
         integrators.put("Brewery", new BreweryIntegrator());
         integrators.put("Jobs", new JobsRebornIntegrator());
+        integrators.put("LuckPerms", new LuckPermsIntegrator());
+        integrators.put("AureliumSkills", new AureliumSkillsIntegrator());
 
         // hook into already enabled plugins in case Bukkit messes up the loading order
         for (final Plugin hook : Bukkit.getPluginManager().getPlugins()) {

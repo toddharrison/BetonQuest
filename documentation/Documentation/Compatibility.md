@@ -1,9 +1,9 @@
 # Compatibility
-**In total 28 plugins have dedicated support for BetonQuest.**
+**In total 30 plugins have dedicated support for BetonQuest.**
 
 BetonQuest hooks into other plugins by itself to provide more events, conditions and objectives or other features. 
-23 plugins are supported right now:    
-_Brewery, Citizens, Denizen, EffectLib, Heroes, HolographicDisplays, JobsReborn, Magic,
+25 plugins are supported right now:    
+_AureliumSkills, Brewery, Citizens, Denizen, EffectLib, Heroes, HolographicDisplays, JobsReborn, LuckPerms, Magic,
 mcMMO, MythicLib, MMOCore, MMOItems, MythicMobs, PlaceholderAPI, ProtocolLib, Quests,
 Shopkeepers, SkillAPI, Skript, Vault, WorldEdit, FastAsyncWorldEdit and WorldGuard._
 
@@ -15,6 +15,39 @@ Some plugins also hook into BetonQuest and provide support by themselves:
 There are also plugins that hook into BetonQuest that require a clientside mod:  
 [_BetonQuestGUI_](https://github.com/giovanni-bozzano/betonquest-gui-plugin),
 [_NGVexJournal_](https://www.spigotmc.org/resources/ngvexjournal-multi-function-betonquest-journal-gui-1-7-10-1-13.76938/)
+
+
+## [AureliumSkills](https://www.spigotmc.org/resources/aurelium-skills-advanced-skills-stats-abilities-and-more.81069/)
+
+###Conditions
+
+#### Skill level: `aureliumskillslevel`
+Checks if the player has the specified skill level. The amount can be a variable or a number.
+The player needs to be on that level or higher to meet the condition.
+You can disable this behaviour by adding the `equal` argument, then the player must match the specified level exactly.
+```YAML linenums="1"
+aureliumskillslevel fighting 5
+aureliumskillslevel farming 10 equal
+```
+
+#### Stat level: `aureliumstatslevel`
+Checks if the player has the specified stat level. The amount can be a variable or a number.
+The player needs to be on that level or higher to meet the condition.
+You can disable this behaviour by adding the `equal` argument, then the player must match the specified level exactly.
+```YAML linenums="1"
+aureliumstatslevel luck 5
+aureliumstatslevel luck 10 equal
+```
+
+### Events
+
+### Give Skill Xp : `aureliumskillsxp`
+Adds experience to the players skill. The amount can be a variable or a number.
+The `level` argument is optional and would convert the amount to levels instead of XP points.
+```YAML linenums="1"
+aureliumskillsxp farming 5
+aureliumskillsxp farming 10 level
+```
 
 
 ## [Brewery](https://www.spigotmc.org/resources/brewery.3082/)
@@ -443,6 +476,27 @@ the player advances the objective, optionally with the notification interval aft
 This objective has three properties: `amount`, `left` and `total`. `amount` is the amount of money already received,
 `left` is the amount of money still needed to receive and `total` is the amount of money initially required.
 
+
+## [LuckPerms](https://luckperms.net/)
+
+### Context Integration
+
+Any BetonQuest tag (global and per-player) can be used as a LuckPerms context. This means that a player needs the specified tag for a permission
+to be true - this removes the need for tons of `permission add ...` events as you can hook your existing
+quest progress tags right into LuckPerms permission
+<a href="https://luckperms.net/wiki/Context" target="_blank">contexts</a>.
+The syntax is as follows:
+
+| key             | value                   |
+|----------------	|------------------------	|
+| betonquest:tag:PACKAGE_NAME.TAG_NAME      | true     |
+| betonquest:globaltag:PACKAGE_NAME.TAG_NAME| true     |
+| betonquest:tag:myPackage.tagName| true |
+| betonquest:globaltag:myQuest.someTag | true |
+
+Check the 
+<a href="https://luckperms.net/wiki/Context" target="_blank">Luck Perms documentation</a>
+for an in-depth explanation on what contexts are and how to add them to permission.
 
 ## [Magic](http://dev.bukkit.org/bukkit-plugins/magic/)
 

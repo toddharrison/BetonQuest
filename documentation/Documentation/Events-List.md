@@ -2,7 +2,7 @@
 
 ## Cancel quest: `cancel`
 
-This event works in the same way as a [quest canceler in the backpack](/Documentation/Reference/#canceling-quests).
+This event works in the same way as a [quest canceler in the backpack](Reference.md#canceling-quests).
 Running it is equal to the player clicking on the bone. The only argument is a name of a quest canceler, as defined in _main.yml_
 
 !!! example
@@ -97,6 +97,8 @@ You can use variables here, but variables other than `%player%` won't resolve if
 and the player is offline now. You can define additional commands by separating them with `|` character.
 If you want to use a `|` character in the command use `\|`.
 
+Looking for [run command as player](#sudo-sudo)?
+
 !!! example
     ```YAML
     command kill %player%|ban %player%
@@ -157,7 +159,7 @@ Adds a specified potion effect to player. First argument is potion type. You can
 
 !!! example
     ```YAML
-    effect BLINDNESS ambient icon
+    effect BLINDNESS 30 1 ambient icon
     ```
 
 ## Explosion: `explosion`
@@ -404,6 +406,7 @@ This event is similar to the `sudo` event, the only difference is that it will f
 Additional commands can be defined by separating them with `|` character. If you want to use a `|` character in the message use `\|`.
 
 Looking for [run as normal player](#sudo-sudo)?
+Looking for [console commands](#command-command)?
 
 !!! example
     ```YAML
@@ -513,10 +516,11 @@ You can specify armor which the mob will wear and items it will hold with `h:` (
 
 ## Sudo: `sudo`
 
-This event is similar to `command` event, the only difference is that it will fire a command as the player.
+This event is similar to `command` event, the only difference is that it will fire a command as the player (often referred to as player commands).
 Additional commands can be defined by separating them with `|` character. If you want to use a `|` character in the message use `\|`.
 
-Looking for [run as admin](#opsudo-opsudo)? 
+Looking for [run as op](#opsudo-opsudo)?
+Looking for [console commands](#command-command)?
 
 !!! example
     ```YAML

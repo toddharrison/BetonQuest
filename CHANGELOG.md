@@ -24,11 +24,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - this will not work until the item rework / until the backpack contains NBT data
 - added PlayerObjectiveChangeEvent, PlayerJournalAddEvent, PlayerJournalDeleteEvent
 - Version checks for ProtocolLib and Shopkeepers support
+- Allow %player% variable for PLAYER_HEAD quest items
+- allow access to objective variable properties from other packages
+- allow point variables from other packages
+- add AureliumSkills Compatiblity
+  - added AureliumSkillsLevelCondition
+  - All existing users must add aureliumskills: 'true' to their config.yml's hook section.
+  - added AureliumStatsLevelCondition
+  - added AureliumSkillsLevelExperienceEvent
+- add LuckPerms context integration for tags
+  - All existing users must add luckperms: 'true' to their config.yml's hook section.
 ### Changed
 - math variable now allows rounding output with the ~ operator
 - changed package names from `pl.betoncraft.betonquest` to `org.betonquest.betonquest`
 - all objectives that can be advanced without directly completing now support notify
 - all objectives that can be advanced without directly completing now support `left`, `amount` and `total` variables
+- `action` objective cancels now the event, before other plugins check for it (better third-party support)
+- the French translation has been updated
 ### Deprecated
 ### Removed
 - `message` event
@@ -75,6 +87,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - sometimes messages in a conversation are not send when packet interceptor is used
 - added missing config options to the default config
 - `menu open` event does not show the previous menu again anymore
+- quest item empty name comparison
+- customized built-in messages that use the advancementIO
+- fix books not parsing color codes
+- fix RPGMenu error when teleport events are used as click events
 ### Security
 - it was possible to put a QuestItem into a chest
 - the take event is now threadsafe

@@ -19,6 +19,7 @@ import org.betonquest.betonquest.commands.JournalCommand;
 import org.betonquest.betonquest.commands.LangCommand;
 import org.betonquest.betonquest.commands.QuestCommand;
 import org.betonquest.betonquest.compatibility.Compatibility;
+import org.betonquest.betonquest.compatibility.protocollib.FreezeEvent;
 import org.betonquest.betonquest.conditions.AdvancementCondition;
 import org.betonquest.betonquest.conditions.AlternativeCondition;
 import org.betonquest.betonquest.conditions.ArmorCondition;
@@ -150,7 +151,36 @@ import org.betonquest.betonquest.notify.SubTitleNotifyIO;
 import org.betonquest.betonquest.notify.SuppressNotifyIO;
 import org.betonquest.betonquest.notify.TitleNotifyIO;
 import org.betonquest.betonquest.notify.TotemNotifyIO;
-import org.betonquest.betonquest.objectives.*;
+import org.betonquest.betonquest.objectives.ActionObjective;
+import org.betonquest.betonquest.objectives.ArrowShootObjective;
+import org.betonquest.betonquest.objectives.BlockObjective;
+import org.betonquest.betonquest.objectives.BreedObjective;
+import org.betonquest.betonquest.objectives.BrewObjective;
+import org.betonquest.betonquest.objectives.ChestPutObjective;
+import org.betonquest.betonquest.objectives.CommandObjective;
+import org.betonquest.betonquest.objectives.ConsumeObjective;
+import org.betonquest.betonquest.objectives.CraftingObjective;
+import org.betonquest.betonquest.objectives.DelayObjective;
+import org.betonquest.betonquest.objectives.DieObjective;
+import org.betonquest.betonquest.objectives.EnchantObjective;
+import org.betonquest.betonquest.objectives.EntityInteractObjective;
+import org.betonquest.betonquest.objectives.ExperienceObjective;
+import org.betonquest.betonquest.objectives.FishObjective;
+import org.betonquest.betonquest.objectives.JumpObjective;
+import org.betonquest.betonquest.objectives.KillPlayerObjective;
+import org.betonquest.betonquest.objectives.LocationObjective;
+import org.betonquest.betonquest.objectives.LoginObjective;
+import org.betonquest.betonquest.objectives.LogoutObjective;
+import org.betonquest.betonquest.objectives.MobKillObjective;
+import org.betonquest.betonquest.objectives.PasswordObjective;
+import org.betonquest.betonquest.objectives.PickupObjective;
+import org.betonquest.betonquest.objectives.RespawnObjective;
+import org.betonquest.betonquest.objectives.RideObjective;
+import org.betonquest.betonquest.objectives.ShearObjective;
+import org.betonquest.betonquest.objectives.SmeltingObjective;
+import org.betonquest.betonquest.objectives.StepObjective;
+import org.betonquest.betonquest.objectives.TameObjective;
+import org.betonquest.betonquest.objectives.VariableObjective;
 import org.betonquest.betonquest.utils.BStatsMetrics;
 import org.betonquest.betonquest.utils.PlayerConverter;
 import org.betonquest.betonquest.utils.Utils;
@@ -699,6 +729,7 @@ public class BetonQuest extends JavaPlugin {
         registerEvents("notify", NotifyEvent.class);
         registerEvents("notifyall", NotifyAllEvent.class);
         registerEvents("chat", ChatEvent.class);
+        registerEvents("freeze", FreezeEvent.class);
 
         // register objectives
         registerObjectives("location", LocationObjective.class);
@@ -1071,6 +1102,7 @@ public class BetonQuest extends JavaPlugin {
         }
 
         rpgMenu.onDisable();
+        FreezeEvent.cleanup();
     }
 
     /**

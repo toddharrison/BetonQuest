@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - all objectives that can be advanced without directly completing now support `left`, `amount` and `total` variables
 - `action` objective cancels now the event, before other plugins check for it (better third-party support)
 - the French translation has been updated
+- AureliumSkills updated to version Beta1.2.5
 ### Deprecated
 ### Removed
 - `message` event
@@ -93,6 +94,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - customized built-in messages that use the advancementIO
 - fix books not parsing color codes
 - fix RPGMenu error when teleport events are used as click events
+- BlockSelector without a namespace but starting with `:` did not work and threw an exception
 ### Security
 - it was possible to put a QuestItem into a chest
 - the take event is now threadsafe

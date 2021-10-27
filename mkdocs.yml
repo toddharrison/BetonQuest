@@ -1,12 +1,11 @@
 site_name: BetonQuest
 site_author: BetonQuest Organisation
 site_url: https://docs.betonquest.org/
-site_dir: target/documentation
-docs_dir: documentation
+site_dir: target/docs
+docs_dir: docs
 repo_name: BetonQuest on GitHub
-edit_uri: /BetonQuest/BetonQuest/edit/master/documentation/
 repo_url: https://github.com/BetonQuest/BetonQuest
-copyright: '© 2020  BetonQuest Organisation. GPLv3'
+copyright: '© 2014-2021  BetonQuest Organisation. GPLv3'
 
 
 extra_css:
@@ -29,9 +28,9 @@ theme:
     - navigation.tabs.sticky
     - navigation.tracking
     - navigation.sections
-    - navigation.expand
     - navigation.top
     - search.share
+    - navigation.indexes
     - search.suggest
   palette:
     - scheme: slate
@@ -75,6 +74,10 @@ markdown_extensions:
   - pymdownx.emoji:
       emoji_index: !!python/name:materialx.emoji.twemoji
       emoji_generator: !!python/name:materialx.emoji.to_svg
+      options:
+        custom_icons:
+          - custom_theme/.icons
+
   - pymdownx.inlinehilite
   - pymdownx.magiclink
   - pymdownx.mark
@@ -121,14 +124,16 @@ extra:
   social:
     - icon: fontawesome/brands/discord
       link: https://discord.gg/rK6mfHq
-    - icon: fontawesome/brands/patreon
-      link: https://patreon.com/betonquest
+    - icon: brands/opencollective-icon
+      link: https://opencollective.com/betonquest
     - icon: fontawesome/brands/github
       link: https://github.com/BetonQuest/BetonQuest
-    - icon: fontawesome/solid/archive
-      link: https://betonquest.org/old
     - icon: fontawesome/solid/faucet
       link: https://spigotmc.org/resources/betonquest.2117/
+    - icon: fontawesome/solid/archive
+      link: https://betonquest.org/old
+    - icon: fontawesome/solid/envelope
+      link: mailto://contact@betonquest.org
 
 #Notice that here are a few strange looking hairspaces in here.
 #They make the space between the emojis and the text look equal
@@ -167,9 +172,18 @@ nav:
       - '⚙️ API': API/API.md
   - '🧪 Participate':
       - '🤝 Overview': Participate/Overview.md
-      - '📰 Setup IDE': Participate/SetupIDE.md
-      - 'Code':
-          - '📚 Contributing Guidelines': Participate/Code/Contributing-Guidelines.md
-          - '🏭 Versioning & Releasing': Participate/Code/Versioning-and-Releasing.md
-      - 'Docs':
-          - '📚 Guidelines': Participate/Docs/Guidelines.md
+      - '🚩 Setup Project': Participate/Setup-Project.md
+      - Process:
+          - '🧬 Create a new Branch': Participate/Process/Create-a-new-Branch.md
+          - '👨‍🔧 Changing Code':
+              - Participate/Process/Code/index.md
+              - '🕵️‍♂️ Checking Requirements': Participate/Process/Code/Checking-Requirements.md
+              - '📥 Adding a Dependency': Participate/Process/Code/Adding-a-new-Dependency.md
+          - '👨‍🏫 Changing Docs':
+              - Participate/Process/Docs/index.md
+              - '✒️ Fundamental Principles': Participate/Process/Docs/Principles.md
+              - '📚 Guidelines': Participate/Process/Docs/Guidelines.md
+          - '📑 Maintaining the Changelog': Participate/Process/Maintaining-the-Changelog.md
+          - '🏁 Submitting Changes': Participate/Process/Submitting-Changes.md
+      - Misc:
+          - '🏭 Versioning & Releasing': Participate/Misc/Versioning-and-Releasing.md

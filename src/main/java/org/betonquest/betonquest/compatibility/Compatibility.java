@@ -1,6 +1,5 @@
 package org.betonquest.betonquest.compatibility;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.CustomLog;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.compatibility.aureliumskills.AureliumSkillsIntegrator;
@@ -54,7 +53,6 @@ public class Compatibility implements Listener {
     private final List<String> hooked = new ArrayList<>();
 
     @SuppressWarnings("PMD.AssignmentToNonFinalStatic")
-    @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
     public Compatibility() {
         instance = this;
 
@@ -100,7 +98,7 @@ public class Compatibility implements Listener {
                         string.append(plugin).append(", ");
                     }
                     final String plugins = string.substring(0, string.length() - 2);
-                    LOG.info(null, "Hooked into " + plugins + "!");
+                    LOG.info("Hooked into " + plugins + "!");
                 }
             }
         }.runTask(BetonQuest.getInstance());
@@ -154,7 +152,7 @@ public class Compatibility implements Listener {
 
         // hook into the plugin if it's enabled in the config
         if ("true".equalsIgnoreCase(betonQuest.getConfig().getString("hook." + name.toLowerCase(Locale.ROOT)))) {
-            LOG.info(null, "Hooking into " + name);
+            LOG.info("Hooking into " + name);
 
             // log important information in case of an error
             try {
@@ -165,8 +163,8 @@ public class Compatibility implements Listener {
                         hookedPlugin.getName(),
                         hookedPlugin.getDescription().getVersion(),
                         exception.getMessage());
-                LOG.warning(null, message, exception);
-                LOG.warning(null, "BetonQuest will work correctly, except for that single integration. "
+                LOG.warning(message, exception);
+                LOG.warning("BetonQuest will work correctly, except for that single integration. "
                         + "You can turn it off by setting 'hook." + name.toLowerCase(Locale.ROOT)
                         + "' to false in config.yml file.");
             } catch (final RuntimeException | LinkageError exception) {
@@ -176,8 +174,8 @@ public class Compatibility implements Listener {
                         BetonQuest.getInstance().getDescription().getVersion(),
                         Bukkit.getVersion(),
                         exception.getMessage());
-                LOG.error(null, message, exception);
-                LOG.warning(null, "BetonQuest will work correctly, except for that single integration. "
+                LOG.error(message, exception);
+                LOG.warning("BetonQuest will work correctly, except for that single integration. "
                         + "You can turn it off by setting 'hook." + name.toLowerCase(Locale.ROOT)
                         + "' to false in config.yml file.");
             }

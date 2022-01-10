@@ -62,6 +62,7 @@ public final class NPCHider extends BukkitRunnable implements Listener {
         return instance;
     }
 
+    @SuppressWarnings("PMD.CognitiveComplexity")
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     private void loadFromConfig() {
 
@@ -128,7 +129,7 @@ public final class NPCHider extends BukkitRunnable implements Listener {
     public void applyVisibility(final Player player, final Integer npcID) {
         final NPC npc = CitizensAPI.getNPCRegistry().getById(npcID);
         if (npc == null) {
-            LOG.warning(null, "NPCHider could not update visibility for npc " + npcID + ": No npc with this id found!");
+            LOG.warning("NPCHider could not update visibility for npc " + npcID + ": No npc with this id found!");
             return;
         }
         if (npc.isSpawned()) {

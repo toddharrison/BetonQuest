@@ -1,7 +1,7 @@
 package org.betonquest.betonquest.utils;
 
-import org.betonquest.betonquest.api.logger.util.BetonQuestLoggerValidationProvider;
 import org.betonquest.betonquest.config.Config;
+import org.betonquest.betonquest.modules.logger.util.BetonQuestLoggerService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
@@ -15,8 +15,8 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * This class test some utility class methods.
  */
-@ExtendWith(BetonQuestLoggerValidationProvider.class)
-public class UtilsTest {
+@ExtendWith(BetonQuestLoggerService.class)
+class UtilsTest {
 
     /**
      * Default constructor.
@@ -32,7 +32,7 @@ public class UtilsTest {
     }
 
     @Test
-    public void testPagesFromString() {
+    void testPagesFromString() {
         try (MockedStatic<Config> config = prepareConfig()) {
             final String journalText = "&aActive Quest: &aFlint &1wants you to visit the Farm located at 191, 23, -167!";
 

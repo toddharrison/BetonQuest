@@ -17,17 +17,17 @@ change plugin configurations as you wish etc.
 Minecraft. We are going to install Paper (an improved version of Spigot) on your computer. 
 Head over to <a href="https://papermc.io/downloads" target="_blank">Papers download page</a> and click on the button you
 see in the image below (the numbers will not match up, ignore that).
-<span class="centered">![PaperMCDownload](../../media/content/Tutorials/papermc.png)</span>
+<span class="centered">![PaperMCDownload](../../_media/content/Tutorials/papermc.png)</span>
 
 
 - **Step 2:** Create a new folder for the server in a place you can easily access. 
 Making a new folder is important because the server will create a lot of files that would mess up your Desktop etc.
 Move the downloaded file in the newly created folder.
-If the file's name is something like "paper-1.17.0-100" rename it to `paper`.
+If the file's name is something like "paper-X.YY.Z-100" rename it to `paper`.
 If the name contains a ".jar" ending just change the part in front of the ending to `paper`.
 Example: 
-paper-1.17.0-100 -> paper
-paper-1.17.0-100.jar -> paper.jar
+paper-X.YY.Z-100 -> paper
+paper-X.YY.Z-100.jar -> paper.jar
 
 - **Step 3:** You need a start script to start your server.
 Open your text editor and create a file named `start.bat` (For Linux and Mac: Create a `start.sh` file instead).

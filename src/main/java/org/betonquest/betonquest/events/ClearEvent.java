@@ -40,7 +40,7 @@ public class ClearEvent extends QuestEvent {
         for (int i = 0; i < types.length; i++) {
             try {
                 types[i] = EntityType.valueOf(entities[i].toUpperCase(Locale.ROOT));
-            } catch (IllegalArgumentException e) {
+            } catch (final IllegalArgumentException e) {
                 throw new InstructionParseException("Entity type '" + entities[i] + "' does not exist", e);
             }
         }
@@ -54,7 +54,7 @@ public class ClearEvent extends QuestEvent {
         }
     }
 
-    @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.NPathComplexity"})
+    @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.NPathComplexity", "PMD.CognitiveComplexity"})
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     @Override
     protected Void execute(final String playerID) throws QuestRuntimeException {
@@ -62,9 +62,6 @@ public class ClearEvent extends QuestEvent {
         final Collection<Entity> entities = location.getWorld().getEntities();
         loop:
         for (final Entity entity : entities) {
-            if (!(entity instanceof LivingEntity)) {
-                continue;
-            }
             if (name != null && (entity.getCustomName() == null || !entity.getCustomName().equals(name))) {
                 continue;
             }

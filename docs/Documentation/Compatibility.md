@@ -70,10 +70,10 @@ drunkquality 3
 ```
 
 #### Has Brew: `hasbrew`
-This condition is true if the player has the given grew with the specified amount in his inventory.
+This condition is true if the player has the given brew with the specified amount in his inventory.
 
 ``` YAML linenums="1"
-hasbrew MY_BREW 2
+hasbrew 2 MY_BREW
 ```
 
 ### Events
@@ -89,7 +89,7 @@ givebrew 1 10 MY_BREW
 Removes the specified drink from the players inventory. An amount needs to be specified.
 
 ``` YAML linenums="1"
-takebrew MY_OTHER_BREW 2
+takebrew 2 MY_OTHER_BREW 
 ```
 
 ## NPC's using <a href="https://www.spigotmc.org/resources/citizens.13811/" target="_blank">Citizens</a>
@@ -829,7 +829,7 @@ on large servers if used together with the [npc hider interval](./Configuration.
 ProtocolLib also enables a conversation IO that makes use of a chat menu system.
 
 <video controls loop
-     src="../../media/content/Documentation/Conversations/MenuConvIO.mp4"
+     src="../../_media/content/Documentation/Conversations/MenuConvIO.mp4"
      width="780" height="500">
  Sorry, your browser doesn't support embedded videos.
  </video>

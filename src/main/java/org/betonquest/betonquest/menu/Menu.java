@@ -22,7 +22,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import java.util.ArrayList;
@@ -93,7 +92,7 @@ public class Menu extends SimpleYMLConfig implements Listener {
     @SuppressWarnings("PMD.AvoidFieldNameMatchingTypeName")
     private final RPGMenu menu = BetonQuest.getInstance().getRpgMenu();
 
-    @SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.EmptyCatchBlock", "PMD.NPathComplexity", "PMD.CyclomaticComplexity"})
+    @SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.EmptyCatchBlock", "PMD.NPathComplexity", "PMD.CyclomaticComplexity", "PMD.CognitiveComplexity"})
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     public Menu(final MenuID menuID) throws InvalidConfigurationException {
         super(menuID.getFullID(), menuID.getFile());
@@ -225,12 +224,6 @@ public class Menu extends SimpleYMLConfig implements Listener {
 
     @EventHandler
     public void onItemClick(final PlayerInteractEvent event) {
-        if (event.isCancelled()) {
-            return;
-        }
-        if (event.getAction() == Action.PHYSICAL) {
-            return;
-        }
         //check if item is bound item
         if (!boundItem.get().compare(event.getItem())) {
             return;

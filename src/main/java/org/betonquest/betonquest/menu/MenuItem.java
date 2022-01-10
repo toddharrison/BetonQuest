@@ -70,7 +70,7 @@ public class MenuItem extends SimpleYMLSection {
      */
     private final boolean close;
 
-    @SuppressWarnings({"PMD.ExceptionAsFlowControl", "PMD.EmptyCatchBlock", "PMD.CyclomaticComplexity"})
+    @SuppressWarnings({"PMD.ExceptionAsFlowControl", "PMD.EmptyCatchBlock", "PMD.CyclomaticComplexity", "PMD.CognitiveComplexity"})
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     public MenuItem(final ConfigPackage pack, final String name, final ConfigurationSection section) throws InvalidConfigurationException {
         super(name, section);
@@ -200,6 +200,7 @@ public class MenuItem extends SimpleYMLSection {
      * @return the item as a bukkit item stack
      */
     @SuppressWarnings({"PMD.AvoidCatchingGenericException", "PMD.AvoidCatchingNPE"})
+    @SuppressFBWarnings("DCN_NULLPOINTER_EXCEPTION")
     public ItemStack generateItem(final Player player) {
         try {
             final String playerId = PlayerConverter.getID(player);

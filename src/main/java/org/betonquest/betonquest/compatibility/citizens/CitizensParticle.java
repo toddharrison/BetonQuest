@@ -1,7 +1,6 @@
 package org.betonquest.betonquest.compatibility.citizens;
 
 import de.slikey.effectlib.util.DynamicLocation;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.CustomLog;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
@@ -42,8 +41,7 @@ public class CitizensParticle extends BukkitRunnable {
     private int interval = 100;
     private int tick;
 
-    @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.NPathComplexity", "PMD.AssignmentToNonFinalStatic"})
-    @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
+    @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.NPathComplexity", "PMD.AssignmentToNonFinalStatic", "PMD.CognitiveComplexity"})
     public CitizensParticle() {
         super();
         instance = this;

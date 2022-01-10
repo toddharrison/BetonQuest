@@ -134,7 +134,7 @@ public class RPGMenu {
      *
      * @return information if the reload was successful
      */
-    @SuppressWarnings({"PMD.NPathComplexity", "PMD.CyclomaticComplexity"})
+    @SuppressWarnings({"PMD.NPathComplexity", "PMD.CyclomaticComplexity", "PMD.CognitiveComplexity"})
     @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
     public ReloadInformation reloadData() {
         if (!menus.isEmpty()) {
@@ -148,7 +148,7 @@ public class RPGMenu {
         try {
             this.config = new RPGMenuConfig();
         } catch (final InvalidConfigurationException e) {
-            LOG.error(null, "Invalid Configuration.", e);
+            LOG.error("Invalid Configuration.", e);
             info.addError(e);
             info.result = ReloadResult.FAILED;
             return info;
@@ -180,7 +180,7 @@ public class RPGMenu {
             }
         }
         final ChatColor color = (info.result == ReloadResult.FULL_SUCCESS) ? ChatColor.GREEN : ChatColor.YELLOW;
-        LOG.info(null, color + "Reloaded §7" + info.loaded + color + " menus");
+        LOG.info(color + "Reloaded §7" + info.loaded + color + " menus");
         return info;
     }
 

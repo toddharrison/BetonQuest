@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Log during `/q reload`
     - New command `/q debug ingame`
   - Debug logging
-    - now with 10 minutes history
+    - Log history length can be freely configured 
 - NotifyIO "totemIO"
 - Support for MythicLib
 - FastAsyncWorldEdit compatibility
@@ -36,6 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - All existing users must add luckperms: 'true' to their config.yml's hook section.
 - ProtocolLib compatibility feature: `freeze` event. Blocks the player from moving for the specified amount of ticks.
 - added CommandObjective
+- API method in objective API that starts and stops it per player
+- added EquipItemObjective
 ### Changed
 - math variable now allows rounding output with the ~ operator
 - changed package names from `pl.betoncraft.betonquest` to `org.betonquest.betonquest`
@@ -44,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `action` objective cancels now the event, before other plugins check for it (better third-party support)
 - the French translation has been updated
 - AureliumSkills updated to version Beta1.2.5
+- PikaMug Quests updated to version 4.1.3
 ### Deprecated
 ### Removed
 - `message` event
@@ -51,7 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `playsound` event
 - more deprecated stuff
 - Support for MMOLib
-### Fixes
+### Fixed
 - parsing of math variable
 - `npcrange` objective is triggered at wrong time
 - Citizens compatibility for not spawned NPCs
@@ -95,9 +98,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix books not parsing color codes
 - fix RPGMenu error when teleport events are used as click events
 - BlockSelector without a namespace but starting with `:` did not work and threw an exception
+- exception during reload, when npc_holograms are disabled
+- `entities` condition and `clear` event now support not living entities
+- mmoitems item creation only worked with uppercase id's
+- fix RPGMenu bound items not always working
+- reload with an invalid PlayerHider causes a NPE 
+- QuestItems could be eaten, this was caused by a change mc behaviour
+- command, sudo and opsudo events didn't work with conditions
+- interact objective did not work with armorstands
 ### Security
 - it was possible to put a QuestItem into a chest
 - the take event is now threadsafe
+- bump log4j dependency 2.15.0 to fix CVE-2021-44228
 
 ## [1.12.1] - 2021-02-05
 ### Added

@@ -11,6 +11,7 @@ import org.bukkit.GameMode;
 import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
@@ -73,7 +74,7 @@ public class QuestItemHandler implements Listener {
         }
     }
 
-    @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.AvoidLiteralsInIfCondition"})
+    @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.AvoidLiteralsInIfCondition", "PMD.CognitiveComplexity"})
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     @EventHandler(ignoreCancelled = true)
     public void onItemMove(final InventoryClickEvent event) {
@@ -244,30 +245,22 @@ public class QuestItemHandler implements Listener {
         }
     }
 
-    @SuppressFBWarnings
     @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler()
     public void onInteractEvent(final PlayerInteractEvent event) {
-        if (event.getPlayer().getGameMode() == GameMode.CREATIVE) {
+        if (event.getPlayer().getGameMode() == GameMode.CREATIVE || event.useInteractedBlock() == Event.Result.DENY && event.useItemInHand() == Event.Result.DENY) {
             return;
         }
         final ItemStack item = event.getItem();
-        if (item == null) {
-            return;
-        }
-
-        if (!EnchantmentTarget.TOOL.includes(item.getType())) {
+        if (item != null && !EnchantmentTarget.TOOL.includes(item.getType())) {
             // this prevents players from interacting with "quest item" blocks
             final String playerID = PlayerConverter.getID(event.getPlayer());
             if (Journal.isJournal(playerID, item) || Utils.isQuestItem(item)) {
-                // TODO: Allow interaction of "quest items" that are claim protection blocks
-                if (Utils.isQuestItem(item) && isProtectionBlockQuestItem(item)) {
-                    return;
+                // Allow interaction of "quest items" that are claim protection blocks, otherwise cancel event
+                if (!Utils.isQuestItem(item) || !isProtectionBlockQuestItem(item)) {
+                    event.setCancelled(true);
                 }
-
-                event.setCancelled(true);
             }
-
         }
     }
 

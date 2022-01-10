@@ -1,6 +1,5 @@
 package org.betonquest.betonquest.compatibility.vault;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.CustomLog;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
@@ -20,7 +19,6 @@ public class VaultIntegrator implements Integrator {
     private Economy economy;
 
     @SuppressWarnings("PMD.AssignmentToNonFinalStatic")
-    @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
     public VaultIntegrator() {
         instance = this;
         plugin = BetonQuest.getInstance();
@@ -53,14 +51,14 @@ public class VaultIntegrator implements Integrator {
             economy = economyProvider.getProvider();
         }
         if (economy == null) {
-            LOG.warning(null, "There is no economy plugin on the server!");
+            LOG.warning("There is no economy plugin on the server!");
         } else {
             plugin.registerEvents("money", MoneyEvent.class);
             plugin.registerConditions("money", MoneyCondition.class);
             plugin.registerVariable("money", MoneyVariable.class);
         }
         if (permission == null) {
-            LOG.warning(null, "Could not get permission provider!");
+            LOG.warning("Could not get permission provider!");
         } else {
             plugin.registerEvents("permission", PermissionEvent.class);
         }

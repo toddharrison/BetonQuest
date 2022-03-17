@@ -35,16 +35,16 @@ public class PointVariable extends Variable {
             try {
                 final ID id = new ID(instruction.getPackage(), packagePath + "." + pointCategory) {
                 };
-                category = id.getPackage().getName() + "." + pointCategory;
+                category = id.getPackage().getPackagePath() + "." + pointCategory;
             } catch (final ObjectNotFoundException e) {
-                LOG.warning(instruction.getPackage(), e.getMessage());
+                LOG.warn(instruction.getPackage(), e.getMessage());
             }
 
         } else if (instruction.size() == 3) {
             if (category.contains("*")) {
                 category = category.replace('*', '.');
             } else {
-                category = instruction.getPackage().getName() + "." + category;
+                category = instruction.getPackage().getPackagePath() + "." + category;
             }
         }
 

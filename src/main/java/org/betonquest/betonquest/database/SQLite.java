@@ -2,7 +2,7 @@ package org.betonquest.betonquest.database;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.CustomLog;
-import org.bukkit.plugin.Plugin;
+import org.betonquest.betonquest.BetonQuest;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,7 +24,7 @@ public class SQLite extends Database {
      * @param plugin     Plugin instance
      * @param dbLocation Location of the Database (Must end in .db)
      */
-    public SQLite(final Plugin plugin, final String dbLocation) {
+    public SQLite(final BetonQuest plugin, final String dbLocation) {
         super(plugin);
         this.dbLocation = dbLocation;
     }
@@ -47,7 +47,7 @@ public class SQLite extends Database {
         try {
             Class.forName("org.sqlite.JDBC");
             connection = DriverManager
-                    .getConnection("jdbc:sqlite:" + plugin.getDataFolder().toPath().toString() + "/" + dbLocation);
+                    .getConnection("jdbc:sqlite:" + plugin.getDataFolder().toPath() + "/" + dbLocation);
         } catch (ClassNotFoundException | SQLException e) {
             LOG.error("There was an exception with SQL", e);
         }

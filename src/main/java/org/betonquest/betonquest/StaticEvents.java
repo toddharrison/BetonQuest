@@ -1,8 +1,8 @@
 package org.betonquest.betonquest;
 
 import lombok.CustomLog;
+import org.betonquest.betonquest.api.config.QuestPackage;
 import org.betonquest.betonquest.config.Config;
-import org.betonquest.betonquest.config.ConfigPackage;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
 import org.betonquest.betonquest.id.EventID;
 import org.bukkit.configuration.ConfigurationSection;
@@ -45,11 +45,11 @@ public class StaticEvents {
         if (deleted) {
             LOG.debug("Previous timers has been canceled");
         }
-        for (final ConfigPackage pack : Config.getPackages().values()) {
-            final String packName = pack.getName();
+        for (final QuestPackage pack : Config.getPackages().values()) {
+            final String packName = pack.getPackagePath();
             LOG.debug(pack, "Searching package " + packName);
             // get those hours and events
-            final ConfigurationSection config = pack.getMain().getConfig().getConfigurationSection("static");
+            final ConfigurationSection config = pack.getConfig().getConfigurationSection("static");
             if (config == null) {
                 LOG.debug(pack, "There are no static events defined, skipping");
                 continue;
@@ -59,7 +59,7 @@ public class StaticEvents {
                 final String value = config.getString(key);
                 final long timeStamp = getTimestamp(key);
                 if (timeStamp < 0) {
-                    LOG.warning(pack, "Incorrect time value in static event declaration (" + key + "), skipping this one");
+                    LOG.warn(pack, "Incorrect time value in static event declaration (" + key + "), skipping this one");
                     continue;
                 }
                 LOG.debug(pack, "Scheduling static events " + value + " at hour " + key + ". Current timestamp: "
@@ -72,7 +72,7 @@ public class StaticEvents {
                     }
                     TIMERS.add(new EventTimer(timeStamp, eventIDS));
                 } catch (final ObjectNotFoundException e) {
-                    LOG.warning(pack, "Could not load static event '" + packName + "." + key + "': " + e.getMessage(), e);
+                    LOG.warn(pack, "Could not load static event '" + packName + "." + key + "': " + e.getMessage(), e);
                 }
             }
         }
@@ -104,7 +104,7 @@ public class StaticEvents {
         try {
             timeStamp = new SimpleDateFormat("dd.MM.yy HH:mm", Locale.ROOT).parse(timeString).getTime();
         } catch (final ParseException e) {
-            LOG.warning("Error in time setting in static event declaration: " + hour, e);
+            LOG.warn("Error in time setting in static event declaration: " + hour, e);
         }
         // if the timestamp is too old, add one day to it
         if (timeStamp < new Date().getTime()) {

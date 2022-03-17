@@ -1,9 +1,9 @@
 package org.betonquest.betonquest.compatibility.mythicmobs;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitAdapter;
-import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMobDeathEvent;
-import io.lumine.xikage.mythicmobs.mobs.ActiveMob;
+import io.lumine.mythic.bukkit.BukkitAdapter;
+import io.lumine.mythic.bukkit.events.MythicMobDeathEvent;
+import io.lumine.mythic.core.mobs.ActiveMob;
 import lombok.CustomLog;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.Instruction;
@@ -47,7 +47,7 @@ public class MythicMobKillObjective extends CountingObjective implements Listene
 
         final String unsafeMinMobLevel = instruction.getOptional("minLevel");
         final String unsafeMaxMobLevel = instruction.getOptional("maxLevel");
-        final String packName = instruction.getPackage().getName();
+        final String packName = instruction.getPackage().getPackagePath();
 
         minMobLevel = unsafeMinMobLevel == null ? new VariableNumber(Double.NEGATIVE_INFINITY) : new VariableNumber(packName, unsafeMinMobLevel);
         maxMobLevel = unsafeMaxMobLevel == null ? new VariableNumber(Double.POSITIVE_INFINITY) : new VariableNumber(packName, unsafeMaxMobLevel);

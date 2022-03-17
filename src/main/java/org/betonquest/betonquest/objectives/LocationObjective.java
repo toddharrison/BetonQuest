@@ -38,9 +38,10 @@ public class LocationObjective extends Objective implements Listener {
         qreHandler.handle(() -> {
             final String playerID = PlayerConverter.getID(event.getPlayer());
             final Location location = loc.getLocation(playerID);
-            if (containsPlayer(playerID) && event.getPlayer().getWorld().equals(location.getWorld())) {
+            final Location toLocation = event.getTo();
+            if (containsPlayer(playerID) && toLocation.getWorld().equals(location.getWorld())) {
                 final double pRange = range.getDouble(playerID);
-                if (event.getTo().distanceSquared(location) <= pRange * pRange && super.checkConditions(playerID)) {
+                if (toLocation.distanceSquared(location) <= pRange * pRange && super.checkConditions(playerID)) {
                     completeObjective(playerID);
                 }
             }
@@ -69,7 +70,7 @@ public class LocationObjective extends Objective implements Listener {
             try {
                 location = loc.getLocation(playerID);
             } catch (final QuestRuntimeException e) {
-                LOG.warning(instruction.getPackage(), "Error while getting location property in '" + instruction.getID() + "' objective: "
+                LOG.warn(instruction.getPackage(), "Error while getting location property in '" + instruction.getID() + "' objective: "
                         + e.getMessage(), e);
                 return "";
             }

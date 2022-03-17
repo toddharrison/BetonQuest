@@ -53,11 +53,11 @@ public class CitizensListener implements Listener {
         rightClick = new RightClickListener();
         Bukkit.getPluginManager().registerEvents(rightClick, plugin);
 
-        if (plugin.getConfig().getBoolean("acceptNPCLeftClick")) {
+        if (plugin.getPluginConfig().getBoolean("acceptNPCLeftClick")) {
             leftClick = new LeftClickListener();
             Bukkit.getPluginManager().registerEvents(leftClick, plugin);
         }
-        interactionLimit = plugin.getConfig().getInt("npcInteractionLimit", 500);
+        interactionLimit = plugin.getPluginConfig().getInt("npcInteractionLimit", 500);
     }
 
     @SuppressWarnings({"PMD.AvoidLiteralsInIfCondition", "PMD.CyclomaticComplexity", "PMD.NPathComplexity"})
@@ -79,7 +79,7 @@ public class CitizensListener implements Listener {
             try {
                 Config.sendNotify(null, playerID, "busy", "busy,error");
             } catch (final QuestRuntimeException e) {
-                LOG.warning("The notify system was unable to play a sound for the 'busy' category. Error was: '" + e.getMessage() + "'", e);
+                LOG.warn("The notify system was unable to play a sound for the 'busy' category. Error was: '" + e.getMessage() + "'", e);
             }
             return;
         }

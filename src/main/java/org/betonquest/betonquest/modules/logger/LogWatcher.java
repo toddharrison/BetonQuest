@@ -2,6 +2,7 @@ package org.betonquest.betonquest.modules.logger;
 
 import lombok.CustomLog;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
+import org.betonquest.betonquest.api.config.ConfigurationFile;
 import org.betonquest.betonquest.modules.logger.custom.ChatLogFormatter;
 import org.betonquest.betonquest.modules.logger.custom.DebugLogFormatter;
 import org.betonquest.betonquest.modules.logger.custom.HistoryLogHandler;
@@ -13,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.time.InstantSource;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -30,22 +32,22 @@ import java.util.logging.Logger;
 public final class LogWatcher {
 
     /**
+     * The file path to the latest.log.
+     */
+    private static final String LOG_FILE_PATH = "/latest.log";
+    /**
      * The config path that holds the debug state.
      */
     private static final String CONFIG_PATH = "debug";
-    /**
-     * The file path to the latest.log.
-     */
-    private static final String LOG_FILE_PATH = "/logs/latest.log";
 
-    /**
-     * The related JavaPlugin for this LogWatcher.
-     */
-    private final Plugin plugin;
     /**
      * The latest.log file.
      */
     private final File logFile;
+    /**
+     * The {@link ConfigurationFile} where to configure debugging.
+     */
+    private final ConfigurationFile config;
     /**
      * The {@link HistoryLogHandler} that holds old LogRecords.
      */
@@ -62,29 +64,29 @@ public final class LogWatcher {
     /**
      * Setups the debug and in-game chat log.
      *
-     * @param plugin          The related {@link Plugin} instance
+     * @param logFileFolder   The folder where the logfiles should be written
      * @param bukkitAudiences The {@link BukkitAudiences} instance
      */
-    public LogWatcher(final Plugin plugin, final BukkitAudiences bukkitAudiences) {
-        this.plugin = plugin;
-        this.logFile = new File(plugin.getDataFolder(), LOG_FILE_PATH);
+    public LogWatcher(final Plugin plugin, final File logFileFolder, final ConfigurationFile config, final BukkitAudiences bukkitAudiences) {
+        this.logFile = new File(logFileFolder, LOG_FILE_PATH);
+        this.config = config;
         playerFilters = new HashMap<>();
 
-        historyHandler = setupDebugLogHandler(Bukkit.getLogger().getParent());
+        historyHandler = setupDebugLogHandler(plugin, Bukkit.getLogger().getParent());
         setupPlayerLogHandler(Bukkit.getLogger().getParent(), bukkitAudiences);
 
-        if (historyHandler != null && plugin.getConfig().getBoolean(CONFIG_PATH + ".enabled", false)) {
+        if (historyHandler != null && this.config.getBoolean(CONFIG_PATH + ".enabled", false)) {
             startDebug();
         }
     }
 
-    private HistoryLogHandler setupDebugLogHandler(final Logger logger) {
+    private HistoryLogHandler setupDebugLogHandler(final Plugin plugin, final Logger logger) {
         try {
             renameDebugLogFile();
             final FileHandler fileHandler = new FileHandler(logFile.getAbsolutePath());
             fileHandler.setFormatter(new DebugLogFormatter());
-            final HistoryLogHandler historyHandler = new HistoryLogHandler(fileHandler,
-                    plugin.getConfig().getInt(CONFIG_PATH + ".history_in_minutes", 10));
+            final HistoryLogHandler historyHandler = new HistoryLogHandler(plugin, plugin.getServer().getScheduler(), fileHandler,
+                    InstantSource.system(), config.getInt(CONFIG_PATH + ".history_in_minutes", 10));
             historyHandler.setFilter(record -> debugging);
             logger.addHandler(historyHandler);
             return historyHandler;
@@ -110,8 +112,6 @@ public final class LogWatcher {
         synchronized (LogWatcher.class) {
             if (!debugging) {
                 debugging = true;
-                plugin.getConfig().set(CONFIG_PATH + ".enabled", true);
-                plugin.saveConfig();
                 historyHandler.push();
             }
         }
@@ -124,10 +124,18 @@ public final class LogWatcher {
         synchronized (LogWatcher.class) {
             if (debugging) {
                 debugging = false;
-                plugin.getConfig().set(CONFIG_PATH + ".enabled", false);
-                plugin.saveConfig();
             }
         }
+    }
+
+    /**
+     * Saves the current debugging state to the configuration file.
+     *
+     * @throws IOException Is thrown if the configuration file could not be saved
+     */
+    public void saveDebuggingToConfig() throws IOException {
+        config.set(CONFIG_PATH + ".enabled", debugging);
+        config.save();
     }
 
     /**

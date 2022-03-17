@@ -45,11 +45,11 @@ public class AdvancementNotifyIO extends NotifyIO {
     }
 
     private NamespacedKey loadAdvancement(final String message) {
-        final NamespacedKey key = new NamespacedKey(BetonQuest.getInstance(), "notify/" + UUID.randomUUID().toString());
+        final NamespacedKey key = new NamespacedKey(BetonQuest.getInstance(), "notify/" + UUID.randomUUID());
         try {
             add(key, message);
         } catch (final JsonIOException e) {
-            LOG.warning("Failed to create notification with text: '" + message + "'! Cause: " + e.getMessage(), e);
+            LOG.warn("Failed to create notification with text: '" + message + "'! Cause: " + e.getMessage(), e);
         }
         return key;
     }

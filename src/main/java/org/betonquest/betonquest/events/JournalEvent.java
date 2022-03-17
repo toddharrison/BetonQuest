@@ -72,9 +72,9 @@ public class JournalEvent extends QuestEvent {
             if (add) {
                 journal.addPointer(new Pointer(name, new Date().getTime()));
                 try {
-                    Config.sendNotify(instruction.getPackage().getName(), playerID, "new_journal_entry", null, "new_journal_entry,info");
+                    Config.sendNotify(instruction.getPackage().getPackagePath(), playerID, "new_journal_entry", null, "new_journal_entry,info");
                 } catch (final QuestRuntimeException e) {
-                    LOG.warning(instruction.getPackage(), "The notify system was unable to play a sound for the 'new_journal_entry' category in '" + getFullId() + "'. Error was: '" + e.getMessage() + "'", e);
+                    LOG.warn(instruction.getPackage(), "The notify system was unable to play a sound for the 'new_journal_entry' category in '" + getFullId() + "'. Error was: '" + e.getMessage() + "'", e);
                 }
             } else if (name != null) {
                 journal.removePointer(name);

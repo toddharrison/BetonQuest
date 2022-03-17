@@ -3,27 +3,28 @@ package org.betonquest.betonquest.utils;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.CustomLog;
 import org.betonquest.betonquest.BetonQuest;
+import org.betonquest.betonquest.api.config.ConfigAccessor;
+import org.betonquest.betonquest.api.config.QuestPackage;
 import org.betonquest.betonquest.config.Config;
-import org.betonquest.betonquest.config.ConfigAccessor;
-import org.betonquest.betonquest.config.ConfigAccessor.AccessorType;
-import org.betonquest.betonquest.config.ConfigPackage;
-import org.betonquest.betonquest.config.Zipper;
 import org.betonquest.betonquest.database.Connector;
 import org.betonquest.betonquest.database.Connector.QueryType;
 import org.betonquest.betonquest.database.Connector.UpdateType;
 import org.betonquest.betonquest.database.Database;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.id.ConditionID;
+import org.betonquest.betonquest.modules.config.Zipper;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -57,25 +58,26 @@ public final class Utils {
         final long time = new Date().getTime();
         final BetonQuest instance = BetonQuest.getInstance();
         if (!backupDatabase(new File(instance.getDataFolder(), "database-backup.yml"))) {
-            LOG.warning("There was an error during backing up the database! This does not affect"
+            LOG.warn("There was an error during backing up the database! This does not affect"
                     + " the configuration backup, nor damage your database. You should backup"
                     + " the database maually if you want to be extra safe, but it's not necessary if"
                     + " you don't want to downgrade later.");
         }
-        // create backups folder if it does not exist
-        final File backupFolder = new File(instance.getDataFolder(), "backups");
+        // create Backups folder if it does not exist
+        final File backupFolder = new File(instance.getDataFolder(), "Backups");
         if (!backupFolder.isDirectory()) {
             backupFolder.mkdir();
         }
         // zip all the files
         final String outputPath = backupFolder.getAbsolutePath() + File.separator + "backup-"
-                + instance.getConfig().getString("version", null);
-        new Zipper(instance.getDataFolder().getAbsolutePath(), outputPath);
+                + instance.getPluginConfig().getString("version", null);
+
+        Zipper.zip(instance.getDataFolder(), outputPath, "^backup.*", "^database\\.db$", "^changelog\\.txt$", "^logs$");
         // delete database backup so it doesn't make a mess later on
         new File(instance.getDataFolder(), "database-backup.yml").delete();
         // done
         LOG.debug("Done in " + (new Date().getTime() - time) + "ms");
-        LOG.info("Done, you can find the backup in \"backups\" directory.");
+        LOG.info("Done, you can find the backup in 'Backups' directory.");
     }
 
     /**
@@ -92,7 +94,7 @@ public final class Utils {
             boolean done = true;
             // prepare the config file
             databaseBackupFile.createNewFile();
-            final ConfigAccessor accessor = new ConfigAccessor(databaseBackupFile, databaseBackupFile.getName(), AccessorType.OTHER);
+            final ConfigAccessor accessor = ConfigAccessor.create(databaseBackupFile);
             final FileConfiguration config = accessor.getConfig();
             // prepare the database and map
             final HashMap<String, ResultSet> map = new HashMap<>();
@@ -103,7 +105,7 @@ public final class Utils {
             for (final String table : tables) {
                 LOG.debug("Loading " + table);
                 final String enumName = ("LOAD_ALL_" + table).toUpperCase(Locale.ROOT);
-                map.put(table, database.querySQL(QueryType.valueOf(enumName), new String[]{}));
+                map.put(table, database.querySQL(QueryType.valueOf(enumName)));
             }
             // extract data from resultsets into the config file
             for (final Map.Entry<String, ResultSet> entry : map.entrySet()) {
@@ -129,7 +131,7 @@ public final class Utils {
                                 final String value = res.getString(columnName);
                                 config.set(entry.getKey() + "." + counter + "." + columnName, value);
                             } catch (final SQLException e) {
-                                LOG.warning("Could not read SQL: " + e.getMessage(), e);
+                                LOG.warn("Could not read SQL: " + e.getMessage(), e);
                                 done = false;
                                 // do nothing, as there can be nothing done
                                 // error while loading the string means the
@@ -142,10 +144,10 @@ public final class Utils {
                 }
             }
             // save the config at the end
-            accessor.saveConfig();
+            accessor.save();
             return done;
-        } catch (IOException | SQLException e) {
-            LOG.warning("There was an error during database backup: " + e.getMessage(), e);
+        } catch (IOException | SQLException | InvalidConfigurationException e) {
+            LOG.warn("There was an error during database backup: " + e.getMessage(), e);
             final File brokenFile = new File(instance.getDataFolder(), "database-backup.yml");
             if (brokenFile.exists()) {
                 brokenFile.delete();
@@ -232,7 +234,7 @@ public final class Utils {
     /**
      * If the database backup file exists, loads it into the database.
      */
-    @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.NPathComplexity", "PMD.CognitiveComplexity"})
+    @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.NPathComplexity", "PMD.CognitiveComplexity", "PMD.NcssCount", "PMD.ExcessiveMethodLength"})
     @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
     public static void loadDatabaseFromBackup() {
         final BetonQuest instance = BetonQuest.getInstance();
@@ -243,7 +245,7 @@ public final class Utils {
         }
         LOG.info("Loading database backup!");
         // backup the database
-        final File backupFolder = new File(instance.getDataFolder(), "backups");
+        final File backupFolder = new File(instance.getDataFolder(), "Backups");
         if (!backupFolder.isDirectory()) {
             backupFolder.mkdirs();
         }
@@ -254,12 +256,18 @@ public final class Utils {
         final String filename = "old-database-" + backupNumber + ".yml";
         LOG.info("Backing up old database!");
         if (!backupDatabase(new File(backupFolder, filename))) {
-            LOG.warning("There was an error during old database backup process. This means that"
+            LOG.warn("There was an error during old database backup process. This means that"
                     + " if the plugin loaded new database (from backup), the old one would be lost "
                     + "forever. Because of that the loading of backup was aborted!");
             return;
         }
-        final ConfigAccessor accessor = new ConfigAccessor(file, "database-backup.yml", AccessorType.OTHER);
+        final ConfigAccessor accessor;
+        try {
+            accessor = ConfigAccessor.create(file);
+        } catch (final InvalidConfigurationException | FileNotFoundException e) {
+            LOG.warn(e.getMessage(), e);
+            return;
+        }
         final FileConfiguration config = accessor.getConfig();
         final Database database = instance.getDB();
         // create tables if they don't exist, so we can be 100% sure
@@ -373,11 +381,11 @@ public final class Utils {
      * @param string ID of event/condition/objective/item etc.
      * @return full ID with package prefix
      */
-    public static String addPackage(final ConfigPackage pack, final String string) {
+    public static String addPackage(final QuestPackage pack, final String string) {
         if (string.contains(".")) {
             return string;
         } else {
-            return pack.getName() + "." + string;
+            return pack.getPackagePath() + "." + string;
         }
     }
 

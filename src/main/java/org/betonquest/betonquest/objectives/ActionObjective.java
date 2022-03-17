@@ -1,6 +1,5 @@
 package org.betonquest.betonquest.objectives;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.CustomLog;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.Instruction;
@@ -14,6 +13,8 @@ import org.betonquest.betonquest.utils.location.CompoundLocation;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
@@ -23,7 +24,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 
 /**
- * Player has to click on block (or air). Left click, right click and any one of
+ * Player has to click on a block (or air). Left click, right click and any one of
  * them is supported.
  */
 @SuppressWarnings({"PMD.GodClass", "PMD.CommentRequired"})
@@ -40,6 +41,7 @@ public class ActionObjective extends Objective implements Listener {
     public ActionObjective(final Instruction instruction) throws InstructionParseException {
         super(instruction);
         template = ObjectiveData.class;
+
         action = instruction.getEnum(Click.class);
         if ("any".equalsIgnoreCase(instruction.next())) {
             selector = null;
@@ -49,94 +51,48 @@ public class ActionObjective extends Objective implements Listener {
         exactMatch = instruction.hasArgument("exactMatch");
         loc = instruction.getLocation(instruction.getOptional("loc"));
         final String stringRange = instruction.getOptional("range");
-        range = instruction.getVarNum(stringRange == null ? "1" : stringRange);
+        range = instruction.getVarNum(stringRange == null ? "0" : stringRange);
         cancel = instruction.hasArgument("cancel");
     }
 
-    @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.NPathComplexity", "PMD.CognitiveComplexity"})
-    @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
+    @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.CyclomaticComplexity", "PMD.NPathComplexity"})
     @EventHandler(priority = EventPriority.LOWEST)
     public void onInteract(final PlayerInteractEvent event) {
-        // Only fire the event for the main hand to avoid that the event is triggered two times.
-        if (event.getHand() == EquipmentSlot.OFF_HAND && event.getHand() != null) {
-            return; // off hand packet, ignore.
-        }
-        final String playerID = PlayerConverter.getID(event.getPlayer());
-        if (!containsPlayer(playerID)) {
+        if (event.getHand() != null && event.getHand() == EquipmentSlot.OFF_HAND) {
             return;
         }
-        if (selector == null) {
-            switch (action) {
-                case RIGHT:
-                    if ((event.getAction().equals(Action.RIGHT_CLICK_AIR)
-                            || event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) && checkConditions(playerID)) {
-                        if (cancel) {
-                            event.setCancelled(true);
-                        }
-                        completeObjective(playerID);
-                    }
-                    break;
-                case LEFT:
-                    if ((event.getAction().equals(Action.LEFT_CLICK_AIR)
-                            || event.getAction().equals(Action.LEFT_CLICK_BLOCK)) && checkConditions(playerID)) {
-                        if (cancel) {
-                            event.setCancelled(true);
-                        }
-                        completeObjective(playerID);
-                    }
-                    break;
-                case ANY:
-                default:
-                    if ((event.getAction().equals(Action.LEFT_CLICK_AIR)
-                            || event.getAction().equals(Action.LEFT_CLICK_BLOCK)
-                            || event.getAction().equals(Action.RIGHT_CLICK_AIR)
-                            || event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) && checkConditions(playerID)) {
-                        if (cancel) {
-                            event.setCancelled(true);
-                        }
-                        completeObjective(playerID);
-                    }
-                    break;
-            }
-        } else {
-            final Action actionEnum;
-            switch (action) {
-                case RIGHT:
-                    actionEnum = Action.RIGHT_CLICK_BLOCK;
-                    break;
-                case LEFT:
-                    actionEnum = Action.LEFT_CLICK_BLOCK;
-                    break;
-                case ANY:
-                default:
-                    actionEnum = null;
-                    break;
-            }
+
+        final String playerID = PlayerConverter.getID(event.getPlayer());
+        if (!containsPlayer(playerID) || !action.match(event.getAction())) {
+            return;
+        }
+
+        final Block clickedBlock = event.getClickedBlock();
+        if (loc != null) {
+            final Location current = clickedBlock == null ? event.getPlayer().getLocation() : clickedBlock.getLocation();
             try {
-                if ((actionEnum == null && (event.getAction().equals(Action.RIGHT_CLICK_BLOCK)
-                        || event.getAction().equals(Action.LEFT_CLICK_BLOCK)) || event.getAction().equals(actionEnum))
-                        && event.getClickedBlock() != null && ((selector.match(Material.FIRE) || selector.match(Material.LAVA) || selector.match(Material.WATER))
-                        && selector.match(event.getClickedBlock().getRelative(event.getBlockFace()), exactMatch)
-                        || selector.match(event.getClickedBlock(), exactMatch))) {
-                    if (loc != null) {
-                        final Location location = loc.getLocation(playerID);
-                        final double pRange = range.getDouble(playerID);
-                        if (!event.getClickedBlock().getWorld().equals(location.getWorld())
-                                || event.getClickedBlock().getLocation().distance(location) > pRange) {
-                            return;
-                        }
-                    }
-                    if (checkConditions(playerID)) {
-                        if (cancel) {
-                            event.setCancelled(true);
-                        }
-                        completeObjective(playerID);
-                    }
+                final Location location = loc.getLocation(playerID);
+                final double pRange = range.getDouble(playerID);
+                if (!location.getWorld().equals(current.getWorld()) || current.distance(location) > pRange) {
+                    return;
                 }
             } catch (final QuestRuntimeException e) {
-                LOG.warning(instruction.getPackage(), "Error while handling '" + instruction.getID() + "' objective: " + e.getMessage(), e);
+                LOG.warn(instruction.getPackage(), "Error while handling '" + instruction.getID() + "' objective: " + e.getMessage(), e);
+                return;
             }
         }
+
+        if ((selector == null || clickedBlock != null && (checkBlock(clickedBlock, event.getBlockFace()))) && checkConditions(playerID)) {
+            if (cancel) {
+                event.setCancelled(true);
+            }
+            completeObjective(playerID);
+        }
+    }
+
+    private boolean checkBlock(final Block clickedBlock, final BlockFace blockFace) {
+        return (selector.match(Material.WATER) || selector.match(Material.LAVA))
+                && selector.match(clickedBlock.getRelative(blockFace), exactMatch) || selector.match(clickedBlock, exactMatch);
     }
 
     @Override
@@ -164,7 +120,7 @@ public class ActionObjective extends Objective implements Listener {
             try {
                 location = loc.getLocation(playerID);
             } catch (final QuestRuntimeException e) {
-                LOG.warning(instruction.getPackage(), "Error while getting location property in '" + instruction.getID() + "' objective: "
+                LOG.warn(instruction.getPackage(), "Error while getting location property in '" + instruction.getID() + "' objective: "
                         + e.getMessage(), e);
                 return "";
             }
@@ -174,7 +130,14 @@ public class ActionObjective extends Objective implements Listener {
     }
 
     public enum Click {
-        RIGHT, LEFT, ANY
+        RIGHT, LEFT, ANY;
+
+        public boolean match(final Action action) {
+            if (action == Action.PHYSICAL) {
+                return false;
+            }
+            return this == ANY || this == RIGHT && action.isRightClick() || this == LEFT && action.isLeftClick();
+        }
     }
 
 }

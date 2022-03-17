@@ -1,7 +1,7 @@
 package org.betonquest.betonquest;
 
 import lombok.CustomLog;
-import org.betonquest.betonquest.config.ConfigPackage;
+import org.betonquest.betonquest.api.config.QuestPackage;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
 import org.betonquest.betonquest.id.ConditionID;
@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
 @CustomLog
 public class Instruction {
     private static final Pattern NUMBER_PATTERN = Pattern.compile("(?:\\s|\\G|^)((\\+|-)?\\d+)(?:\\s|$)");
-    private final ConfigPackage pack;
+    private final QuestPackage pack;
     protected String instruction;
     protected String[] parts;
     private ID identifier;
@@ -43,12 +43,12 @@ public class Instruction {
     private int currentIndex = 1;
     private String lastOptional;
 
-    public Instruction(final ConfigPackage pack, final ID identifier, final String instruction) {
+    public Instruction(final QuestPackage pack, final ID identifier, final String instruction) {
         this.pack = pack;
         try {
             this.identifier = identifier == null ? new NoID(pack) : identifier;
         } catch (final ObjectNotFoundException e) {
-            LOG.warning(pack, "Could not find instruction: " + e.getMessage(), e);
+            LOG.warn(pack, "Could not find instruction: " + e.getMessage(), e);
         }
         this.instruction = instruction;
         this.parts = Utils.split(instruction);
@@ -67,12 +67,21 @@ public class Instruction {
         return parts.length;
     }
 
-    public ConfigPackage getPackage() {
+    public QuestPackage getPackage() {
         return pack;
     }
 
     public ID getID() {
         return identifier;
+    }
+
+    /**
+     * Copy the instruction. The copy has no consumed arguments.
+     *
+     * @return a new instruction
+     */
+    public Instruction copy() {
+        return new Instruction(pack, identifier, instruction);
     }
 
     /////////////////////
@@ -133,7 +142,7 @@ public class Instruction {
             return null;
         }
         try {
-            return new CompoundLocation(pack.getName(), string);
+            return new CompoundLocation(pack.getPackagePath(), string);
         } catch (final InstructionParseException e) {
             throw new PartParseException("Error while parsing location: " + e.getMessage(), e);
         }
@@ -148,7 +157,7 @@ public class Instruction {
             return null;
         }
         try {
-            return new VariableNumber(pack.getName(), string);
+            return new VariableNumber(pack.getPackagePath(), string);
         } catch (final InstructionParseException e) {
             throw new PartParseException("Could not parse a number: " + e.getMessage(), e);
         }
@@ -481,7 +490,7 @@ public class Instruction {
 
     public <T> List<T> getList(final String string, final Converter<T> converter) throws InstructionParseException {
         if (string == null) {
-            return new ArrayList<T>(0);
+            return new ArrayList<>(0);
         }
         final String[] array = getArray(string);
         final List<T> list = new ArrayList<>(array.length);
@@ -550,5 +559,4 @@ public class Instruction {
             super("Error while parsing " + (lastOptional == null ? currentIndex : lastOptional + " optional") + " argument: " + message, cause);
         }
     }
-
 }

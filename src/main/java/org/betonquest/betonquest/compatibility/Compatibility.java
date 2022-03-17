@@ -49,7 +49,6 @@ public class Compatibility implements Listener {
 
     private static Compatibility instance;
     private final Map<String, Integrator> integrators = new HashMap<>();
-    private final BetonQuest betonQuest = BetonQuest.getInstance();
     private final List<String> hooked = new ArrayList<>();
 
     @SuppressWarnings("PMD.AssignmentToNonFinalStatic")
@@ -119,8 +118,10 @@ public class Compatibility implements Listener {
     }
 
     public static void disable() {
-        for (final String hooked : getHooked()) {
-            instance.integrators.get(hooked).close();
+        if (instance != null) {
+            for (final String hooked : getHooked()) {
+                instance.integrators.get(hooked).close();
+            }
         }
     }
 
@@ -151,7 +152,7 @@ public class Compatibility implements Listener {
         }
 
         // hook into the plugin if it's enabled in the config
-        if ("true".equalsIgnoreCase(betonQuest.getConfig().getString("hook." + name.toLowerCase(Locale.ROOT)))) {
+        if ("true".equalsIgnoreCase(BetonQuest.getInstance().getPluginConfig().getString("hook." + name.toLowerCase(Locale.ROOT)))) {
             LOG.info("Hooking into " + name);
 
             // log important information in case of an error
@@ -163,8 +164,8 @@ public class Compatibility implements Listener {
                         hookedPlugin.getName(),
                         hookedPlugin.getDescription().getVersion(),
                         exception.getMessage());
-                LOG.warning(message, exception);
-                LOG.warning("BetonQuest will work correctly, except for that single integration. "
+                LOG.warn(message, exception);
+                LOG.warn("BetonQuest will work correctly, except for that single integration. "
                         + "You can turn it off by setting 'hook." + name.toLowerCase(Locale.ROOT)
                         + "' to false in config.yml file.");
             } catch (final RuntimeException | LinkageError exception) {
@@ -175,7 +176,7 @@ public class Compatibility implements Listener {
                         Bukkit.getVersion(),
                         exception.getMessage());
                 LOG.error(message, exception);
-                LOG.warning("BetonQuest will work correctly, except for that single integration. "
+                LOG.warn("BetonQuest will work correctly, except for that single integration. "
                         + "You can turn it off by setting 'hook." + name.toLowerCase(Locale.ROOT)
                         + "' to false in config.yml file.");
             }

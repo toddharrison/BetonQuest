@@ -134,7 +134,7 @@ public class EntityInteractObjective extends CountingObjective {
                     return false;
                 }
             } catch (final QuestRuntimeException e) {
-                LOG.warning(instruction.getPackage(), "Error while handling '" + instruction.getID() + "' objective: " + e.getMessage(), e);
+                LOG.warn(instruction.getPackage(), "Error while handling '" + instruction.getID() + "' objective: " + e.getMessage(), e);
             }
         }
 
@@ -168,7 +168,7 @@ public class EntityInteractObjective extends CountingObjective {
             super(instruction, playerID, objID);
             entities = new HashSet<>();
             final String[] entityInstruction = instruction.split(";", 3);
-            if (entityInstruction.length >= 2) {
+            if (entityInstruction.length >= 2 && !entityInstruction[1].isEmpty()) {
                 Arrays.stream(entityInstruction[1].split("/"))
                         .map(UUID::fromString)
                         .forEach(entities::add);

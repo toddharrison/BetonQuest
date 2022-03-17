@@ -30,6 +30,8 @@ public class MMOItemsGiveEvent extends QuestEvent {
     private final boolean singleStack;
     private VariableNumber amountVar = new VariableNumber(1);
 
+    private ItemStack mmoItem;
+
     public MMOItemsGiveEvent(final Instruction instruction) throws InstructionParseException {
         super(instruction, true);
 
@@ -43,6 +45,12 @@ public class MMOItemsGiveEvent extends QuestEvent {
         scale = instruction.hasArgument("scale");
         singleStack = instruction.hasArgument("singleStack");
         notify = instruction.hasArgument("notify");
+
+        mmoItem = mmoPlugin.getItem(itemType, itemID);
+
+        if (mmoItem == null) {
+            throw new InstructionParseException("Item with type '" + itemType + "' and ID '" + itemID + "' does not exist.");
+        }
     }
 
     @SuppressWarnings("PMD.PreserveStackTrace")
@@ -52,20 +60,17 @@ public class MMOItemsGiveEvent extends QuestEvent {
         final Player player = PlayerConverter.getPlayer(playerID);
         int amount = amountVar.getInt(playerID);
 
-        final ItemStack mmoItem;
         if (scale) {
             mmoItem = mmoPlugin.getItem(itemType, itemID, PlayerData.get(player.getUniqueId()));
-        } else {
-            mmoItem = mmoPlugin.getItem(itemType, itemID);
         }
 
         if (notify) {
             try {
-                Config.sendNotify(instruction.getPackage().getName(), playerID, "items_given",
+                Config.sendNotify(instruction.getPackage().getPackagePath(), playerID, "items_given",
                         new String[]{mmoItem.getItemMeta().getDisplayName(), String.valueOf(amount)},
                         "items_given,info");
             } catch (final QuestRuntimeException e) {
-                LOG.warning(instruction.getPackage(), "The notify system was unable to play a sound for the 'items_given' category in '" + getFullId() + "'. Error was: '" + e.getMessage() + "'", e);
+                LOG.warn(instruction.getPackage(), "The notify system was unable to play a sound for the 'items_given' category in '" + getFullId() + "'. Error was: '" + e.getMessage() + "'", e);
             }
         }
 

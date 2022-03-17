@@ -26,7 +26,7 @@ public class MathVariable extends Variable {
             throw new InstructionParseException("invalid format");
         }
         final String expression = instructionString.substring("math.calc:".length());
-        this.calculation = new Tokenizer(instruction.getPackage().getName()).tokenize(expression);
+        this.calculation = new Tokenizer(instruction.getPackage().getPackagePath()).tokenize(expression);
     }
 
     @Override
@@ -38,7 +38,7 @@ public class MathVariable extends Variable {
             }
             return String.valueOf(value);
         } catch (final QuestRuntimeException e) {
-            LOG.warning(instruction.getPackage(), "Could not calculate '" + calculation.toString() + "' (" + e.getMessage() + "). Returning 0 instead.", e);
+            LOG.warn(instruction.getPackage(), "Could not calculate '" + calculation + "' (" + e.getMessage() + "). Returning 0 instead.", e);
             return "0";
         }
     }

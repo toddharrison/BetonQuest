@@ -6,8 +6,8 @@ import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
 import org.betonquest.betonquest.api.PlayerJournalAddEvent;
 import org.betonquest.betonquest.api.PlayerJournalDeleteEvent;
+import org.betonquest.betonquest.api.config.QuestPackage;
 import org.betonquest.betonquest.config.Config;
-import org.betonquest.betonquest.config.ConfigPackage;
 import org.betonquest.betonquest.database.Connector.UpdateType;
 import org.betonquest.betonquest.database.Saver.Record;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
@@ -22,6 +22,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
+import org.jetbrains.annotations.NotNull;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Represents player's journal.
@@ -79,7 +81,12 @@ public class Journal {
         return item.getType().equals(Material.WRITTEN_BOOK) && ((BookMeta) item.getItemMeta()).hasTitle()
                 && ((BookMeta) item.getItemMeta()).getTitle().equals(Config.getMessage(playerLang, "journal_title"))
                 && item.getItemMeta().hasLore()
-                && item.getItemMeta().getLore().contains(Config.getMessage(playerLang, "journal_lore"));
+                && Objects.equals(item.getItemMeta().getLore(), getJournalLore(playerLang));
+    }
+
+    @NotNull
+    private static List<String> getJournalLore(final String lang) {
+        return Arrays.asList(Utils.format(Config.getMessage(lang, "journal_lore")).split("\n"));
     }
 
     /**
@@ -145,7 +152,7 @@ public class Journal {
                         ? new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT).format(new Date(pointer.getTimestamp()))
                         : Long.toString(pointer.getTimestamp());
                 BetonQuest.getInstance().getSaver()
-                        .add(new Record(UpdateType.REMOVE_JOURNAL, new String[]{playerID, pointer.getPointer(), date}));
+                        .add(new Record(UpdateType.REMOVE_JOURNAL, playerID, pointer.getPointer(), date));
                 pointers.remove(pointer);
                 break;
             }
@@ -200,15 +207,16 @@ public class Journal {
             // get package and name of the pointer
             final String[] parts = pointer.getPointer().split("\\.");
             final String packName = parts[0];
-            final ConfigPackage pack = Config.getPackages().get(packName);
+            final QuestPackage pack = Config.getPackages().get(packName);
             if (pack == null) {
                 continue;
             }
             final String pointerName = parts[1];
             // resolve the text in player's language
             String text;
-            if (pack.getJournal().getConfig().contains(pointerName)) {
-                if (pack.getJournal().getConfig().isConfigurationSection(pointerName)) {
+            final ConfigurationSection journal = pack.getConfig().getConfigurationSection("journal");
+            if (journal != null && journal.contains(pointerName)) {
+                if (journal.isConfigurationSection(pointerName)) {
                     text = pack.getFormattedString("journal." + pointerName + "." + lang);
                     if (text == null) {
                         text = pack.getFormattedString("journal." + pointerName + "." + Config.getLanguage());
@@ -217,13 +225,13 @@ public class Journal {
                     text = pack.getFormattedString("journal." + pointerName);
                 }
             } else {
-                LOG.warning(pack, "No defined journal entry " + pointerName + " in package " + pack.getName());
+                LOG.warn(pack, "No defined journal entry " + pointerName + " in package " + pack.getPackagePath());
                 text = "error";
             }
 
             // handle case when the text isn't defined
             if (text == null) {
-                LOG.warning(pack, "No text defined for journal entry " + pointerName + " in language " + lang);
+                LOG.warn(pack, "No text defined for journal entry " + pointerName + " in language " + lang);
                 text = "error";
             }
 
@@ -232,7 +240,7 @@ public class Journal {
                 try {
                     BetonQuest.createVariable(pack, variable);
                 } catch (final InstructionParseException e) {
-                    LOG.warning(pack, "Error while creating variable '" + variable + "' on journal page '" + pointerName + "' in "
+                    LOG.warn(pack, "Error while creating variable '" + variable + "' on journal page '" + pointerName + "' in "
                             + PlayerConverter.getName(playerID) + "'s journal: " + e.getMessage(), e);
                 }
                 text = text.replace(variable,
@@ -253,14 +261,13 @@ public class Journal {
     private String generateMainPage() {
         final HashMap<Integer, ArrayList<String>> lines = new HashMap<>(); // holds text lines with their priority
         final HashSet<Integer> numbers = new HashSet<>(); // stores numbers that are used, so there's no need to search them
-        for (final ConfigPackage pack : Config.getPackages().values()) {
-            final String packName = pack.getName();
-            final ConfigurationSection section = pack.getMain().getConfig().getConfigurationSection("journal_main_page");
+        for (final QuestPackage pack : Config.getPackages().values()) {
+            final String packName = pack.getPackagePath();
+            final ConfigurationSection section = pack.getConfig().getConfigurationSection("journal_main_page");
             if (section == null) {
                 continue;
             }
             // handle every entry
-            keys:
             for (final String key : section.getKeys(false)) {
                 final int number = section.getInt(key + ".priority", -1);
                 // only add entry if the priority is set and not doubled
@@ -278,7 +285,7 @@ public class Journal {
                                 continue;
                             }
                         } catch (final ObjectNotFoundException e) {
-                            LOG.warning(pack, "Error while generating main page in " + PlayerConverter.getPlayer(playerID) + "'s journal: " + e.getMessage(), e);
+                            LOG.warn(pack, "Error while generating main page in " + PlayerConverter.getPlayer(playerID) + "'s journal: " + e.getMessage(), e);
                             continue;
                         }
                     }
@@ -303,7 +310,7 @@ public class Journal {
                         try {
                             BetonQuest.createVariable(pack, variable);
                         } catch (final InstructionParseException e) {
-                            LOG.warning(pack, "Error while creating variable '" + variable + "' on main page in "
+                            LOG.warn(pack, "Error while creating variable '" + variable + "' on main page in "
                                     + PlayerConverter.getName(playerID) + "'s journal: " + e.getMessage(), e);
                         }
                         text = text.replace(variable,
@@ -321,7 +328,7 @@ public class Journal {
                     }
                     linesOrder.add(text + "§r"); // reset the formatting
                 } else {
-                    LOG.warning(pack, "Priority of " + packName + "." + key
+                    LOG.warn(pack, "Priority of " + packName + "." + key
                             + " journal main page line is not defined");
                 }
             }
@@ -377,7 +384,7 @@ public class Journal {
             try {
                 Config.sendNotify(null, playerID, "inventory_full", null, "inventory_full,error");
             } catch (final QuestRuntimeException e) {
-                LOG.warning("The notify system was unable to play a sound for the 'inventory_full' category. Error was: '" + e.getMessage() + "'", e);
+                LOG.warn("The notify system was unable to play a sound for the 'inventory_full' category. Error was: '" + e.getMessage() + "'", e);
             }
         }
     }
@@ -395,9 +402,7 @@ public class Journal {
         final BookMeta meta = (BookMeta) item.getItemMeta();
         meta.setTitle(Utils.format(Config.getMessage(lang, "journal_title")));
         meta.setAuthor(PlayerConverter.getPlayer(playerID).getName());
-        final List<String> lore = new ArrayList<>();
-        lore.add(Utils.format(Config.getMessage(lang, "journal_lore")));
-        meta.setLore(lore);
+        meta.setLore(getJournalLore(lang));
         // add main page and generate pages from texts
         final List<String> finalList = new ArrayList<>();
         if ("false".equalsIgnoreCase(Config.getString("config.journal.one_entry_per_page"))) {

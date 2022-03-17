@@ -6,16 +6,16 @@ import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.event.NPCSpawnEvent;
 import net.citizensnpcs.api.npc.NPC;
 import org.betonquest.betonquest.BetonQuest;
+import org.betonquest.betonquest.api.config.QuestPackage;
 import org.betonquest.betonquest.config.Config;
-import org.betonquest.betonquest.config.ConfigPackage;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
 import org.betonquest.betonquest.id.ConditionID;
 import org.betonquest.betonquest.utils.PlayerConverter;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -38,7 +38,7 @@ public final class NPCHider extends BukkitRunnable implements Listener {
     private NPCHider() {
         super();
         npcs = new HashMap<>();
-        final int updateInterval = BetonQuest.getInstance().getConfig().getInt("npc_hider_check_interval", 5 * 20);
+        final int updateInterval = BetonQuest.getInstance().getPluginConfig().getInt("npc_hider_check_interval", 5 * 20);
         hider = new EntityHider(BetonQuest.getInstance(), EntityHider.Policy.BLACKLIST);
         loadFromConfig();
         runTaskTimer(BetonQuest.getInstance(), 0, updateInterval);
@@ -66,8 +66,8 @@ public final class NPCHider extends BukkitRunnable implements Listener {
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     private void loadFromConfig() {
 
-        for (final ConfigPackage cfgPackage : Config.getPackages().values()) {
-            final FileConfiguration custom = cfgPackage.getCustom().getConfig();
+        for (final QuestPackage cfgPackage : Config.getPackages().values()) {
+            final ConfigurationSection custom = cfgPackage.getConfig();
             if (custom == null) {
                 continue;
             }
@@ -81,7 +81,7 @@ public final class NPCHider extends BukkitRunnable implements Listener {
                 try {
                     npcId = Integer.parseInt(npcIds);
                 } catch (final NumberFormatException e) {
-                    LOG.warning(cfgPackage, "NPC ID '" + npcIds + "' is not a valid number, in custom.yml hide_npcs", e);
+                    LOG.warn(cfgPackage, "NPC ID '" + npcIds + "' is not a valid number, in hide_npcs", e);
                     continue npcs;
                 }
                 final Set<ConditionID> conditions = new HashSet<>();
@@ -91,7 +91,7 @@ public final class NPCHider extends BukkitRunnable implements Listener {
                     try {
                         conditions.add(new ConditionID(cfgPackage, condition));
                     } catch (final ObjectNotFoundException e) {
-                        LOG.warning(cfgPackage, "Condition '" + condition + "' does not exist, in custom.yml hide_npcs with ID " + npcIds, e);
+                        LOG.warn(cfgPackage, "Condition '" + condition + "' does not exist, in hide_npcs with ID " + npcIds, e);
                         continue npcs;
                     }
                 }
@@ -129,7 +129,7 @@ public final class NPCHider extends BukkitRunnable implements Listener {
     public void applyVisibility(final Player player, final Integer npcID) {
         final NPC npc = CitizensAPI.getNPCRegistry().getById(npcID);
         if (npc == null) {
-            LOG.warning("NPCHider could not update visibility for npc " + npcID + ": No npc with this id found!");
+            LOG.warn("NPCHider could not update visibility for npc " + npcID + ": No npc with this id found!");
             return;
         }
         if (npc.isSpawned()) {
@@ -193,12 +193,12 @@ public final class NPCHider extends BukkitRunnable implements Listener {
         return !hider.isVisible(player, npc.getEntity().getEntityId());
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onNPCSpawn(final NPCSpawnEvent event) {
         applyVisibility(event.getNPC());
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerJoin(final PlayerJoinEvent event) {
         applyVisibility(event.getPlayer());
     }

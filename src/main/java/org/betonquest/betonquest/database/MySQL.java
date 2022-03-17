@@ -1,7 +1,7 @@
 package org.betonquest.betonquest.database;
 
 import lombok.CustomLog;
-import org.bukkit.plugin.Plugin;
+import org.betonquest.betonquest.BetonQuest;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -29,7 +29,7 @@ public class MySQL extends Database {
      * @param username Username
      * @param password Password
      */
-    public MySQL(final Plugin plugin, final String hostname, final String port, final String database, final String username, final String password) {
+    public MySQL(final BetonQuest plugin, final String hostname, final String port, final String database, final String username, final String password) {
         super(plugin);
         this.hostname = hostname;
         this.port = port;
@@ -46,7 +46,7 @@ public class MySQL extends Database {
             connection = DriverManager.getConnection(
                     "jdbc:mysql://" + this.hostname + ":" + this.port + "/" + this.database + "?&useSSL=false", this.user, this.password);
         } catch (ClassNotFoundException | SQLException e) {
-            LOG.warning("MySQL says: " + e.getMessage(), e);
+            LOG.warn("MySQL says: " + e.getMessage(), e);
         }
         return connection;
     }

@@ -4,15 +4,14 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
 import org.betonquest.betonquest.BetonQuest;
+import org.betonquest.betonquest.api.config.QuestPackage;
 import org.betonquest.betonquest.config.Config;
-import org.betonquest.betonquest.config.ConfigPackage;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
 import org.betonquest.betonquest.id.ConditionID;
 import org.betonquest.betonquest.id.EventID;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,7 +19,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Represents the data of the conversation.
@@ -31,7 +29,7 @@ public class ConversationData {
 
     private static final List<String> EXTERNAL_POINTERS = new ArrayList<>();
 
-    private final ConfigPackage pack;
+    private final QuestPackage pack;
     private final String convName;
 
     private final Map<String, String> quester = new HashMap<>(); // maps for multiple languages
@@ -53,15 +51,17 @@ public class ConversationData {
      */
     @SuppressWarnings({"PMD.ExcessiveMethodLength", "PMD.NcssCount", "PMD.NPathComplexity", "PMD.CognitiveComplexity"})
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
-    public ConversationData(final ConfigPackage pack, final String name) throws InstructionParseException {
+    public ConversationData(final QuestPackage pack, final String name, final ConfigurationSection conv) throws InstructionParseException {
         this.pack = pack;
-        final String pkg = pack.getName();
+        final String pkg = pack.getPackagePath();
         LOG.debug(pack, String.format("Loading %s conversation from %s package", name, pkg));
         // package and name must be correct, it loads only existing
         // conversations
         convName = name;
         // get the main data
-        final FileConfiguration conv = pack.getConversation(name).getConfig();
+        if (conv == null) {
+            throw new InstructionParseException("The configuration is null!");
+        }
         if (conv.get("quester") == null) {
             throw new InstructionParseException("The 'quester' name is missing in the conversation file!");
         }
@@ -89,7 +89,7 @@ public class ConversationData {
         }
         final String stop = pack.getString("conversations." + name + ".stop");
         blockMovement = stop != null && stop.equalsIgnoreCase("true");
-        final String rawConvIO = pack.getString("conversations." + name + ".conversationIO", BetonQuest.getInstance().getConfig().getString("default_conversation_IO", "menu,chest"));
+        final String rawConvIO = pack.getString("conversations." + name + ".conversationIO", BetonQuest.getInstance().getPluginConfig().getString("default_conversation_IO", "menu,chest"));
 
         // check if all data is valid (or at least exist)
         for (final String s : rawConvIO.split(",")) {
@@ -102,7 +102,7 @@ public class ConversationData {
             throw new InstructionParseException("No registered conversation IO found: " + rawConvIO);
         }
 
-        final String rawInterceptor = pack.getString("conversations." + name + ".interceptor", BetonQuest.getInstance().getConfig().getString("default_interceptor", "simple"));
+        final String rawInterceptor = pack.getString("conversations." + name + ".interceptor", BetonQuest.getInstance().getPluginConfig().getString("default_interceptor", "simple"));
         for (final String s : rawInterceptor.split(",")) {
             if (BetonQuest.getInstance().getInterceptor(s.trim()) != null) {
                 interceptor = s.trim();
@@ -140,13 +140,13 @@ public class ConversationData {
             }
         }
         // load all NPC options
-        final ConfigurationSection npcSection = pack.getConversation(name).getConfig().getConfigurationSection("NPC_options");
+        final ConfigurationSection npcSection = conv.getConfigurationSection("NPC_options");
         if (npcSection == null) {
             throw new InstructionParseException("NPC_options section not defined");
         }
         npcOptions = new HashMap<>();
         for (final String key : npcSection.getKeys(false)) {
-            npcOptions.put(key, new Option(key, OptionType.NPC));
+            npcOptions.put(key, new Option(key, OptionType.NPC, conv));
         }
         // check if all starting options point to existing NPC options
         startingOptions = rawStartingOptions.split(",");
@@ -156,7 +156,7 @@ public class ConversationData {
         }
         for (final String startingOption : startingOptions) {
             if (startingOption.contains(".")) {
-                final String entirePointer = pack.getName() + "." + convName + ".<starting_option>."
+                final String entirePointer = pack.getPackagePath() + "." + convName + ".<starting_option>."
                         + startingOption;
                 EXTERNAL_POINTERS.add(entirePointer);
             } else if (!npcOptions.containsKey(startingOption)) {
@@ -164,12 +164,11 @@ public class ConversationData {
             }
         }
         // load all Player options
-        final ConfigurationSection playerSection = pack.getConversation(name).getConfig()
-                .getConfigurationSection("player_options");
+        final ConfigurationSection playerSection = conv.getConfigurationSection("player_options");
         playerOptions = new HashMap<>();
         if (playerSection != null) {
             for (final String key : playerSection.getKeys(false)) {
-                playerOptions.put(key, new Option(key, OptionType.PLAYER));
+                playerOptions.put(key, new Option(key, OptionType.PLAYER, conv));
             }
         }
 
@@ -193,7 +192,7 @@ public class ConversationData {
         for (final Option option : playerOptions.values()) {
             for (final String pointer : option.getPointers()) {
                 if (pointer.contains(".")) {
-                    final String entirePointer = pack.getName() + "." + convName + "." + option.getName() + "." + pointer;
+                    final String entirePointer = pack.getPackagePath() + "." + convName + "." + option.getName() + "." + pointer;
                     EXTERNAL_POINTERS.add(entirePointer);
                 } else if (!npcOptions.containsKey(pointer)) {
                     throw new InstructionParseException(
@@ -233,7 +232,7 @@ public class ConversationData {
             final String targetOption = parts[4];
             final ConversationData conv = BetonQuest.getInstance().getConversation(packName + "." + targetConv);
             if (conv == null) {
-                LOG.warning("External pointer in '" + packName + "' package, '" + sourceConv + "' conversation, "
+                LOG.warn("External pointer in '" + packName + "' package, '" + sourceConv + "' conversation, "
                         + ("<starting_option>".equals(sourceOption) ? "starting option"
                         : "'" + sourceOption + "' player option")
                         + " points to '" + targetConv
@@ -241,7 +240,7 @@ public class ConversationData {
                 continue;
             }
             if (conv.getText(Config.getLanguage(), targetOption, OptionType.NPC) == null) {
-                LOG.warning(conv.pack, "External pointer in '" + packName + "' package, '" + sourceConv + "' conversation, "
+                LOG.warn(conv.pack, "External pointer in '" + packName + "' package, '" + sourceConv + "' conversation, "
                         + ("<starting_option>".equals(sourceOption) ? "starting option"
                         : "'" + sourceOption + "' player option")
                         + " points to '" + targetOption + "' NPC option in '" + targetConv
@@ -355,7 +354,7 @@ public class ConversationData {
      * @return the name of the package
      */
     public String getPackName() {
-        return pack.getName();
+        return pack.getPackagePath();
     }
 
     public ConditionID[] getConditionIDs(final String option, final OptionType type) {
@@ -415,8 +414,8 @@ public class ConversationData {
                 convName = getName();
                 optionName = option;
             }
-            final ConfigPackage pack = Config.getPackages().get(getPackName());
-            final ConversationData currentData = BetonQuest.getInstance().getConversation(pack.getName() + "." + convName);
+            final QuestPackage pack = Config.getPackages().get(getPackName());
+            final ConversationData currentData = BetonQuest.getInstance().getConversation(pack.getPackagePath() + "." + convName);
             if (BetonQuest.conditions(playerID, currentData.getConditionIDs(optionName, ConversationData.OptionType.NPC))) {
                 return true;
             }
@@ -463,10 +462,10 @@ public class ConversationData {
 
         @SuppressWarnings({"PMD.ExcessiveMethodLength", "PMD.NcssCount", "PMD.NPathComplexity", "PMD.CognitiveComplexity"})
         @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
-        protected Option(final String name, final OptionType type) throws InstructionParseException {
+        protected Option(final String name, final OptionType type, final ConfigurationSection convSection) throws InstructionParseException {
             this.name = name;
             this.type = type;
-            final ConfigurationSection conv = pack.getConversation(convName).getConfig().getConfigurationSection(type.getIdentifier() + "." + name);
+            final ConfigurationSection conv = convSection.getConfigurationSection(type.getIdentifier() + "." + name);
 
             if (conv == null) {
                 pointers = null;
@@ -564,14 +563,12 @@ public class ConversationData {
             // Pointers
             pointers = Arrays.stream(pack.subst(conv.getString("pointers", conv.getString("pointer", ""))).split(","))
                     .filter(StringUtils::isNotEmpty)
-                    .map(String::trim)
-                    .collect(Collectors.toList());
+                    .map(String::trim).toList();
 
 
             extendLinks = Arrays.stream(pack.subst(conv.getString("extends", conv.getString("extend", ""))).split(","))
                     .filter(StringUtils::isNotEmpty)
-                    .map(String::trim)
-                    .collect(Collectors.toList());
+                    .map(String::trim).toList();
         }
 
         public String getName() {

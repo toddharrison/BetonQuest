@@ -6,8 +6,9 @@ import org.betonquest.betonquest.Journal;
 import org.betonquest.betonquest.Point;
 import org.betonquest.betonquest.Pointer;
 import org.betonquest.betonquest.api.Objective;
+import org.betonquest.betonquest.api.PlayerTagAddEvent;
+import org.betonquest.betonquest.api.PlayerTagRemoveEvent;
 import org.betonquest.betonquest.config.Config;
-import org.betonquest.betonquest.config.QuestCanceler;
 import org.betonquest.betonquest.database.Connector.QueryType;
 import org.betonquest.betonquest.database.Connector.UpdateType;
 import org.betonquest.betonquest.database.Saver.Record;
@@ -104,7 +105,7 @@ public class PlayerData {
                     try {
                         item = new QuestItem(instruction).generate(amount);
                     } catch (final InstructionParseException e) {
-                        LOG.warning("Could not load backpack item for player " + PlayerConverter.getName(playerID)
+                        LOG.warn("Could not load backpack item for player " + PlayerConverter.getName(playerID)
                                 + ", with instruction '" + instruction + "', because: " + e.getMessage(), e);
                         continue;
                     }
@@ -165,6 +166,8 @@ public class PlayerData {
             if (!tags.contains(tag)) {
                 tags.add(tag);
                 saver.add(new Record(UpdateType.ADD_TAGS, playerID, tag));
+                BetonQuest.getInstance()
+                        .callSyncBukkitEvent(new PlayerTagAddEvent(PlayerConverter.getPlayer(playerID), tag));
             }
         }
     }
@@ -177,8 +180,12 @@ public class PlayerData {
      */
     public void removeTag(final String tag) {
         synchronized (tags) {
-            tags.remove(tag);
-            saver.add(new Record(UpdateType.REMOVE_TAGS, playerID, tag));
+            if (tags.contains(tag)) {
+                tags.remove(tag);
+                saver.add(new Record(UpdateType.REMOVE_TAGS, playerID, tag));
+                BetonQuest.getInstance()
+                        .callSyncBukkitEvent(new PlayerTagRemoveEvent(PlayerConverter.getPlayer(playerID), tag));
+            }
         }
     }
 
@@ -280,7 +287,7 @@ public class PlayerData {
                 final ObjectiveID objectiveID = new ObjectiveID(null, objective);
                 BetonQuest.resumeObjective(playerID, objectiveID, entry.getValue());
             } catch (final ObjectNotFoundException e) {
-                LOG.warning("Loaded '" + objective
+                LOG.warn("Loaded '" + objective
                         + "' objective from the database, but it is not defined in configuration. Skipping.", e);
             }
         }
@@ -306,7 +313,7 @@ public class PlayerData {
         if (obj == null) {
             return;
         }
-        final String data = obj.getDefaultDataInstruction();
+        final String data = obj.getDefaultDataInstruction(playerID);
         if (addRawObjective(objectiveID.toString(), data)) {
             saver.add(new Record(UpdateType.ADD_OBJECTIVES, playerID, objectiveID.toString(), data));
         }
@@ -443,18 +450,6 @@ public class PlayerData {
             final String instruction = QuestItem.itemToString(itemStack);
             final String newAmount = String.valueOf(itemStack.getAmount());
             saver.add(new Record(UpdateType.ADD_BACKPACK, playerID, instruction, newAmount));
-        }
-    }
-
-    /**
-     * Cancels the quest by removing all defined tags, points, objectives etc.
-     *
-     * @param name name of the canceler
-     */
-    public void cancelQuest(final String name) {
-        final QuestCanceler canceler = Config.getCancelers().get(name);
-        if (canceler != null) {
-            canceler.cancel(playerID);
         }
     }
 

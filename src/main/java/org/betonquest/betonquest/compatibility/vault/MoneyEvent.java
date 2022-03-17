@@ -31,7 +31,7 @@ public class MoneyEvent extends QuestEvent {
             string = string.replace("*", "");
         }
         try {
-            amount = new VariableNumber(instruction.getPackage().getName(), string);
+            amount = new VariableNumber(instruction.getPackage().getPackagePath(), string);
         } catch (final InstructionParseException e) {
             throw new InstructionParseException("Could not parse money amount", e);
         }
@@ -59,20 +59,20 @@ public class MoneyEvent extends QuestEvent {
             VaultIntegrator.getEconomy().depositPlayer(player, difference);
             if (notify) {
                 try {
-                    Config.sendNotify(instruction.getPackage().getName(), playerID, "money_given",
+                    Config.sendNotify(instruction.getPackage().getPackagePath(), playerID, "money_given",
                             new String[]{decimalFormat.format(difference), currencyName}, "money_given,info");
                 } catch (final QuestRuntimeException e) {
-                    LOG.warning(instruction.getPackage(), "The notify system was unable to play a sound for the 'money_given' category in '" + getFullId() + "'. Error was: '" + e.getMessage() + "'", e);
+                    LOG.warn(instruction.getPackage(), "The notify system was unable to play a sound for the 'money_given' category in '" + getFullId() + "'. Error was: '" + e.getMessage() + "'", e);
                 }
             }
         } else if (difference < 0) {
             VaultIntegrator.getEconomy().withdrawPlayer(player, -difference);
             if (notify) {
                 try {
-                    Config.sendNotify(instruction.getPackage().getName(), playerID, "money_taken",
+                    Config.sendNotify(instruction.getPackage().getPackagePath(), playerID, "money_taken",
                             new String[]{decimalFormat.format(difference), currencyName}, "money_taken,info");
                 } catch (final QuestRuntimeException e) {
-                    LOG.warning(instruction.getPackage(), "The notify system was unable to play a sound for the 'money_taken' category in '" + getFullId() + "'. Error was: '" + e.getMessage() + "'", e);
+                    LOG.warn(instruction.getPackage(), "The notify system was unable to play a sound for the 'money_taken' category in '" + getFullId() + "'. Error was: '" + e.getMessage() + "'", e);
                 }
             }
         }

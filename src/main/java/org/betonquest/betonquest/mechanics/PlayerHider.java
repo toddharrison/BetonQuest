@@ -1,8 +1,8 @@
 package org.betonquest.betonquest.mechanics;
 
 import org.betonquest.betonquest.BetonQuest;
+import org.betonquest.betonquest.api.config.QuestPackage;
 import org.betonquest.betonquest.config.Config;
-import org.betonquest.betonquest.config.ConfigPackage;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
 import org.betonquest.betonquest.id.ConditionID;
@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The PlayerHider can hide other players, if the source fits all conditions and the targets also fits there conditions.
+ * The PlayerHider can hide other players, if both the source and the target meet all their conditions.
  */
 public class PlayerHider {
     /**
@@ -35,13 +35,13 @@ public class PlayerHider {
     /**
      * Initialize and start a new PlayerHider
      *
-     * @throws InstructionParseException Thrown if there is an configuration error.
+     * @throws InstructionParseException Thrown if there is a configuration error.
      */
     public PlayerHider() throws InstructionParseException {
         hiders = new HashMap<>();
 
-        for (final ConfigPackage pack : Config.getPackages().values()) {
-            final ConfigurationSection hiderSection = pack.getCustom().getConfig().getConfigurationSection("player_hider");
+        for (final QuestPackage pack : Config.getPackages().values()) {
+            final ConfigurationSection hiderSection = pack.getConfig().getConfigurationSection("player_hider");
             if (hiderSection != null) {
                 for (final String key : hiderSection.getKeys(false)) {
                     final String rawConditionsSource = hiderSection.getString(key + ".source_player");
@@ -51,7 +51,7 @@ public class PlayerHider {
             }
         }
 
-        final long period = BetonQuest.getInstance().getConfig().getLong("player_hider_check_interval", 20);
+        final long period = BetonQuest.getInstance().getPluginConfig().getLong("player_hider_check_interval", 20);
         bukkitTask = Bukkit.getScheduler().runTaskTimer(BetonQuest.getInstance(), this::updateVisibility, 1, period);
     }
 
@@ -62,7 +62,7 @@ public class PlayerHider {
         bukkitTask.cancel();
     }
 
-    private ConditionID[] getConditions(final ConfigPackage pack, final String key, final String rawConditions) throws InstructionParseException {
+    private ConditionID[] getConditions(final QuestPackage pack, final String key, final String rawConditions) throws InstructionParseException {
         if (rawConditions == null) {
             return new ConditionID[0];
         }
@@ -73,7 +73,7 @@ public class PlayerHider {
                 conditionList[i] = new ConditionID(pack, rawConditionsList[i]);
             } catch (final ObjectNotFoundException e) {
                 throw new InstructionParseException("Error while loading " + rawConditionsList[i]
-                        + " condition for player_hider " + pack.getName() + "." + key + ": " + e.getMessage(), e);
+                        + " condition for player_hider " + pack.getPackagePath() + "." + key + ": " + e.getMessage(), e);
             }
         }
         return conditionList;
@@ -131,10 +131,6 @@ public class PlayerHider {
 
     private List<Player> getOrCreatePlayerList(final Player player, final Map<Player, List<Player>> playersToHide) {
         final List<Player> playList = playersToHide.get(player);
-        if (playList == null) {
-            return new ArrayList<>();
-        } else {
-            return playList;
-        }
+        return playList == null ? new ArrayList<>() : playList;
     }
 }

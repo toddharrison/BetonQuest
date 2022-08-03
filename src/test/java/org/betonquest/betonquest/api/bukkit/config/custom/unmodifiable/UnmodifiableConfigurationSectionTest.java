@@ -13,7 +13,7 @@ import java.util.Objects;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * This is a test for the {@link UnmodifiableConfigurationSection}.
+ * This is a test for the {@link UnmodifiableConfiguration} as a {@link ConfigurationSection}.
  */
 @SuppressWarnings({"PMD.JUnitAssertionsShouldIncludeMessage", "PMD.JUnit5TestShouldBePackagePrivate"})
 public class UnmodifiableConfigurationSectionTest extends ConfigurationSectionBaseTest {
@@ -27,16 +27,9 @@ public class UnmodifiableConfigurationSectionTest extends ConfigurationSectionBa
      */
     private Map<String, Object> valuesDefault;
 
-    /**
-     * Empty constructor
-     */
-    public UnmodifiableConfigurationSectionTest() {
-        super();
-    }
-
     @Override
     public ConfigurationSection getConfig() {
-        return new UnmodifiableConfigurationSection(super.getDefaultConfig());
+        return new UnmodifiableConfiguration(super.getDefaultConfig());
     }
 
     /**
@@ -54,13 +47,13 @@ public class UnmodifiableConfigurationSectionTest extends ConfigurationSectionBa
      */
     @AfterEach
     public void afterEach() {
-        assertEquals(values, config.getValues(true));
-        assertEquals(valuesDefault, Objects.requireNonNull(config.getDefaultSection()).getValues(true));
+        assertEquals(values.toString(), config.getValues(true).toString());
+        assertEquals(valuesDefault.toString(), Objects.requireNonNull(config.getDefaultSection()).getValues(true).toString());
     }
 
     private void assertThrowsUnmodifiableException(final Executable executable) {
         final Exception exception = assertThrows(UnsupportedOperationException.class, executable);
-        assertEquals(UnmodifiableConfigurationSection.UNMODIFIABLE_MESSAGE, exception.getMessage());
+        assertEquals(UnmodifiableConfiguration.UNMODIFIABLE_MESSAGE, exception.getMessage());
     }
 
     @Test

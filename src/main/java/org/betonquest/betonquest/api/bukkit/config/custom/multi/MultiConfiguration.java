@@ -2,10 +2,11 @@ package org.betonquest.betonquest.api.bukkit.config.custom.multi;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.betonquest.betonquest.api.bukkit.config.custom.handle.ConfigurationModificationHandler;
+import org.betonquest.betonquest.api.bukkit.config.custom.handle.HandleConfigurationOptions;
 import org.betonquest.betonquest.api.bukkit.config.custom.handle.HandleModificationConfiguration;
 import org.betonquest.betonquest.api.bukkit.config.custom.handle.HandleModificationConfigurationSection;
-import org.betonquest.betonquest.api.bukkit.config.custom.unmodifiable.UnmodifiableConfigurationSection;
 import org.bukkit.configuration.Configuration;
+import org.bukkit.configuration.ConfigurationOptions;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.MemoryConfiguration;
@@ -22,6 +23,7 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.betonquest.betonquest.api.bukkit.config.custom.handle.ConfigurationSectionModificationHandler.getAbsolutePath;
@@ -31,11 +33,6 @@ import static org.betonquest.betonquest.api.bukkit.config.custom.handle.Configur
  */
 @SuppressWarnings("PMD.TooManyMethods")
 public class MultiConfiguration extends HandleModificationConfiguration {
-
-    /**
-     * Exception message for unmodifiable behaviours.
-     */
-    public static final String UNMODIFIABLE_MESSAGE = "The defaults of this config can not be modified";
     /**
      * All keys and a list of files that contains them.
      */
@@ -93,7 +90,7 @@ public class MultiConfiguration extends HandleModificationConfiguration {
                 if (keyIndex.containsKey(path)) {
                     final ConfigurationSection config = keyIndex.get(path).get(0);
                     if (config != null && config.isSet(path)) {
-                        config.setComments(path, comments);
+                        config.setComments(getReplacedPath(path, config), comments);
                         unsavedConfigs.add(config);
                     }
                 }
@@ -104,30 +101,12 @@ public class MultiConfiguration extends HandleModificationConfiguration {
                 if (keyIndex.containsKey(path)) {
                     final ConfigurationSection config = keyIndex.get(path).get(0);
                     if (config != null && config.isSet(path)) {
-                        config.setInlineComments(path, comments);
+                        config.setInlineComments(getReplacedPath(path, config), comments);
                         unsavedConfigs.add(config);
                     }
                 }
             }
         };
-    }
-
-    /**
-     * Applies all templates to this {@link MultiConfiguration}.
-     *
-     * @param templates all templates, the weakest first
-     */
-    public void setMultiDefaults(final List<ConfigurationSection> templates) {
-        for (final ConfigurationSection template : templates) {
-            for (final String key : template.getKeys(true)) {
-                if (!template.isConfigurationSection(key)) {
-                    original.addDefault(key, template.get(key));
-                    if (!keyIndex.containsKey(key)) {
-                        addToList(keyIndex, key, null);
-                    }
-                }
-            }
-        }
     }
 
     /**
@@ -337,14 +316,14 @@ public class MultiConfiguration extends HandleModificationConfiguration {
         if (keyIndex.containsKey(path)) {
             final ConfigurationSection associatedConfig = keyIndex.get(path).get(0);
             if (associatedConfig != null && associatedConfig.isSet(path)) {
-                associatedConfig.set(path, null);
+                associatedConfig.set(getReplacedPath(path, associatedConfig), null);
                 unsavedConfigs.add(associatedConfig);
             }
             keyIndex.get(path).set(0, targetConfig);
         } else {
             addToList(keyIndex, path, targetConfig);
         }
-        targetConfig.set(path, original.get(path));
+        targetConfig.set(getReplacedPath(path, targetConfig), original.get(path));
         unsavedConfigs.add(targetConfig);
     }
 
@@ -364,7 +343,7 @@ public class MultiConfiguration extends HandleModificationConfiguration {
         if (keyIndex.containsKey(path)) {
             final ConfigurationSection config = keyIndex.get(path).get(0);
             if (config != null && config.isSet(path)) {
-                config.set(path, value);
+                config.set(getReplacedPath(path, config), value);
                 unsavedConfigs.add(config);
             }
         }
@@ -375,16 +354,25 @@ public class MultiConfiguration extends HandleModificationConfiguration {
         for (final Map.Entry<String, List<ConfigurationSection>> entry : keyIndex.entrySet()) {
             final ConfigurationSection config = entry.getValue().get(0);
             if (config != null && config.isSet(path)) {
-                config.set(path, null);
+                config.set(getReplacedPath(path, config), null);
                 unsavedConfigs.add(config);
             }
         }
     }
 
+    @NotNull
+    private String getReplacedPath(final String path, final ConfigurationSection config) {
+        final Configuration root = config.getRoot();
+        if (root == null) {
+            throw new IllegalStateException("One source config does not have a root!");
+        }
+        return path.replaceAll(Pattern.quote(String.valueOf(options().pathSeparator())), String.valueOf(root.options().pathSeparator()));
+    }
+
     @Override
-    public @Nullable
-    ConfigurationSection getDefaultSection() {
-        return new UnmodifiableConfigurationSection(original.getDefaultSection());
+    public @NotNull
+    ConfigurationOptions options() {
+        return new MultiConfigurationOptions(this, original.options());
     }
 
     /**
@@ -399,7 +387,7 @@ public class MultiConfiguration extends HandleModificationConfiguration {
          * @param path  the absolut path to the value
          * @param value the value to set
          */
-        void set(final @NotNull String path, final @Nullable Object value);
+        void set(@NotNull String path, @Nullable Object value);
 
         /**
          * Consumer for a call of the setComment method.
@@ -407,7 +395,7 @@ public class MultiConfiguration extends HandleModificationConfiguration {
          * @param path     the absolut path to the comments
          * @param comments the comments to set
          */
-        void setComment(final @NotNull String path, final List<String> comments);
+        void setComment(@NotNull String path, List<String> comments);
 
         /**
          * Consumer for a call of the setInlineComment method.
@@ -415,7 +403,7 @@ public class MultiConfiguration extends HandleModificationConfiguration {
          * @param path     the absolut path to the comments
          * @param comments the comments to set
          */
-        void setInlineComment(final @NotNull String path, final List<String> comments);
+        void setInlineComment(@NotNull String path, List<String> comments);
     }
 
     /**
@@ -475,22 +463,51 @@ public class MultiConfiguration extends HandleModificationConfiguration {
 
         @Override
         public void addDefault(@NotNull final ConfigurationSection section, @NotNull final String path, @Nullable final Object value) {
-            throw new UnsupportedOperationException(UNMODIFIABLE_MESSAGE);
+            section.addDefault(path, value);
         }
 
         @Override
         public void addDefaults(@NotNull final Configuration section, @NotNull final Map<String, Object> defaults) {
-            throw new UnsupportedOperationException(UNMODIFIABLE_MESSAGE);
+            section.addDefaults(defaults);
         }
 
         @Override
         public void addDefaults(@NotNull final Configuration section, @NotNull final Configuration defaults) {
-            throw new UnsupportedOperationException(UNMODIFIABLE_MESSAGE);
+            section.addDefaults(defaults);
         }
 
         @Override
         public void setDefaults(@NotNull final Configuration section, @NotNull final Configuration defaults) {
-            throw new UnsupportedOperationException(UNMODIFIABLE_MESSAGE);
+            section.setDefaults(defaults);
+        }
+    }
+
+    /**
+     * {@link ConfigurationOptions} for a {@link MultiConfiguration},
+     * that converts all entries in the {@link MultiConfigurationOptions#keyIndex}
+     */
+    private class MultiConfigurationOptions extends HandleConfigurationOptions {
+
+        /**
+         * Creates a new {@link ConfigurationOptions} instance, that maps to the original one.
+         *
+         * @param configuration The {@link Configuration} instance that should be returned by the configuration method
+         * @param original      The original {@link Configuration}, to apply the options to
+         */
+        protected MultiConfigurationOptions(@NotNull final Configuration configuration, final ConfigurationOptions original) {
+            super(configuration, original);
+        }
+
+        @NotNull
+        @Override
+        public ConfigurationOptions pathSeparator(final char value) {
+            final Map<String, List<ConfigurationSection>> newKeyIndex = new ConcurrentHashMap<>();
+            keyIndex.forEach((key, mapValue) -> newKeyIndex.put(key.replace(options().pathSeparator(), value), mapValue));
+
+            keyIndex.clear();
+            keyIndex.putAll(newKeyIndex);
+
+            return super.pathSeparator(value);
         }
     }
 }

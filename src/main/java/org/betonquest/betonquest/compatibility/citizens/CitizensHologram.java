@@ -94,39 +94,21 @@ public class CitizensHologram extends BukkitRunnable {
         }
     }
 
-    @SuppressWarnings("PMD.CognitiveComplexity")
+    @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
     private void initHolograms() {
-        int interval = 100;
+        int interval = 0;
         for (final QuestPackage pack : Config.getPackages().values()) {
-            final ConfigurationSection npcsSection = pack.getConfig().getConfigurationSection("npcs");
-            if (npcsSection != null) {
-                for (final String npcID : npcsSection.getKeys(false)) {
-                    try {
-                        npcs.put(Integer.parseInt(npcID), new ArrayList<>());
-                    } catch (final NumberFormatException exception) {
-                        LOG.warn(pack, "Could not parse number of NPC '" + npcID + "'");
-                    }
-                }
-            }
-
             final ConfigurationSection hologramsSection = pack.getConfig().getConfigurationSection("npc_holograms");
-            if (hologramsSection == null) {
+            if (hologramsSection == null || "true".equalsIgnoreCase(hologramsSection.getString("disabled"))) {
                 continue;
             }
-            if ("true".equalsIgnoreCase(hologramsSection.getString("disabled"))) {
-                return;
-            }
-            interval = hologramsSection.getInt("check_interval", 100);
-            if (interval <= 0) {
-                LOG.warn(pack, "Could not load npc holograms of package " + pack.getPackagePath() + ": " +
-                        "Check interval must be bigger than 0.");
-                return;
-            }
+            interval = hologramsSection.getInt("check_interval", interval);
             follow = hologramsSection.getBoolean("follow", false);
-
             initHologramsConfig(pack, hologramsSection);
         }
-
+        if (interval <= 0) {
+            interval = 100;
+        }
         updateTask = runTaskTimer(BetonQuest.getInstance(), 1, interval);
     }
 
@@ -136,23 +118,14 @@ public class CitizensHologram extends BukkitRunnable {
             if (settingsSection == null) {
                 continue;
             }
+            final Vector vector = getVector(pack, key, settingsSection.getString("vector"));
+            final List<String> lines = settingsSection.getStringList("lines");
+            final List<ConditionID> conditions = initHologramsConfigConditions(pack, key, settingsSection.getString("conditions"));
 
-            final NPCHologram hologramConfig = new NPCHologram();
-            hologramConfig.pack = pack;
-            hologramConfig.vector = getVector(pack, key, settingsSection.getString("vector"));
-            hologramConfig.conditions = initHologramsConfigConditions(pack, key, settingsSection.getString("conditions"));
-            hologramConfig.lines = settingsSection.getStringList("lines");
-
-            final List<Integer> affectedNpcs = new ArrayList<>();
             for (final int id : settingsSection.getIntegerList("npcs")) {
-                if (npcs.containsKey(id)) {
-                    affectedNpcs.add(id);
-                }
+                npcs.putIfAbsent(id, new ArrayList<>());
+                npcs.get(id).add(new NPCHologram(pack, vector, lines, conditions));
             }
-            for (final int npcID : affectedNpcs.isEmpty() ? npcs.keySet() : affectedNpcs) {
-                npcs.get(npcID).add(hologramConfig);
-            }
-
         }
     }
 
@@ -282,13 +255,18 @@ public class CitizensHologram extends BukkitRunnable {
     }
 
     private static class NPCHologram {
-        private List<ConditionID> conditions;
-        private Vector vector;
-        private List<String> lines;
-        private QuestPackage pack;
+        private final QuestPackage pack;
+        private final Vector vector;
+        private final List<String> lines;
+        private final List<ConditionID> conditions;
         private Hologram hologram;
 
-        public NPCHologram() {
+        public NPCHologram(final QuestPackage pack, final Vector vector, final List<String> lines, final List<ConditionID> conditions) {
+            this.pack = pack;
+            this.vector = vector;
+            this.lines = lines;
+            this.conditions = conditions;
+            this.hologram = null;
         }
     }
 }

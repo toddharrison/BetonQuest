@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * The plugins config file
@@ -41,7 +42,7 @@ public class RPGMenuConfig extends SimpleYMLSection {
     @SuppressWarnings("PMD.AvoidDuplicateLiterals")
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     public RPGMenuConfig() throws InvalidConfigurationException, FileNotFoundException {
-        super("menuConfig.yml", ConfigAccessor.create(new File(BetonQuest.getInstance().getDataFolder(), "menuConfig.yml")).getConfig());
+        super("menuConfig.yml", ConfigAccessor.create(new File(BetonQuest.getInstance().getDataFolder(), "menuConfig.yml"), BetonQuest.getInstance(), "menuConfig.yml").getConfig());
         //load languages
         if (!config.contains("messages") || !config.isConfigurationSection("messages")) {
             throw new Missing("messages");
@@ -85,14 +86,14 @@ public class RPGMenuConfig extends SimpleYMLSection {
         if (instance == null) {
             return "null";
         }
-        String message;
-        message = instance.messages.get(lang == null ? Config.getLanguage() : lang).get(key);
-        if (message == null) {
-            message = instance.messages.get(Config.getLanguage()).get(key);
-            if (message == null) {
-                return "null";
-            }
-        }
+        String message = Optional.ofNullable(lang)
+                .map(instance.messages::get).map(translations -> translations.get(key))
+                .or(() -> Optional.ofNullable(Config.getLanguage())
+                        .map(instance.messages::get).map(translations -> translations.get(key)))
+                .or(() -> Optional.of("en")
+                        .map(instance.messages::get).map(translations -> translations.get(key)))
+                .orElse("null");
+
         if (replace != null) {
             for (int i = 1; i <= replace.length; i++) {
                 message = message.replace("{" + i + "}", replace[i - 1]);

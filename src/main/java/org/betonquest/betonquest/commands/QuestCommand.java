@@ -2,9 +2,11 @@ package org.betonquest.betonquest.commands;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.CustomLog;
+import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.Journal;
@@ -16,10 +18,10 @@ import org.betonquest.betonquest.api.config.ConfigAccessor;
 import org.betonquest.betonquest.api.config.QuestPackage;
 import org.betonquest.betonquest.compatibility.Compatibility;
 import org.betonquest.betonquest.config.Config;
-import org.betonquest.betonquest.database.Connector.UpdateType;
 import org.betonquest.betonquest.database.GlobalData;
 import org.betonquest.betonquest.database.PlayerData;
 import org.betonquest.betonquest.database.Saver.Record;
+import org.betonquest.betonquest.database.UpdateType;
 import org.betonquest.betonquest.events.GiveEvent;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
@@ -29,8 +31,13 @@ import org.betonquest.betonquest.id.EventID;
 import org.betonquest.betonquest.id.ItemID;
 import org.betonquest.betonquest.id.ObjectiveID;
 import org.betonquest.betonquest.item.QuestItem;
-import org.betonquest.betonquest.modules.logger.LogWatcher;
-import org.betonquest.betonquest.modules.versioning.Updater;
+import org.betonquest.betonquest.modules.downloader.DownloadFailedException;
+import org.betonquest.betonquest.modules.downloader.Downloader;
+import org.betonquest.betonquest.modules.logger.BetonQuestLogRecord;
+import org.betonquest.betonquest.modules.logger.PlayerLogWatcher;
+import org.betonquest.betonquest.modules.logger.format.ChatFormatter;
+import org.betonquest.betonquest.modules.logger.handler.history.LogPublishingController;
+import org.betonquest.betonquest.modules.updater.Updater;
 import org.betonquest.betonquest.utils.PlayerConverter;
 import org.betonquest.betonquest.utils.Utils;
 import org.bukkit.Bukkit;
@@ -57,10 +64,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.logging.Level;
+import java.util.stream.Stream;
 
 /**
  * Main admin command for quest editing.
@@ -71,13 +81,26 @@ import java.util.logging.Level;
 public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
 
     private final BetonQuest instance = BetonQuest.getInstance();
-    private String defaultPack = Config.getString("config.default_package");
+    private final BukkitAudiences bukkitAudiences;
+
+    /**
+     * The PlayerLogWatcher that controls which players receive which log messages.
+     */
+    private final PlayerLogWatcher logWatcher;
+
+    /**
+     * The LogPublishingController to control the debug log.
+     */
+    private final LogPublishingController debuggingController;
 
     /**
      * Registers a new executor and a new tab completer of the /betonquest command.
      */
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
-    public QuestCommand() {
+    public QuestCommand(final BukkitAudiences bukkitAudiences, final PlayerLogWatcher logWatcher, final LogPublishingController debuggingController) {
+        this.bukkitAudiences = bukkitAudiences;
+        this.logWatcher = logWatcher;
+        this.debuggingController = debuggingController;
         BetonQuest.getInstance().getCommand("betonquest").setExecutor(this);
         BetonQuest.getInstance().getCommand("betonquest").setTabCompleter(this);
     }
@@ -253,10 +276,8 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                     break;
                 case "reload":
                     // just reloading
-                    defaultPack = Config.getString("config.default_package");
-                    final LogWatcher logWatcher = BetonQuest.getInstance().getLogWatcher();
                     final UUID uuid = sender instanceof Player ? ((Player) sender).getUniqueId() : null;
-                    final boolean noFilters = uuid != null && logWatcher.getFilters(uuid).isEmpty();
+                    final boolean noFilters = uuid != null && !logWatcher.hasActiveFilters(uuid);
                     if (noFilters) {
                         logWatcher.addFilter(uuid, "*", Level.WARNING);
                     }
@@ -277,6 +298,9 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                 case "debug":
                     handleDebug(sender, args);
                     break;
+                case "download":
+                    handleDownload(sender, args);
+                    break;
                 default:
                     // there was an unknown argument, so handle this
                     sendMessage(sender, "unknown_argument");
@@ -290,11 +314,11 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
 
     @SuppressWarnings("PMD.NcssCount")
     @Override
-    public List<String> simpleTabComplete(final CommandSender sender, final Command command, final String alias, final String... args) {
+    public Optional<List<String>> simpleTabComplete(final CommandSender sender, final Command command, final String alias, final String... args) {
         if (args.length == 1) {
-            return Arrays.asList("condition", "event", "item", "give", "objective", "globaltag",
+            return Optional.of(Arrays.asList("condition", "event", "item", "give", "objective", "globaltag",
                     "globalpoint", "tag", "point", "journal", "delete", "rename", "version", "purge",
-                    "update", "reload", "backup", "debug");
+                    "update", "reload", "backup", "debug", "download"));
         }
         switch (args[0].toLowerCase(Locale.ROOT)) {
             case "conditions":
@@ -348,12 +372,14 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                 return completeRenaming(args);
             case "purge":
                 if (args.length == 2) {
-                    return null;
+                    return Optional.empty();
                 } else {
-                    return new ArrayList<>();
+                    return Optional.of(new ArrayList<>());
                 }
             case "debug":
                 return completeDebug(args);
+            case "download":
+                return completeDownload(args);
             case "version":
             case "ver":
             case "v":
@@ -362,7 +388,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             case "backup":
             case "package":
             default:
-                return new ArrayList<>();
+                return Optional.of(new ArrayList<>());
         }
     }
 
@@ -371,8 +397,8 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
      *
      * @return
      */
-    private List<String> completePackage() {
-        return new ArrayList<>(Config.getPackages().keySet());
+    private Optional<List<String>> completePackage() {
+        return Optional.of(new ArrayList<>(Config.getPackages().keySet()));
     }
 
     /**
@@ -383,7 +409,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
      *             null for unspecific
      * @return
      */
-    private List<String> completeId(final String[] args, final AccessorType type) {
+    private Optional<List<String>> completeId(final String[] args, final AccessorType type) {
         final String last = args[args.length - 1];
         if (last == null || !last.contains(".")) {
             return completePackage();
@@ -391,12 +417,12 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             final String pack = last.substring(0, last.indexOf('.'));
             final QuestPackage configPack = Config.getPackages().get(pack);
             if (configPack == null) {
-                return new ArrayList<>();
+                return Optional.of(new ArrayList<>());
             }
             if (type == null) {
-                final List<String> completations = new ArrayList<>();
-                completations.add(pack + '.');
-                return completations;
+                final List<String> completions = new ArrayList<>();
+                completions.add(pack + '.');
+                return Optional.of(completions);
             }
             final ConfigurationSection configuration;
             switch (type) {
@@ -416,7 +442,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                     configuration = configPack.getConfig().getConfigurationSection("objectives");
                     break;
                 default:
-                    return new ArrayList<>();
+                    return Optional.of(new ArrayList<>());
             }
             final List<String> completions = new ArrayList<>();
             if (configuration != null) {
@@ -424,7 +450,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                     completions.add(pack + '.' + key);
                 }
             }
-            return completions;
+            return Optional.of(completions);
         }
     }
 
@@ -521,7 +547,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             sendMessage(sender, "specify_pointer");
             return;
         }
-        final String pointerName = args[3].contains(".") ? args[3] : defaultPack + '.' + args[3];
+        final String pointerName = args[3];
         // if there are arguments, handle them
         switch (args[2].toLowerCase(Locale.ROOT)) {
             case "add":
@@ -573,17 +599,17 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
      * @param args
      * @return
      */
-    private List<String> completeJournals(final String... args) {
+    private Optional<List<String>> completeJournals(final String... args) {
         if (args.length == 2) {
-            return null;
+            return Optional.empty();
         }
         if (args.length == 3) {
-            return Arrays.asList("add", "list", "del");
+            return Optional.of(Arrays.asList("add", "list", "del"));
         }
         if (args.length == 4) {
             return completeId(args, AccessorType.JOURNAL);
         }
-        return new ArrayList<>();
+        return Optional.of(new ArrayList<>());
     }
 
     /**
@@ -620,7 +646,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             sendMessage(sender, "specify_category");
             return;
         }
-        final String category = args[3].contains(".") ? args[3] : defaultPack + '.' + args[3];
+        final String category = args[3];
         // if there are arguments, handle them
         switch (args[2].toLowerCase(Locale.ROOT)) {
             case "add":
@@ -687,7 +713,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             sendMessage(sender, "specify_category");
             return;
         }
-        final String category = args[2].contains(".") ? args[2] : defaultPack + '.' + args[2];
+        final String category = args[2];
         // if there are arguments, handle them
         switch (args[1].toLowerCase(Locale.ROOT)) {
             case "add":
@@ -726,17 +752,17 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
      * @param args
      * @return
      */
-    private List<String> completePoints(final String... args) {
+    private Optional<List<String>> completePoints(final String... args) {
         if (args.length == 2) {
-            return null;
+            return Optional.empty();
         }
         if (args.length == 3) {
-            return Arrays.asList("add", "list", "del");
+            return Optional.of(Arrays.asList("add", "list", "del"));
         }
         if (args.length == 4) {
             return completeId(args, null);
         }
-        return new ArrayList<>();
+        return Optional.of(new ArrayList<>());
     }
 
     /**
@@ -746,14 +772,14 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
      * @param args
      * @return
      */
-    private List<String> completeGlobalPoints(final String... args) {
+    private Optional<List<String>> completeGlobalPoints(final String... args) {
         if (args.length == 2) {
-            return Arrays.asList("add", "list", "del");
+            return Optional.of(Arrays.asList("add", "list", "del"));
         }
         if (args.length == 3) {
             return completeId(args, null);
         }
-        return new ArrayList<>();
+        return Optional.of(new ArrayList<>());
     }
 
     /**
@@ -781,7 +807,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             pack = parts[0];
             name = parts[1];
         } else {
-            pack = defaultPack;
+            pack = null;
             name = itemID;
         }
         // define parts of the final string
@@ -821,11 +847,11 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
      * @param args
      * @return
      */
-    private List<String> completeItems(final String... args) {
+    private Optional<List<String>> completeItems(final String... args) {
         if (args.length == 2) {
             return completeId(args, AccessorType.ITEMS);
         }
-        return new ArrayList<>();
+        return Optional.of(new ArrayList<>());
     }
 
     /**
@@ -864,14 +890,14 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
      * @param args
      * @return
      */
-    private List<String> completeEvents(final String... args) {
+    private Optional<List<String>> completeEvents(final String... args) {
         if (args.length == 2) {
-            return null;
+            return Optional.empty();
         }
         if (args.length == 3) {
             return completeId(args, AccessorType.EVENTS);
         }
-        return new ArrayList<>();
+        return Optional.of(new ArrayList<>());
     }
 
     /**
@@ -911,14 +937,14 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
      * @param args
      * @return
      */
-    private List<String> completeConditions(final String... args) {
+    private Optional<List<String>> completeConditions(final String... args) {
         if (args.length == 2) {
-            return null;
+            return Optional.empty();
         }
         if (args.length == 3) {
             return completeId(args, AccessorType.CONDITIONS);
         }
-        return new ArrayList<>();
+        return Optional.of(new ArrayList<>());
     }
 
     /**
@@ -956,7 +982,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             sendMessage(sender, "specify_tag");
             return;
         }
-        final String tag = args[3].contains(".") ? args[3] : defaultPack + '.' + args[3];
+        final String tag = args[3];
         // if there are arguments, handle them
         switch (args[2].toLowerCase(Locale.ROOT)) {
             case "add":
@@ -1014,7 +1040,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             sendMessage(sender, "specify_tag");
             return;
         }
-        final String tag = args[2].contains(".") ? args[2] : defaultPack + '.' + args[2];
+        final String tag = args[2];
         // if there are arguments, handle them
         switch (args[1].toLowerCase(Locale.ROOT)) {
             case "add":
@@ -1049,17 +1075,17 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
      * @param args
      * @return
      */
-    private List<String> completeTags(final String... args) {
+    private Optional<List<String>> completeTags(final String... args) {
         if (args.length == 2) {
-            return null;
+            return Optional.empty();
         }
         if (args.length == 3) {
-            return Arrays.asList("list", "add", "del");
+            return Optional.of(Arrays.asList("list", "add", "del"));
         }
         if (args.length == 4) {
             return completeId(args, null);
         }
-        return new ArrayList<>();
+        return Optional.of(new ArrayList<>());
     }
 
     /**
@@ -1069,14 +1095,14 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
      * @param args
      * @return
      */
-    private List<String> completeGlobalTags(final String... args) {
+    private Optional<List<String>> completeGlobalTags(final String... args) {
         if (args.length == 2) {
-            return Arrays.asList("list", "add", "del");
+            return Optional.of(Arrays.asList("list", "add", "del"));
         }
         if (args.length == 3) {
             return completeId(args, null);
         }
-        return new ArrayList<>();
+        return Optional.of(new ArrayList<>());
     }
 
     /**
@@ -1196,17 +1222,17 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
      * @param args
      * @return
      */
-    private List<String> completeObjectives(final String... args) {
+    private Optional<List<String>> completeObjectives(final String... args) {
         if (args.length == 2) {
-            return null;
+            return Optional.empty();
         }
         if (args.length == 3) {
-            return Arrays.asList("list", "add", "del", "complete");
+            return Optional.of(Arrays.asList("list", "add", "del", "complete"));
         }
         if (args.length == 4) {
             return completeId(args, AccessorType.OBJECTIVES);
         }
-        return new ArrayList<>();
+        return Optional.of(new ArrayList<>());
     }
 
     /**
@@ -1219,14 +1245,8 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             return;
         }
         final String type = args[1].toLowerCase(Locale.ROOT);
-        String name = args[2];
-        String rename = args[3];
-        if (!name.contains(".")) {
-            name = defaultPack + '.' + name;
-        }
-        if (!rename.contains(".")) {
-            rename = defaultPack + '.' + rename;
-        }
+        final String name = args[2];
+        final String rename = args[3];
         final UpdateType updateType;
         switch (type) {
             case "tags":
@@ -1378,14 +1398,14 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
      * @param args
      * @return
      */
-    private List<String> completeRenaming(final String... args) {
+    private Optional<List<String>> completeRenaming(final String... args) {
         if (args.length <= 3) {
             return completeDeleting(args);
         }
         if (args.length == 4) {
             return completeId(args, null);
         }
-        return new ArrayList<>();
+        return Optional.of(new ArrayList<>());
     }
 
     /**
@@ -1398,10 +1418,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             return;
         }
         final String type = args[1].toLowerCase(Locale.ROOT);
-        String name = args[2];
-        if (!name.contains(".")) {
-            name = defaultPack + '.' + name;
-        }
+        final String name = args[2];
         final UpdateType updateType;
         switch (type) {
             case "tags":
@@ -1469,9 +1486,9 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
      * @param args
      * @return
      */
-    private List<String> completeDeleting(final String... args) {
+    private Optional<List<String>> completeDeleting(final String... args) {
         if (args.length == 2) {
-            return Arrays.asList("tag", "point", "objective", "entry");
+            return Optional.of(Arrays.asList("tag", "point", "objective", "entry"));
         }
         if (args.length == 3) {
             switch (args[1].toLowerCase(Locale.ROOT)) {
@@ -1497,7 +1514,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                     break;
             }
         }
-        return new ArrayList<>();
+        return Optional.of(new ArrayList<>());
     }
 
     /**
@@ -1525,6 +1542,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         cmds.put("version", "version");
         cmds.put("purge", "purge <player>");
         cmds.put("debug", "debug [true/false/ingame]");
+        cmds.put("download", "download <gitHubNamespace> <ref> <offsetPath> <sourcePath> [targetPath] [recursive] [overwrite]");
         if (!(sender instanceof Player)) {
             cmds.put("backup", "backup");
         }
@@ -1630,10 +1648,9 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
     }
 
     private void handleDebug(final CommandSender sender, final String... args) {
-        final LogWatcher logWatcher = BetonQuest.getInstance().getLogWatcher();
         if (args.length == 1) {
             sender.sendMessage(
-                    "§2Debugging mode is currently " + (logWatcher.isDebugging() ? "enabled" : "disabled") + '!');
+                    "§2Debugging mode is currently " + (debuggingController.isLogging() ? "enabled" : "disabled") + '!');
             return;
         }
         if ("ingame".equalsIgnoreCase(args[1])) {
@@ -1643,52 +1660,144 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             }
             final UUID uuid = ((Player) sender).getUniqueId();
             if (args.length < 3) {
-                sender.sendMessage("§2Active Filters: " + String.join(", ", logWatcher.getFilters(uuid)));
+                sender.sendMessage("§2Active Filters: " + String.join(", ", logWatcher.getActivePatterns(uuid)));
                 return;
             }
             final String filter = args[2];
-            final boolean exist = logWatcher.getFilters(uuid).contains(filter);
-            if (exist && args.length == 3) {
-                if (!logWatcher.removeFilter(uuid, filter)) {
-                    sender.sendMessage("§2Filter could not be removed!");
-                    return;
+            if (logWatcher.isActivePattern(uuid, filter)) {
+                if (args.length == 3) {
+                    logWatcher.removeFilter(uuid, filter);
+                    sender.sendMessage("§2Filter removed!");
+                } else {
+                    final Level level = getLogLevel(args[3]);
+                    logWatcher.addFilter(uuid, filter, level);
+                    sender.sendMessage("§2Filter replaced!");
                 }
-                sender.sendMessage("§2Filter removed!");
-                return;
+            } else {
+                final Level level = getLogLevel(args.length > 3 ? args[3] : null);
+                logWatcher.addFilter(uuid, filter, level);
+                sender.sendMessage("§2Filter added!");
             }
-            final Level level = getLogLevel(args.length > 3 ? args[3] : null);
-            if (!logWatcher.addFilter(uuid, filter, level)) {
-                sender.sendMessage("§2Filter could not be added!");
-                return;
-            }
-            sender.sendMessage("§2Filter added!");
             return;
         }
         final Boolean input = "true".equalsIgnoreCase(args[1]) ? Boolean.TRUE
                 : "false".equalsIgnoreCase(args[1]) ? Boolean.FALSE : null;
         if (input != null && args.length == 2) {
 
-            if (logWatcher.isDebugging() && input || !logWatcher.isDebugging() && !input) {
+            if (debuggingController.isLogging() && input || !debuggingController.isLogging() && !input) {
                 sender.sendMessage(
-                        "§2Debugging mode is already " + (logWatcher.isDebugging() ? "enabled" : "disabled") + '!');
+                        "§2Debugging mode is already " + (debuggingController.isLogging() ? "enabled" : "disabled") + '!');
                 return;
             }
-            if (input) {
-                logWatcher.startDebug();
-            } else {
-                logWatcher.endDebug();
-            }
             try {
-                logWatcher.saveDebuggingToConfig();
+                if (input) {
+                    debuggingController.startLogging();
+                } else {
+                    debuggingController.stopLogging();
+                }
             } catch (final IOException e) {
                 sender.sendMessage("Could not save new debugging state to configuration file!");
                 LOG.warn("Could not save new debugging state to configuration file! " + e.getMessage(), e);
             }
-            sender.sendMessage("§2Debugging mode was " + (logWatcher.isDebugging() ? "enabled" : "disabled") + '!');
-            LOG.info("Debuging mode was " + (logWatcher.isDebugging() ? "enabled" : "disabled") + '!');
+            sender.sendMessage("§2Debugging mode was " + (debuggingController.isLogging() ? "enabled" : "disabled") + '!');
+            LOG.info("Debuging mode was " + (debuggingController.isLogging() ? "enabled" : "disabled") + '!');
             return;
         }
         sendMessage(sender, "unknown_argument");
+    }
+
+    @SuppressWarnings({"PMD.AvoidCatchingGenericException", "PMD.SwitchStmtsShouldHaveDefault"})
+    private void handleDownload(final CommandSender sender, final String... args) {
+        if (args.length < 5) {
+            sendMessage(sender, "arguments");
+            return;
+        }
+        final String sourcePath = args[4];
+        final String targetPath;
+        boolean recursive = false;
+        boolean overwrite = false;
+        if (args.length < 6 || Set.of("recursive", "overwrite").contains(args[5])) {
+            targetPath = sourcePath;
+        } else {
+            targetPath = args[5];
+        }
+        for (int i = 5; i < args.length; i++) {
+            switch (args[i].toLowerCase(Locale.ROOT)) {
+                case "recursive" -> recursive = true;
+                case "overwrite" -> overwrite = true;
+                default -> {
+                    if (i > 5) {
+                        sendMessage(sender, "unknown_argument");
+                        return;
+                    }
+                }
+            }
+        }
+        final String githubNamespace = args[1];
+        final String ref = args[2].startsWith("refs/") ? args[2] : "refs/heads/" + args[2];
+        final String offsetPath = args[3];
+        final String errSummary = String.format("Download from %s ref %s of %s at %s to %s failed:",
+                githubNamespace, ref, offsetPath, sourcePath, targetPath);
+
+        //Check offset paths
+        if (!Downloader.ALLOWED_OFFSET_PATHS.contains(offsetPath)) {
+            sendMessage(sender, "download_failed_offset");
+            LOG.debug(errSummary, new IllegalArgumentException(offsetPath));
+            return;
+        }
+
+        //check if repo is allowed
+        final List<String> whitelist = instance.getPluginConfig().getStringList("download.repo_whitelist");
+        if (whitelist.stream().map(String::trim).noneMatch(githubNamespace::equals)) {
+            sendMessage(sender, "download_failed_whitelist");
+            LOG.debug(errSummary, new IllegalArgumentException(githubNamespace));
+            return;
+        }
+
+        //check if ref is valid
+        if (ref.toLowerCase(Locale.ROOT).startsWith("refs/pull/") && !instance.getPluginConfig().getBoolean("download.pull_requests", false)) {
+            sendMessage(sender, "download_failed_pr");
+            LOG.debug(errSummary, new IllegalArgumentException(ref));
+            return;
+        }
+
+        //run download
+        final Downloader downloader = new Downloader(instance.getDataFolder(), githubNamespace, ref,
+                offsetPath, sourcePath, targetPath, recursive, overwrite);
+        sendMessage(sender, "download_scheduled");
+        Bukkit.getScheduler().runTaskAsynchronously(instance, () -> {
+            try {
+                downloader.call();
+                sendMessage(sender, "download_success");
+            } catch (DownloadFailedException | SecurityException e) {
+                sendMessage(sender, "download_failed", e.getMessage());
+                LOG.debug(errSummary, e);
+            } catch (final Exception e) {
+                sendMessage(sender, "download_failed", e.getClass().getSimpleName() + ": " + e.getMessage());
+                if (sender instanceof Player player) {
+                    final BetonQuestLogRecord record = new BetonQuestLogRecord(Level.FINE, "", instance);
+                    record.setThrown(e);
+                    final String msgJson = new ChatFormatter().format(record);
+                    bukkitAudiences.player(player).sendMessage(GsonComponentSerializer.gson().deserialize(msgJson));
+                    LOG.debug(errSummary, e);
+                } else {
+                    LOG.error(errSummary, e);
+                }
+            }
+        });
+    }
+
+    private Optional<List<String>> completeDownload(final String... args) {
+        return switch (args.length) {
+            case 2 -> Optional.of(instance.getPluginConfig().getStringList("download.repo_whitelist"));
+            case 3 -> Optional.of(List.of("main", "refs/heads/", "refs/tags/"));
+            case 4 -> Optional.of(Downloader.ALLOWED_OFFSET_PATHS);
+            case 5 -> Optional.of(List.of("/"));
+            case 6 -> Optional.of(List.of("/", "overwrite", "recursive"));
+            case 7, 8 ->
+                    Optional.of(Stream.of("overwrite", "recursive").filter(tag -> !Arrays.asList(args).contains(tag)).toList());
+            default -> Optional.of(List.of());
+        };
     }
 
     private Level getLogLevel(final String arg) {
@@ -1701,17 +1810,17 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         return Level.WARNING;
     }
 
-    private List<String> completeDebug(final String... args) {
+    private Optional<List<String>> completeDebug(final String... args) {
         if (args.length == 2) {
-            return Arrays.asList("true", "false", "ingame");
+            return Optional.of(Arrays.asList("true", "false", "ingame"));
         }
         if (args.length == 3) {
             return completePackage();
         }
         if (args.length == 4) {
-            return Arrays.asList("error", "info", "debug");
+            return Optional.of(Arrays.asList("error", "info", "debug"));
         }
-        return new ArrayList<>();
+        return Optional.of(new ArrayList<>());
     }
 
     private void sendMessage(final CommandSender sender, final String messageName) {

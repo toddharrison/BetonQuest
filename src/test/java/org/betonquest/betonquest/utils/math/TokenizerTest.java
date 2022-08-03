@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
 /**
  * Test the {@link Tokenizer}.
  */
-@SuppressWarnings({"PMD.AvoidDuplicateLiterals", "deprecation"})
+@SuppressWarnings({"deprecation"})
 @ExtendWith(BetonQuestLoggerService.class)
 @Execution(ExecutionMode.SAME_THREAD)
 class TokenizerTest {
@@ -43,12 +43,6 @@ class TokenizerTest {
      * The player name to use for variable resolution.
      */
     public static final String TEST_PLAYER_ID = "player";
-
-    /**
-     * Create the TokenizerTest.
-     */
-    public TokenizerTest() {
-    }
 
     private static void withVariables(final Executable executable, final ProtoVariable... variables) throws Throwable {
         try (MockedStatic<Config> config = mockStatic(Config.class);

@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,14 +19,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * This class can be used to test custom implementations of {@link Configuration}.
  * You only need to override methods with behaviours that differ from the default one.
  */
-@SuppressWarnings({"PMD.JUnitAssertionsShouldIncludeMessage", "PMD.AvoidDuplicateLiterals", "PMD.JUnit5TestShouldBePackagePrivate"})
+@SuppressWarnings({"PMD.JUnitAssertionsShouldIncludeMessage", "PMD.JUnit5TestShouldBePackagePrivate"})
 public class ConfigurationBaseTest extends AbstractConfigBaseTest<Configuration> implements ConfigurationTestInterface {
-    /**
-     * Empty constructor
-     */
-    public ConfigurationBaseTest() {
-        super();
-    }
 
     @Override
     public Configuration getConfig() {
@@ -117,7 +113,12 @@ public class ConfigurationBaseTest extends AbstractConfigBaseTest<Configuration>
     public void testGetDefaults() {
         final Configuration defaults = config.getDefaults();
         assertNotNull(defaults);
-        assertEquals("{default=MemorySection[path='default', root='MemoryConfiguration'], default.key=value}", defaults.getValues(true).toString());
+        final Pattern pattern = Pattern.compile(Pattern.quote("{default=") + "\\w+"
+                + Pattern.quote("[path='default', root='") + "\\w+"
+                + Pattern.quote("'], default.key=value}"));
+        final String sectionString = defaults.getValues(true).toString();
+        final Matcher matcher = pattern.matcher(sectionString);
+        assertTrue(matcher.matches(), "Didn't match regex: " + pattern + "\n" + "Actual string: " + sectionString);
     }
 
     @Test
@@ -162,9 +163,24 @@ public class ConfigurationBaseTest extends AbstractConfigBaseTest<Configuration>
         assertFalse(config.options().copyDefaults());
         config.options().copyDefaults(true);
         assertTrue(config.options().copyDefaults());
+        config.options().copyDefaults(false);
 
         assertEquals('.', config.options().pathSeparator());
         config.options().pathSeparator('-');
         assertEquals('-', config.options().pathSeparator());
+        config.options().pathSeparator('.');
+    }
+
+    @Test
+    @Override
+    @SuppressWarnings("PMD.JUnitTestContainsTooManyAsserts")
+    public void testOptionsPathSeparator() {
+        assertEquals('.', config.options().pathSeparator());
+        assertEquals("value", config.getString("childSection.nestedChildSection.key"));
+
+        config.options().pathSeparator('-');
+        assertEquals('-', config.options().pathSeparator());
+        assertEquals("value", config.getString("childSection-nestedChildSection-key"));
+        config.options().pathSeparator('.');
     }
 }

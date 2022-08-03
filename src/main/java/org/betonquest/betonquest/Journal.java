@@ -8,8 +8,8 @@ import org.betonquest.betonquest.api.PlayerJournalAddEvent;
 import org.betonquest.betonquest.api.PlayerJournalDeleteEvent;
 import org.betonquest.betonquest.api.config.QuestPackage;
 import org.betonquest.betonquest.config.Config;
-import org.betonquest.betonquest.database.Connector.UpdateType;
 import org.betonquest.betonquest.database.Saver.Record;
+import org.betonquest.betonquest.database.UpdateType;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
 import org.betonquest.betonquest.exceptions.QuestRuntimeException;
@@ -362,11 +362,9 @@ public class Journal {
 
     /**
      * Adds journal to player inventory.
-     *
-     * @param slot slot number for adding the journal
      */
-    public void addToInv(final int slot) {
-        final int targetSlot = hasJournal(playerID) ? removeFromInv() : slot;
+    public void addToInv() {
+        final int targetSlot = getJournalSlot();
         generateTexts(lang);
         final Inventory inventory = PlayerConverter.getPlayer(playerID).getInventory();
         final ItemStack item = getAsItem();
@@ -382,11 +380,22 @@ public class Journal {
             }
         } else {
             try {
-                Config.sendNotify(null, playerID, "inventory_full", null, "inventory_full,error");
+                Config.sendNotify(null, playerID, "inventory_full_backpack", null, "inventory_full_backpack,inventory_full,error");
             } catch (final QuestRuntimeException e) {
-                LOG.warn("The notify system was unable to play a sound for the 'inventory_full' category. Error was: '" + e.getMessage() + "'", e);
+                LOG.warn("The notify system was unable to play a sound for the 'inventory_full_backpack' category. Error was: '" + e.getMessage() + "'", e);
             }
         }
+    }
+
+    @SuppressWarnings("PMD.PrematureDeclaration")
+    private int getJournalSlot() {
+        final int slot = Integer.parseInt(Config.getString("config.default_journal_slot"));
+        final boolean forceJournalSlot = Boolean.parseBoolean(Config.getString("config.journal.lock_default_journal_slot"));
+        final int oldSlot = removeFromInv();
+        if (forceJournalSlot) {
+            return slot;
+        }
+        return oldSlot == -1 ? slot : oldSlot;
     }
 
     /**
@@ -451,9 +460,7 @@ public class Journal {
      */
     public void update() {
         if (hasJournal(playerID)) {
-            lang = BetonQuest.getInstance().getPlayerData(playerID).getLanguage();
-            final int slot = removeFromInv();
-            addToInv(slot);
+            addToInv();
         }
     }
 

@@ -1,3 +1,6 @@
+---
+icon: octicons/question-16
+---
 # Conditions List
 
 ## Advancement: `advancement`
@@ -37,6 +40,15 @@ This condition will check if the player is in specified biome. The only argument
     ```YAML
     biome savanna_rock
     ```
+    
+## Burning: `burning`
+
+This condition will check if the player is on fire.
+
+```YAML title="Example"
+conditions:
+  isOnFire: "burning"
+```
 
 ## Check conditions: `check`
 
@@ -198,6 +210,20 @@ This condition requires the player to be _below_ specific Y height. The required
     ```YAML
     height 16
     ```
+    
+## In Conversation: `inconversation`
+
+This condition checks, if the player is in a conversation.
+
+| Parameter      | Syntax              | Default Value            | Explanation                                                                                        |
+|----------------|---------------------|--------------------------|----------------------------------------------------------------------------------------------------|
+| _conversation_ | `conversation:name` | :octicons-x-circle-16:   | Optional name of the conversation. If specified, it will only check for the conversation with this name. |
+
+```YAML title="Example"
+conditions:
+  isInConversation: "inconversation"
+  talksToInnkeeper: "inconversation conversation:innkeeper"
+```
 
 ## Item in Inventory: `item`
 
@@ -303,7 +329,7 @@ Requires the player to have amount of points equal to the specified category or 
 ## Ride an entity: `ride`
 
 This condition checks if the player rides the specified
-<a href="https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/EntityType.html" target="_blank_">entity</a>.
+[entity](https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/EntityType.html).
 `any` is also a valid input and matches any entity.
 
 !!! example

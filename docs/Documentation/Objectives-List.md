@@ -1,3 +1,6 @@
+---
+icon: material/check-circle
+---
 # Objectives List
 
 ## Action: `action`
@@ -70,11 +73,13 @@ This objective has three properties: `amount`, `left` and `total`. `amount` is t
 This objective requires the player to put specified items in a specified chest. First argument is a location of the
 chest, second argument is a list of items (from _items_ section), separated with a comma. You can also add amount of
 items after a colon. The items will be removed upon completing the objective unless you add `items-stay` optional
-argument.
+argument. By default, only one player can look into the chest at the same time. You can change it by adding the key 
+`multipleaccess`.
 
 !!! example
     ```YAML
     chestput 100;200;300;world emerald:5,sword events:tag,message
+    chestput 0;50;100;world apple:42 events:message multipleaccess:true
     ```
 
 ## Eat/drink: `consume`
@@ -128,25 +133,35 @@ This objective has three properties: `amount`, `left` and `total`. `amount` is t
     experience 25 level events:reward
     ```
 
-## Delay: `delay`
+##:material-clock-time-two-outline: Wait: `delay` 
 
-This objective is just a long, persistent delay for firing events. It will run only after certain amount of time
-(measured in minutes) and only when player is online and meets all conditions. If a player is offline at that time it
-will just wait for them to log in. You should use it for example to delete tags so the player can complete quests
-multiple times. First argument is time, by default in minutes. You can also use `ticks` or `seconds` argument to use
-different units, but keep in mind that it's not very precise - it will complete roughly after the time ends. To control
-that precision you can specify an optional `interval:` argument, which specifies how many ticks should pass between
-checks. One second is 20 ticks. Less makes the objective more precise, at the expense of performance. The rest is
-just like in other objectives.
+This objective completes itself after certain amount of time.
+The player must be online and meet all conditions. If the player is not online the objective is completed on the player's
+next login.
 
-Delay has two properties, `left` and `date`. The first one will show how much time needs to pass before the delay is
-completed (i.e. `23 days, 5 hours and 45 minutes`), the second one will show a date of completing the objective
-formatted using `date_format` setting in _config.yml_ (it will look like the one above every journal entry).
+| Parameter   | Syntax          | Default Value          | Explanation                                                                                                                                        |
+|-------------|-----------------|------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
+| _time_      | Any Number      | :octicons-x-circle-16: | The time after which the objective is completed.                                                                                                   |
+| _unit_      | Keyword         | minutes                | The unit of time. Either `minutes`, `seconds` or `ticks`.                                                                                          |
+| _precision_ | interval:number | interval:200           | The interval in which the objective checks if the time is up. Measured in ticks. Low values cost more performance but make the objective preciser. |
 
-!!! example
-    ```YAML
-    delay 1000 ticks interval:5 events:event1,event2
-    ```
+``` YAML title="Example"
+objectives:
+  waitDay: "delay 1440 events:resetDaily" #(1)!
+  wait50sec: "delay 1000 ticks interval:5 events:failQuest" #(2)! 
+```
+   
+1. Runs the `resetDaily` event after 1440 minutes (24 hours).
+2. Runs the `failQuest` event after 1000 ticks (50 seconds) have passed. The objective checks every 5 ticks (250ms) if the time is up.
+
+<h5> Variable Properties </h5> 
+
+| Name         | Example Output                        | Explanation                                                                                                              |
+|--------------|---------------------------------------|--------------------------------------------------------------------------------------------------------------------------|
+| _left_       | 23 days 5 hours 45 minutes 17 seconds | Shows the time left until the objective is completed.                                                                    |
+| _date_       | 17.04.2022 16:14                      | Shows the date the objective is completed at using the config's `date_format` [setting](Configuration.md#misc-settings). |
+| _rawSeconds_ | 5482                                  | Shows the amount of seconds until objective completion.                                                                  |
+
 
 ## Death: `die`
 
@@ -160,20 +175,36 @@ add them right after type of objective.
     die cancel respawn:100;200;300;world;90;0 events:teleport
     ```
 
-## Fishing: `fish`
+## :fontawesome-solid-fish-fins: Fishing: `fish`
 
-Requires the player to catch something with the fishing rod. It doesn't have to be a fish, it can also be a treasure or
-junk. The first argument is a [Block Selector](./Reference.md#block-selectors) of the item to catch.
-Second argument must be the amount of fish to catch. You can also add the `notify` argument if you want to display
-progress, optionally with the notification interval after a colon.
+Requires the player to catch something with the fishing rod. It doesn't have to be a fish, it can also be any other item.
 
-The fish objective has three properties: `left` is the amount of fish still left to be caught, `amount` is the amount of
-already caught fish and `total` is the initially required amount of fish needed to be caught.
+| Parameter       | Syntax                                                             | Default Value          | Explanation                                                                                                            |
+|-----------------|--------------------------------------------------------------------|------------------------|------------------------------------------------------------------------------------------------------------------------|
+| _item_          | [Block Selector](./Reference.md#block-selectors)                   | :octicons-x-circle-16: | The item that must be caught.                                                                                          |
+| _amount_        | Any Number                                                         | :octicons-x-circle-16: | The amount that must be caught.                                                                                        |
+| _notifications_ | notify:number                                                      | notify:0               | Add `notify` to display a notification when a fish is caught. Optionally with the notification interval after a colon. |
+| _hookLocation_  | hookLocation:[Location](./Reference.md#unified-location-formating) | Everywhere             | The location at which the item must be caught. Range must also be defined.                                             |
+| _range_         | range:number                                                       | Everywhere             | The range around the `hookLocation`.                                                                                   |
 
-!!! example
-    ```YAML
-    fish SALMON 5 notify events:tag_fish_caught
-    ```
+
+
+```YAML title="Example"
+objectives:
+  fisherman: "fish SALMON 5 notify events:tag_fish_caught" #(1)!
+  fishAtPond: "fish COD 5 hookLocation:123;456;789;fishWorld range:10 events:giveSpecialFish" #(2)!
+```
+
+1. Requires the player to catch 5 salmon. The player will get a notification for every caught fish.
+2. Requires the player to catch 5 cod. The rod's hook must be used in a 10 block radius around `x:123 y:456 z:789` in a world named `fishWorld`.
+
+<h5> Variable Properties </h5>
+
+| Name   | Example Output | Explanation                                                |
+|--------|----------------|------------------------------------------------------------|
+| left   | 4              | The amount of fish still left to be caught.                |
+| amount | 6              | The amount of already caught fish.                         |
+| total  | 10             | The initially required amount of fish needed to be caught. |
 
 ## Interact with entity: `interact`
 
@@ -304,23 +335,40 @@ This objective has three properties: `amount`, `left` and `total`. `amount` is t
     pickup emerald,diamond amount:6 events:reward notify
     ```
 
-## Mob Kill: `mobkill`
+## :material-skull: Entity Kill: `mobkill`
 
-The player must kill specified amount of mobs You must specify mob type first and then amount. You can find possible mob
-types here: [mob types](https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/EntityType.html). Additionally you
-can specify names for mobs with `name:Uber_Zombie`, so only killing properly named mobs counts. All `_` are replaced
-with spaces, so in this example you would have to kill 5 zombies with "Uber Zombie" above their heads. You can also
-specify `notify` keyword to display messages to the player each time he kills a mob, optionally with the notification
-interval after colon. If you want to accept only mobs marked with `spawn` event, use `marked:` argument followed by the
-keyword used in that event.
+The player must kill the specified amount of entities (living creatures).
+All entities work, make sure to use their [correct types](https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/EntityType.html).
 
-This objective has three properties: `amount`, `left` and `total`. `amount` is the amount of mob already killed,
-`left` is the amount of mobs still needed to kill and `total` is the amount of mobs initially required.
+| Parameter | Syntax                  | Default Value          | Explanation                                                                                                              |
+|-----------|-------------------------|------------------------|--------------------------------------------------------------------------------------------------------------------------|
+| _type_    | ENTITY_TYPE,ENTITY_TYPE | :octicons-x-circle-16: | A list of entities, e.g. `ZOMBIE,SKELETON`.                                                                              |
+| _amount_  | Positive Number         | :octicons-x-circle-16: | Amount of mobs to kill in total.                                                                                         |
+| _name_    | name:text               | Disabled               | Only count named mobs. Spaces must be replaced with `_`.                                                                 |
+| _marked_  | marked:keyword          | Disabled               | Only count marked mobs. See the [spawn event](Events-List.md#spawn-mob-spawn) for more information. Supports `%player%`. |
+| _notify_  | notify:interval         | Disabled               | Display a message to the player each time they kill a mob. Optionally with the notification interval after colon.        |
 
-!!! example
-    ```YAML
-    mobkill ZOMBIE 5 name:Uber_Zombie conditions:night
-    ```
+``` YAML title="Example"
+objectives:
+  monsterHunter: "mobkill ZOMBIE,SKELETON,SPIDER 10 notify" #(1)!
+  specialMob: "mobkill PIG 1 marked:special" #(2)!
+  bossZombie: "mobkill ZOMBIE 1 name:Uber_Zombie" #(3)!
+```
+   
+1. The player must kill a zombie,skeleton or a spider to progress this objective. In total, they must kill 10 entities. Additionally, there will be a notification after each kill.
+2. The player must kill a pig that was spawned with the [spawn event](Events-List.md#spawn-mob-spawn) and has a marker. 
+3. The player must kill a zombie named "Uber Zombie".
+
+
+<h5> Variable Properties </h5> 
+
+| Name     | Example Output | Explanation                                            |
+|----------|----------------|--------------------------------------------------------|
+| _amount_ | 2              | Shows the amount of mobs already killed.               |
+| _left_   | 8              | Shows the amount of mobs that still need to be killed. |
+| _total_  | 10             | Shows the amount of mobs initially required to kill.   |
+
+
 
 ## Potion brewing: `brew`
 
@@ -391,7 +439,7 @@ formatted like `X: 100, Y: 200, Z:300`.
 ## Taming: `tame`
 
 To complete this objective player must tame some amount of mobs. First argument is type, second is amount. The mob must
-be tameable for the objective to be valid, e.g. on 1.16.5: `CAT`, `DONKEY`, `HORSE`, `LLAMA`, `PARROT` or `WOLF`. You
+be tamable for the objective to be valid, e.g.: `CAT`, `DONKEY`, `HORSE`, `LLAMA`, `PARROT` or `WOLF`. You
 can use the `notify` keyword to display a message each time the player advances the objective, optionally with the
 notification interval after a colon.
 
@@ -405,7 +453,7 @@ This objective has three properties: `amount`, `left` and `total`. `amount` is t
    
 
 ## Player must Jump: `jump`
-**:fontawesome-solid-tasks:{.task} Objective  ·  :fontawesome-solid-paper-plane: Requires [Paper](https://papermc.io)**
+**:fontawesome-solid-list-check:{.task} Objective  ·  :fontawesome-solid-paper-plane: Requires [Paper](https://papermc.io)**
 
 To complete this objective the player must jump. The only argument is amount. You can use the `notify` keyword to display a
 message each time the player advances the objective, optionally with the notification interval after a colon.
@@ -421,7 +469,7 @@ This objective has three properties: `amount`, `left` and `total`. `amount` is t
 ## Ride an entity: `ride`
 
 This objective can be completed by riding the specified
-<a href="https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/EntityType.html" target="_blank_">entity</a>.
+[entity](https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/EntityType.html).
 `any` is also a valid input and matches any entity.
 
 !!! example
@@ -472,7 +520,7 @@ Optional arguments:
     `eventName: {=="==}command /enchant_@s_minecraft:aqua_affinity{=="==}` :arrow_right: `eventName: {=="==}command /enchant_@s_minecraft:aqua{++\\++}_affinity{=="==}`<br>
 
 ## Equip Armor Item: `equip`
-**:fontawesome-solid-tasks:{.task} Objective  ·  :fontawesome-solid-paper-plane: Requires [Paper](https://papermc.io)**
+**:fontawesome-solid-list-check:{.task} Objective  ·  :fontawesome-solid-paper-plane: Requires [Paper](https://papermc.io)**
 
 The player must equip the specified quest item in the specified slot.
 The item must be any quest item as defined in the _items_ section.
@@ -486,15 +534,16 @@ equip CHEST amazing_armor events:event1,event2
 ## Variable: `variable`
 
 This objective is different. You cannot complete it, it will also ignore defined events and conditions. You can start it and that's it.
-While this objective is active though, everything the player types in chat (and matches special pattern) will become a variable.
-The pattern is `key: value`. So if you type that, it will create a variable called `key`, which will resolve to `value` string.
-These are not global variables, you can access them as objective properties. Let's say you defined this objective as `var` in your _objectives_ section.
-You can access the variable in any conversation, event or condition with `%objective.var.key%` - and in case of this example, it will resolve to `value`.
-The player can type something else, and the variable will change its value. Variables are per-player, so my `key` variable 
-will be different from your `key` variable, depending on what we were typing in chat. You can have as much variables here as you want.
-To remove this objective use `objective delete` event - there is no other way.
+While this objective is active though, everything the player types in chat (and matches a special pattern) will become a variable.
+The pattern is `key: value`. So if the player types `MyFirstVariable: Hello!`, it will create a variable called `MyFirstVariable`, which will resolve as a `Hello!` string.
+These are not global variables, you can access them as objective properties. Let's say you defined this objective as `CustomVariable` in your _objectives.yml_ file.
+You can access the variable in any conversation, event or condition with `%objective.CustomVariable.MyFirstVariable%` - and in the case of this example, it will resolve to `Hello!`.
+The player can type something else and the variable will change its value. Variables are per-player, so the value of one player's `MyFirstVariable`
+will be different from other players' `MyFirstVariable` values, depending on what they typed in chat. There is no limit to the amount of variables that can be created and assigned to players.
+To remove this objective, use `objective delete` event - there is no other way.
 
-You can also use `variable` event to change variables stored in this objective. There is one optional argument, `no-chat`. If you use it, the objective won't be modified by what players type in chat.
+You can also use `variable` event to change variables stored in this objective. There is one optional argument, `no-chat`. If you use it, the objective won't be modified 
+by what players type in chat which is only useful when you're also using the `variable` event.
 
 !!! example
     ```YAML

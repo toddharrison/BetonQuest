@@ -27,13 +27,6 @@ public class UnmodifiableConfigurationTest extends ConfigurationBaseTest {
      */
     private Map<String, Object> valuesDefault;
 
-    /**
-     * Empty constructor
-     */
-    public UnmodifiableConfigurationTest() {
-        super();
-    }
-
     @Override
     public Configuration getConfig() {
         return new UnmodifiableConfiguration(super.getDefaultConfig());
@@ -54,12 +47,12 @@ public class UnmodifiableConfigurationTest extends ConfigurationBaseTest {
      */
     @AfterEach
     public void afterEach() {
-        assertEquals(values, config.getValues(true));
-        assertEquals(valuesDefault, Objects.requireNonNull(config.getDefaultSection()).getValues(true));
+        assertEquals(values.toString(), config.getValues(true).toString());
+        assertEquals(valuesDefault.toString(), Objects.requireNonNull(config.getDefaultSection()).getValues(true).toString());
     }
 
     private void assertThrowsUnmodifiableException(final Executable executable) {
-        assertThrowsUnmodifiableException(executable, UnmodifiableConfigurationSection.UNMODIFIABLE_MESSAGE);
+        assertThrowsUnmodifiableException(executable, UnmodifiableConfiguration.UNMODIFIABLE_MESSAGE);
     }
 
     private void assertThrowsUnmodifiableException(final Executable executable, final String message) {
@@ -101,13 +94,6 @@ public class UnmodifiableConfigurationTest extends ConfigurationBaseTest {
     @Override
     public void testAddDefaultsAsMapOnExistingConfigPath() {
         assertThrowsUnmodifiableException(super::testAddDefaultsAsMapOnExistingConfigPath);
-    }
-
-    @Test
-    @Override
-    public void testOptions() {
-        assertThrowsUnmodifiableException(super::testOptions,
-                UnmodifiableConfigurationSection.UNMODIFIABLE_MESSAGE + " and options are not implemented");
     }
 
     @Test

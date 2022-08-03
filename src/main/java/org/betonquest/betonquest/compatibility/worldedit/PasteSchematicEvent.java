@@ -35,11 +35,13 @@ public class PasteSchematicEvent extends QuestEvent {
 
     private final CompoundLocation loc;
     private final boolean noAir;
-    private File file;
+    private final File file;
 
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     public PasteSchematicEvent(final Instruction instruction) throws InstructionParseException {
         super(instruction, true);
+        staticness = true;
+        persistent = true;
         loc = instruction.getLocation();
         final WorldEditPlugin worldEdit = (WorldEditPlugin) Bukkit.getPluginManager().getPlugin("WorldEdit");
         final File folder = new File(worldEdit.getDataFolder(), "schematics");
@@ -47,8 +49,10 @@ public class PasteSchematicEvent extends QuestEvent {
             throw new InstructionParseException("Schematic folder does not exist");
         }
         final String schemName = instruction.next();
-        file = new File(folder, schemName);
-        if (!file.exists()) {
+        final File schemFile = new File(folder, schemName);
+        if (schemFile.exists()) {
+            file = schemFile;
+        } else {
             file = new File(folder, schemName + ".schematic");
             if (!file.exists()) {
                 throw new InstructionParseException("Schematic " + schemName + " does not exist (" + folder.toPath().resolve(schemName + ".schematic") + ")");

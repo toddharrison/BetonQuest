@@ -19,6 +19,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
     - added AureliumSkillsLevelExperienceEvent
 - add LuckPerms context integration for tags
     - All existing users must add luckperms: 'true' to their config.yml's hook section.
+- added Event Schedules to replace old static-events system
 - NotifyIO "totemIO"
 - Support for MythicLib
 - player attribute to QuestCompassTargetChangeEvent
@@ -27,12 +28,31 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - allow access to objective variable properties from other packages
 - allow point variables from other packages
 - API method in objective API that starts and stops it per player
-- `freeze` event - ProtocolLib compatibility feature: Blocks the player from moving for the specified amount of ticks.
+- config option `journal.show_in_backpack` to remove the journal from the backpack
+- config option `journal.lock_default_journal_slot` to lock the journal to the `default_journal_slot`
+- config option `journal.give_on_respawn` to add the journal to the inventory after the player respawns
+- compass now supports items from other packages
+- new messages.yml entries `inventory_full_backpack` and `inventory_full_drop` to have more specific messages,
+  when the inventory of the player is full
+- `menu` conversationIO option `npc_name_newline_separator`
+- added `q download` command
+- `freeze` event - ProtocolLib compatibility feature: Blocks the player from moving for the specified amount of ticks
 - `command` objective
 - `equip` objective
 - `delay` objective - now support variables
 - `opsudo` event - now supports variables
 - `variable` condition - now supports variables
+- `bossbar` notify style now supports variables for the `progress` argument
+- `delay` objective property: `rawSeconds`
+- `fish` objective now has `hookLocation` and `range` settings.
+- `burning` condition
+- `inconversation` condition
+- `heroesattribute` condition - Heroes compatibility feature: Checks a player's level for a particular attribute against a value
+- `mmspawn` event now has argument `target` Makes the spawned mob target the player
+- `mmspawn` event now has argument `private` Visually hides the spawned mob from other players. Does not stop sound or particles
+- `mmspawn` event now supports the `marked` argument
+- `mmobkill` objective now supports the `marked` argument
+- `marked` argument now supports %player% variable
 - Things that are also added in 1.12.X:
     - new line support for `journal_lore` in `messages.yml`
     - FastAsyncWorldEdit compatibility
@@ -63,6 +83,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - AureliumSkills updated to version Beta1.2.5
 - PikaMug Quests updated to version 4.1.3
 - Items now support AIR
+- Menus now support new `click` options `shiftLeft`, `shiftRight` and `middleMouse` to execute events on item clicks
+    - Therefore `left` and `right` in the `click` section no longer include shift clicks
+- `folder` event - now executes events immediately if no delay is set
+- `weather` event - now has an optional variable duration (in seconds) and an optional world param
+- `paste` event - can now be static
+- `chestput` objective - can now block other players from accessing a chest while someone is putting items inside
 - Things that are also changed in 1.12.X:
     - math variable now allows rounding output with the ~ operator
     - French translation has been updated
@@ -79,6 +105,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - RPGMenu error when teleport events are used as click events
 - RPGMenu bound items not always working
 - npc_holograms do now show errors during reload and not one tick later
+- first slot in backpack stays empty when journal is in player inventory
+- npc_holograms are not shown correctly with multiple defined npcs
+- spectator mode is now disabled for chest conversation io to prevent being stuck in the conversation
+- packet chat interceptor does not catch action bar anymore
+- time event does not work with floating point values
 - `location` objective - is now more robust if the player changes a world
 - `brew` objective - now counts newly brewed potions even if there were already some potions of the desired type in
   other slots present
@@ -116,6 +147,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
     - QuestItems could be eaten, this was caused by a changed mc behaviour
     - notify IO `subtitle` and `title` with only a subtitle was not send
     - npcHider not working for citizens with a ModelEngine trait
+    - 1.19 ProtocolLib warnings about deprecated packages
+    - conversation IO chest did not show the correct NPC heads
     - `npcrange` objective - is triggered at wrong time
     - `command` event - includes 'conditions:...' into the command
     - `craft` objective - multi-craft, drop-craft, hotbar/offhand-craft, shift-Q-craft and any illegal crafting is
@@ -133,6 +166,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
     - `command`, `sudo` and `opsudo` events - didn't work with conditions
     - `interact` objective - did not work with armorstands
     - `action` objective - for `any` block ignored location
+    - `weather` event - storm did not work
+    - `run` event - NPE when run as static event / schedule
+    - `objective` event - static calls did not remove the objective for online players
 ### Security
 - it was possible to put a QuestItem into a chest
 - bump log4j dependency 2.15.0 to fix CVE-2021-44228
@@ -299,7 +335,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - fixed notify couldn't use variables that contain `:`
 - improved stability for brew objective when other plugins affect brewing
 - fixed region and npcregion condition
-- fixed debugging dose not start on server startup
+- fixed debugging does not start on server startup
 - fixed ghost holograms caused by reloading BQ
 - fixed deadlock(Server crash) in Conversations with a large amount of npc and player options with a large amount of
   conditions

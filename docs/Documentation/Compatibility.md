@@ -1,25 +1,29 @@
+---
+icon: material/handshake
+---
 # Compatibility
-**In total 30 plugins have dedicated support for BetonQuest.**
+**In total 31 plugins have dedicated support for BetonQuest.**
 
 BetonQuest hooks into other plugins by itself to provide more events, conditions and objectives or other features. 
 25 plugins are supported right now:    
 _AureliumSkills, Brewery, Citizens, Denizen, EffectLib, Heroes, HolographicDisplays, JobsReborn, LuckPerms, Magic,
-mcMMO, MythicLib, MMOCore, MMOItems, MythicMobs, PlaceholderAPI, ProtocolLib, Quests,
-Shopkeepers, SkillAPI, Skript, Vault, WorldEdit, FastAsyncWorldEdit and WorldGuard._
+mcMMO, MythicLib, MMOCore, MMOItems, MythicMobs, PlaceholderAPI, ProtocolLib, Quests, Shopkeepers, ProSkillAPI,
+Skript, Vault, WorldEdit, FastAsyncWorldEdit and WorldGuard._
 
 Some plugins also hook into BetonQuest and provide support by themselves:  
-[_nuNPCDestinations_](https://www.spigotmc.org/resources/13863/),
-[_CalebCompass_](https://www.spigotmc.org/resources/82674/),
-[NotQuests](https://www.spigotmc.org/resources/95872/)
+[nuNPCDestinations](https://www.spigotmc.org/resources/13863/),
+[CalebCompass](https://www.spigotmc.org/resources/82674/),
+[NotQuests](https://www.spigotmc.org/resources/95872/),
+[HonnyCompass](https://github.com/honnisha/HonnyCompass)
 
 There are also plugins that hook into BetonQuest that require a clientside mod:  
-[_BetonQuestGUI_](https://github.com/giovanni-bozzano/betonquest-gui-plugin),
-[_NGVexJournal_](https://www.spigotmc.org/resources/76938/)
+[BetonQuestGUI](https://github.com/giovanni-bozzano/betonquest-gui-plugin),
+[NGVexJournal](https://www.spigotmc.org/resources/76938/)
 
 
-## [AureliumSkills](https://www.spigotmc.org/resources/aurelium-skills-advanced-skills-stats-abilities-and-more.81069/)
+## [AureliumSkills](https://www.spigotmc.org/resources/81069/)
 
-###Conditions
+### Conditions
 
 #### Skill level: `aureliumskillslevel`
 Checks if the player has the specified skill level. The amount can be a variable or a number.
@@ -50,7 +54,7 @@ aureliumskillsxp farming 10 level
 ```
 
 
-## [Brewery](https://www.spigotmc.org/resources/brewery.3082/)
+## [Brewery](https://www.spigotmc.org/resources/3082/)
 
 ### Conditions
 
@@ -91,7 +95,7 @@ Removes the specified drink from the players inventory. An amount needs to be sp
 takebrew 2 MY_OTHER_BREW 
 ```
 
-## NPC's using <a href="https://www.spigotmc.org/resources/citizens.13811/" target="_blank">Citizens</a>
+## NPC's using [Citizens](https://www.spigotmc.org/resources/13811/)
 
 If you have this plugin you can use it's NPCs for conversations. I highly recommend you installing it,
 it's NPCs are way more immersive. Having Citizens also allows you to use NPCKill objective and to have moving NPC's.
@@ -234,9 +238,9 @@ With this event you can fire Denizen task scripts. Don't confuse it with `skript
 If you install this plugin on your server you will be able to set a particle effect on NPCs with conversations and use `particle` event.
 
 EffectLib is not a normal plugin, it's a developer tool - there are no official docs. However, the Magic plugin has a
-<a href="https://reference.elmakers.com/#effectlib" target="_blank">wiki</a> for EffectLib.
+[wiki](https://reference.elmakers.com/#effectlib) for EffectLib.
 It does contain a few magic specific settings though so please don't be confused if some stuff does not work.
-There is also a <a href="https://sandbox.elmakers.com/#betonquestEffectLibTemplate" target="_blank">magic editor</a> with autocompletion for EffectLib.
+There is also a [magic editor](https://sandbox.elmakers.com/#betonquestEffectLibTemplate) with autocompletion for EffectLib.
 
 You can control the behaviour of particles around the NPCs in the `npc_effects` section.
 Each effect is defined as a separate subsection and consists of EffectLib options (described on the EffectLib page) and several BetonQuest settings.
@@ -293,7 +297,7 @@ be displayed to the player for which you ran the event.
       playEffect: particle beton loc:100;200;300;world;180;-90 private
     ```
 
-## [Heroes](http://dev.bukkit.org/bukkit-plugins/heroes/)
+## [Heroes](https://www.spigotmc.org/resources/24734/)
 
 When you install Heroes, all kills done via this plugin's skills will be counted in MobKill objectives.
 
@@ -306,6 +310,15 @@ This condition checks the classes of the player. The first argument must be `pri
 !!! example
     ```YAML
     heroesclass mastered warrior
+    ```
+
+#### Heroes Attribute: `heroesattribute`
+
+This condition check's the level of a player's attribute. The first argument must be `strength`, `constitution`, `endurance`, `dexterity`, `intellect`, `wisdom`, or `charisma`. Second argument is the required level of the attribute. Must be greater than or equal the specified number.
+
+!!! example
+    ```YAML
+    heroesattribute strength 5
     ```
 
 #### Skill: `heroesskill`
@@ -332,7 +345,7 @@ This event simply gives the player specified amount of Heroes experience. The fi
 
 
 ### Hidden Holograms
-Installing this plugin will enable you to create hidden holograms, which will be shown to players only if they meet specified conditions. Note that you need to have [ProtocolLib](https://www.spigotmc.org/resources/protocollib.1997/) installed in order to hide holograms from certain players.
+Installing this plugin will enable you to create hidden holograms, which will be shown to players only if they meet specified conditions. Note that you need to have [ProtocolLib](https://www.spigotmc.org/resources/1997/) installed in order to hide holograms from certain players.
 
 In order to create a hologram, you have to add a `holograms` section. Add a node named as your hologram to this section and define `lines`, `conditions` and `location` subnodes. The fist one should be a list of texts - these will be the lines of a hologram. Color codes are supported. Second is a list of conditions separated by commas. Third is a location in a standard format, like in `teleport` event. An example of such hologram definition:
 
@@ -387,7 +400,7 @@ npc_holograms:
 
 Item lines are also supported here.
 
-## [JobsReborn](https://www.spigotmc.org/resources/jobs-reborn.4216/)
+## [JobsReborn](https://www.spigotmc.org/resources/4216/)
 
 Requires adding the following to _config.yml_:
 ```YAML
@@ -482,7 +495,7 @@ This objective has three properties: `amount`, `left` and `total`. `amount` is t
 Any BetonQuest tag (global and per-player) can be used as a LuckPerms context. This means that a player needs the specified tag for a permission
 to be true - this removes the need for tons of `permission add ...` events as you can hook your existing
 quest progress tags right into LuckPerms permission
-<a href="https://luckperms.net/wiki/Context" target="_blank">contexts</a>.
+[contexts](https://luckperms.net/wiki/Context).
 The syntax is as follows:
 
 | key             | value                   |
@@ -492,8 +505,7 @@ The syntax is as follows:
 | betonquest:tag:myPackage.tagName| true |
 | betonquest:globaltag:myQuest.someTag | true |
 
-Check the 
-<a href="https://luckperms.net/wiki/Context" target="_blank">Luck Perms documentation</a>
+Check the [Luck Perms documentation](https://luckperms.net/wiki/Context)
 for an in-depth explanation on what contexts are and how to add them to permission.
 
 ## [Magic](http://dev.bukkit.org/bukkit-plugins/magic/)
@@ -509,7 +521,7 @@ This condition can check wands. The first argument is either `hand`, `inventory`
     wand hand name:master spells:flare,missile:2
     ```
 
-## [McMMO](https://www.spigotmc.org/resources/official-mcmmo-original-author-returns.64348/)
+## [McMMO](https://www.spigotmc.org/resources/64348/)
 
 ### Conditions
 
@@ -533,7 +545,7 @@ This event adds experience points in a specified skill. The first argument is th
     mcmmoexp swords 1500
     ```
 
-## TeamRequiem ([MMOCore](https://www.spigotmc.org/resources/mmocore.70575/), [MMOItem](https://www.spigotmc.org/resources/mmoitems-premium.39267/), [MythicLib](https://www.spigotmc.org/resources/mmolib.73855/))
+## TeamRequiem ([MMOCore](https://www.spigotmc.org/resources/70575/), [MMOItem](https://www.spigotmc.org/resources/39267/), [MythicLib](https://www.spigotmc.org/resources/73855/))
 
 
 ### Conditions
@@ -583,7 +595,7 @@ mmohand GEMS SPEED_GEM 3 offhand
 ```
 
 #### MythicLib stat: `mmostat`
-Checks <a href="https://github.com/mmopluginteam/mmolib/blob/master/src/main/java/net/mmogroup/mmolib/api/stat/SharedStat.java" target="_blank">these</a>
+Checks [these](https://gitlab.com/phoenix-dvpmt/mythiclib/-/blob/master/plugin/src/main/java/io/lumine/mythic/lib/api/stat/SharedStat.java)
 stats that combine all sorts of stats from MMOCore and MMOItems.
 The player needs to be on the specified level or higher in order to meet this condition.
 You can disable this behaviour by adding the `equal` argument. 
@@ -591,12 +603,11 @@ You can disable this behaviour by adding the `equal` argument.
 mmostat DAMAGE_REDUCTION 3
 ```
 
+### Objectives
 
-###Objectives
-
-####Break Special Blocks: `mmocorebreakblock`
+#### Break Special Blocks: `mmocorebreakblock`
 This objective requires the player to break 
-<a href="https://git.lumine.io/mythiccraft/mmocore/-/wikis/Mining%20and%20Block%20Regen" target="_blank">special blocks from MMOCore</a>.
+[special blocks from MMOCore](https://gitlab.com/phoenix-dvpmt/mmocore/-/wikis/Mining%20and%20Block%20Regen).
 All three different block types and an amount can be defined. You can also send notifications to the player by appending
 the `notify` keyword optionally with the notification interval after a colon.
 
@@ -609,13 +620,13 @@ mmocorebreakblock 64 block:STONE  #vanilla material
 mmocorebreakblock 1 block:eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVy #... this is a heads texture data
 ```
 
-####MMOCore Profession levelup: `mmoprofessionlevelup`
+#### MMOCore Profession levelup: `mmoprofessionlevelup`
 This objective requires the player to level the given profession to the specified level.
 ```YAML linenums="1"
 mmoprofessionlevelup MINING 10
 ```
 
-####Craft item: `mmoitemcraft`
+#### Craft item: `mmoitemcraft`
 This objective requires the player to craft the item with the given type and id.
 It supports any MMOItem that was crafted using vanilla crafting methods, MMOItems "recipe-amounts" crafting and MMOItems station crafting.
 An amount can also be set if it shall differ from the default (which is one) by adding the `amount:` argument.
@@ -631,35 +642,35 @@ This objective has three properties: `amount`, `left` and `total`. `amount` is t
 mmoitemcraft SWORD STEEL_SWORD
 mmoitemcraft HEALTH_POTION_RECIPE amount:5
 ```
-####Upgrade Item: `mmoitemupgrade`
+#### Upgrade Item: `mmoitemupgrade`
 This objective tracks if a player upgrades the given item with an upgrade consumable.  
 ```YAML linenums="1"
 mmoitemupgrade SWORD FALCON_BLADE
 ```
 
-####Apply gemstone: `mmoitemapplygem`
+#### Apply gemstone: `mmoitemapplygem`
 This objective is completed when the player applies the gemstone with the given gemstoneID to an item with the given
 itemType and itemID.
 ```YAML linenums="1"
 mmoitemapplygem SWORD CUTLASS GEM_OF_ACCURACY
 ```
 
-####Cast item ability: `mmoitemcastability`
+#### Cast item ability: `mmoitemcastability`
 This objective requires the player to cast an ability using an item. The only argument is the abilityID.
 ```YAML linenums="1"
 mmoitemcastability LIFE_ENDER
 ```
 
-####Cast class skill: `mmocorecastskill`
+#### Cast class skill: `mmocorecastskill`
 This objective requires the player to cast a class skill. The only argument is the abilityID.
 ```YAML linenums="1"
 mmocorecastskill BACKSTAB
 ```
 
 
-###Events
+### Events
 
-####Give MMOCore class experience: `mmoclassexperience`
+#### Give MMOCore class experience: `mmoclassexperience`
 Adds experience to the players class. The amount can be a variable or a number. The `level` argument
 is optional and would convert the amount to levels instead of XP points.
 ```YAML linenums="1"
@@ -667,39 +678,39 @@ mmoclassexperience 150
 mmoclassexperience 1 level
 ```
 
-####Give MMOCore profession experience: `mmoprofessionexperience`
+#### Give MMOCore profession experience: `mmoprofessionexperience`
 Adds experience in the specified player profession. The amount can be a variable or a number. The `level` argument
 is optional and would convert the amount to levels instead of XP points.
 ```YAML linenums="1"
-mmoprofessionexperience 100
-mmoprofessionexperience 1 level
+mmoprofessionexperience MINING 100
+mmoprofessionexperience CUSTOM_PROFESSION_NAME 1 level
 ```
 
-####Give class points: `mmocoreclasspoints`
+#### Give class points: `mmocoreclasspoints`
 Gives the player class points. The amount can be a variable or a number.
 ```YAML linenums="1"
 mmocoreclasspoints 1
 ```
 
-####Give skill points: `mmocoreskillpoints`
+#### Give skill points: `mmocoreskillpoints`
 Gives the player skill points. The amount can be a variable or a number.
 ```YAML linenums="1"
 mmocoreskillpoints 10
 ```
 
-####Give attribute points: `mmocoreattributepoints`
+#### Give attribute points: `mmocoreattributepoints`
 Gives the player attribute points. The amount can be a variable or a number.
 ```YAML linenums="1"
 mmocoreattributepoints 2
 ```
 
-####Give attribute reallocation points: `mmocoreattributereallocationpoints`
+#### Give attribute reallocation points: `mmocoreattributereallocationpoints`
 Gives the player attribute reallocation points. The amount can be a variable or a number.
 ```YAML linenums="1"
 mmocoreattributereallocationpoints 1
 ```
 
-####Give MMOItem: `mmoitemgive`
+#### Give MMOItem: `mmoitemgive`
 Gives the player predefined item. Default amount is one and can be set manually to a higher amount or a variable.
 The item can be adjusted to the players level by adding the `scale` option. If you want all items to be stacked together 
 the `singleStack` option can be set. If the player doesn't have required space in the inventory, the items will be dropped on the ground.
@@ -708,7 +719,7 @@ You can also specify the `notify` keyword to display a message to the player abo
 mmoitemgive CONSUMABLE MANA_POTION
 ```
 
-####Take MMOItem: `mmoitemtake`
+#### Take MMOItem: `mmoitemtake`
 
 Removes the specified item from the players inventory. Optional arguments are an amount and `notify` to send a notification
 to the player.
@@ -738,12 +749,14 @@ Having MythicMobs allows you to use MythicMobs MobKill objective and MythicMobs 
 #### MobKill: `mmobkill`
 
 You need to kill the specified amount of MythicMobs to complete this objective. The first argument must be
-the mob's internal name (the one defined in your MythicMobs configuration). You can optionally add the `amount:`
-argument to specify how many of these mobs need to be killed. It's also possible to add the optional arguments
-`minLevel` and `maxLevel` to further customize what mobs need to be killed.
+the mob's internal name (the one defined in your MythicMobs configuration). Multiple mob names must be comma seperated.
+You can optionally add the `amount:` argument to specify how many of these mobs need to be killed. It's also possible
+to add the optional arguments `minLevel` and `maxLevel` to further customize what mobs need to be killed.
 You can also add an optional `neutralDeathRadiusAllPlayers` argument to complete the objective for each nearby player
 within the defined radius when the mob is killed by any non-player source.
 You can add a `notify` keyword if you want to send a notification to players whenever the objective progresses.
+You can also add an optional `marked` argument to only count kills marked with the `mspawn` event.
+The only supported variable for the marked argument is `%player%`.
 
 This objective has three properties: `amount`, `left` and `total`. `amount` is the amount of mythic mobs already killed,
 `left` is the amount of mythic mobs still needed to kill and `total` is the amount of mythic mobs initially required.
@@ -751,7 +764,8 @@ This objective has three properties: `amount`, `left` and `total`. `amount` is t
 !!! example
     ```YAML
     mmobkill SkeletalKnight amount:2 events:reward
-    mmobkill SnekBoss amount:2 minlevel:4 maxlevel:6 events:reward
+    mmobkill SnekBoss,SnailBoss,SunBoss amount:10 events:reward
+    mmobkill SnekBoss amount:2 minlevel:4 maxlevel:6 events:reward marked:DungeonBoss3
     ```
 
 ### Conditions
@@ -770,13 +784,20 @@ Check whether the player is near a specific MythicMobs entity. The first argumen
 #### SpawnMob: `mspawnmob`
 
 Spawn specified amount of MythicMobs at given location. The first argument is a location defined like `100;200;300;world`. Second is MythicMobs internal name (the one defined in MythicMobs' configuration) followed by a colon and a level. Third one is amount and it's required!
+You can also add the optional argument `target` which will make the mob target the player. 
+
+There is also the `private` argument which will hide the mob from all other players until restart. This does not hide particles or block sound from the mob however.
+
+You can also mark the spawned mob with a keyword using `marked` argument.
+It won't show anywhere, and you can check for only marked mobs in mmobkill objective.
 
 !!! example
     ```YAML
     mspawnmob 100;200;300;world SkeletalKnight:1 5
+    mspawnmob 100;200;300;world SkeletonKing:1 5 target private marked:DungeonBoss3
     ```
 
-## [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/)
+## [PlaceholderAPI](https://www.spigotmc.org/resources/6245/)
 
 If you have this plugin, BetonQuest will add a `betonquest` placeholder to it and you will be able to use `ph` variable in your conversations.
 
@@ -785,7 +806,6 @@ If you have this plugin, BetonQuest will add a `betonquest` placeholder to it an
 You can use all BetonQuest variables in any other plugin that supports PlaceholderAPI.
 You can even use BetonQuests conditions using the [condition variable](Variables-List.md#expose-conditions-to-3rd-party-plugins-condition)!    
 This works using the `%betonquest_package:variable%` placeholder. The `package:` part is the name of a package.
-If you don't specify this, the plugin will assume you're using that variable in `default` package.
 The `variable` part is just a BetonQuest variable without percentage characters, like `point.beton.amount`.
 
 Testing your placeholder is easy using this command:    
@@ -803,7 +823,7 @@ You can also use placeholders from other plugins in BetonQuest. Simply insert a 
     %ph.player_item_in_hand%
     ```
 
-## [ProtocolLib](https://www.spigotmc.org/resources/protocollib.1997/)
+## [ProtocolLib](https://www.spigotmc.org/resources/1997/)
 
 ### Hiding NPC's
 Having ProtocolLib installed will let you hide Citizens NPCs if specified conditions are met.
@@ -826,11 +846,9 @@ on large servers if used together with the [npc hider interval](./Configuration.
 
 ProtocolLib also enables a conversation IO that makes use of a chat menu system.
 
-<video controls loop
-     src="../../_media/content/Documentation/Conversations/MenuConvIO.mp4"
-     width="780" height="500">
- Sorry, your browser doesn't support embedded videos.
- </video>
+<video controls loop src="../../_media/content/Documentation/Conversations/MenuConvIO.mp4" width="100%">
+  Sorry, your browser doesn't support embedded videos.
+</video>
 
 Customize how it looks by adding the following lines:
 
@@ -856,6 +874,7 @@ menu_conv_io:
   npc_name_type: chat
   npc_name_align: center
   npc_name_format: '&e{npc_name}&r'
+  npc_name_newline_separator: true
 ```
 
 Where:
@@ -877,6 +896,7 @@ Where:
   * `npc_name_type` - Type of NPC name display. Can be one of: 'none', 'chat'
   * `npc_name_align` - For npc name type of 'chat', how to align name. One of: 'left', 'right', 'center'
   * `npc_name_format` - How to format the npc name
+  * `npc_name_newline_separator` - Whether an empty line is inserted after the NPC's name if there is space leftover. 
 
 Variables:
 
@@ -895,7 +915,7 @@ freezeMe: "freeze 100" #Freezes the player for 5 seconds
 ```
 
 
-## [Quests](https://www.spigotmc.org/resources/quests.3711/)
+## [Quests](https://www.spigotmc.org/resources/3711/)
 
 Quests is another questing plugin, which offers very simple creation of quests. If you don't want to spend a lot of time to write advanced quests in BetonQuest but you need a specific thing from this plugin you can use Custom Event Reward or Custom Condition Requirement. Alternatively, if you have a lot of quests written in Quests, but want to integrate them with the conversation system, you can use `quest` event and `quest` condition.
 
@@ -953,9 +973,9 @@ This event opens a trading window of a Villager. The only argument is the unique
     shopkeeper b687538e-14ce-4b77-ae9f-e83b12f0b929
     ```
 
-## [SkillAPI](https://github.com/Sentropic/SkillAPI-s/releases)
+## :material-sword-cross: [ProSkillAPI](https://www.spigotmc.org/resources/91913/)
 
-This adds support for [Sentropics SkillAPI fork](https://github.com/Sentropic/SkillAPI-s/releases). They still update SkillAPI.  
+This adds support for [ProMCTeam's SkillAPI fork](https://www.spigotmc.org/resources/91913/). They still update SkillAPI.  
 
 ### Conditions
 
@@ -1077,11 +1097,13 @@ There is only one argument in this variable, `amount` for showing money amount o
     %money.left:500%
     ```
 
-## [WorldEdit](http://dev.bukkit.org/bukkit-plugins/worldedit/) or [FastAsyncWorldEdit](https://www.spigotmc.org/resources/fast-async-worldedit.13932/)
+## [WorldEdit](http://dev.bukkit.org/bukkit-plugins/worldedit/) or [FastAsyncWorldEdit](https://www.spigotmc.org/resources/13932/)
 
 ### Events
 
 #### Paste schematic: `paste`
+
+**persistent**, **static**
 
 This event will paste a schematic at the given location. The first argument is a location and the second one is the name of schematic file. The file must be located in `WorldEdit/schematics` or `FastAsyncWorldEdit/schematics` and have a name like `some_building.schematic`. An optional `noair` can be added to paste ignoring air blocks.
 If you have only a `.schem` schematic, simply append `.schem` to the schematic name.

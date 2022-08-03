@@ -69,7 +69,11 @@
   <rule ref="category/java/bestpractices.xml/UseVarargs"/>
   <rule ref="category/java/bestpractices.xml/WhileLoopWithLiteralBoolean"/>
 
-  <rule ref="category/java/codestyle.xml/AtLeastOneConstructor"/>
+  <rule ref="category/java/codestyle.xml/AtLeastOneConstructor">
+    <properties>
+      <property name="violationSuppressXPath" value="//ClassOrInterfaceDeclaration[matches(@Image, '^.*Test$')]"/>
+    </properties>
+  </rule>
   <rule ref="category/java/codestyle.xml/AvoidDollarSigns"/>
   <rule ref="category/java/codestyle.xml/AvoidProtectedFieldInFinalClass"/>
   <rule ref="category/java/codestyle.xml/AvoidProtectedMethodInFinalClassNotExtending"/>
@@ -79,6 +83,7 @@
   <rule ref="category/java/codestyle.xml/ClassNamingConventions"/>
   <rule ref="category/java/codestyle.xml/CommentDefaultAccessModifier">
     <properties>
+      <property name="ignoredAnnotations" value="org.betonquest.betonquest.api.annotation.VisibleForTesting"/>
       <property name="violationSuppressXPath" value="//ClassOrInterfaceDeclaration[matches(@Image, '^.*Test$')]"/>
     </properties>
   </rule>
@@ -88,10 +93,12 @@
     </properties>
   </rule>
   <rule ref="category/java/codestyle.xml/ControlStatementBraces"/>
+  <rule ref="category/java/codestyle.xml/EmptyControlStatement"/>
   <rule ref="category/java/codestyle.xml/EmptyMethodInAbstractClassShouldBeAbstract"/>
   <rule ref="category/java/codestyle.xml/ExtendsObject"/>
   <rule ref="category/java/codestyle.xml/FieldDeclarationsShouldBeAtStartOfClass"/>
   <rule ref="category/java/codestyle.xml/FieldNamingConventions"/>
+  <rule ref="category/java/codestyle.xml/FinalParameterInAbstractMethod"/>
   <rule ref="category/java/codestyle.xml/ForLoopShouldBeWhileLoop"/>
   <rule ref="category/java/codestyle.xml/FormalParameterNamingConventions"/>
   <rule ref="category/java/codestyle.xml/GenericsNaming"/>
@@ -123,6 +130,7 @@
   <rule ref="category/java/codestyle.xml/UnnecessaryLocalBeforeReturn"/>
   <rule ref="category/java/codestyle.xml/UnnecessaryModifier"/>
   <rule ref="category/java/codestyle.xml/UnnecessaryReturn"/>
+  <rule ref="category/java/codestyle.xml/UnnecessarySemicolon"/>
   <rule ref="category/java/codestyle.xml/UseDiamondOperator"/>
   <rule ref="category/java/codestyle.xml/UselessParentheses"/>
   <rule ref="category/java/codestyle.xml/UselessQualifiedThis"/>
@@ -191,7 +199,8 @@
   <rule ref="category/java/documentation.xml/CommentContent"/>
   <rule ref="category/java/documentation.xml/CommentRequired">
     <properties>
-      <property name="violationSuppressXPath" value="./ancestor::ClassOrInterfaceBodyDeclaration/Annotation/MarkerAnnotation/Name[@Image='Test']"/>
+      <property name="serialVersionUIDCommentRequired" value="Required"/>
+      <property name="serialPersistentFieldsCommentRequired" value="Required"/>
     </properties>
   </rule>
   <rule ref="category/java/documentation.xml/CommentSize">
@@ -212,7 +221,11 @@
   <rule ref="category/java/errorprone.xml/AvoidCatchingNPE"/>
   <rule ref="category/java/errorprone.xml/AvoidCatchingThrowable"/>
   <rule ref="category/java/errorprone.xml/AvoidDecimalLiteralsInBigDecimalConstructor"/>
-  <rule ref="category/java/errorprone.xml/AvoidDuplicateLiterals"/>
+  <rule ref="category/java/errorprone.xml/AvoidDuplicateLiterals">
+    <properties>
+      <property name="violationSuppressXPath" value="//ClassOrInterfaceDeclaration[matches(@Image, '^.*Test$')]"/>
+    </properties>
+  </rule>
   <rule ref="category/java/errorprone.xml/AvoidEnumAsIdentifier"/>
   <rule ref="category/java/errorprone.xml/AvoidFieldNameMatchingMethodName"/>
   <rule ref="category/java/errorprone.xml/AvoidFieldNameMatchingTypeName"/>
@@ -244,15 +257,6 @@
   <rule ref="category/java/errorprone.xml/DontUseFloatTypeForLoopIndices"/>
   <rule ref="category/java/errorprone.xml/EmptyCatchBlock"/>
   <rule ref="category/java/errorprone.xml/EmptyFinalizer"/>
-  <rule ref="category/java/errorprone.xml/EmptyFinallyBlock"/>
-  <rule ref="category/java/errorprone.xml/EmptyIfStmt"/>
-  <rule ref="category/java/errorprone.xml/EmptyInitializer"/>
-  <rule ref="category/java/errorprone.xml/EmptyStatementBlock"/>
-  <rule ref="category/java/errorprone.xml/EmptyStatementNotInLoop"/>
-  <rule ref="category/java/errorprone.xml/EmptySwitchStatements"/>
-  <rule ref="category/java/errorprone.xml/EmptySynchronizedBlock"/>
-  <rule ref="category/java/errorprone.xml/EmptyTryBlock"/>
-  <rule ref="category/java/errorprone.xml/EmptyWhileStmt"/>
   <rule ref="category/java/errorprone.xml/EqualsNull"/>
   <rule ref="category/java/errorprone.xml/FinalizeDoesNotCallSuperFinalize"/>
   <rule ref="category/java/errorprone.xml/FinalizeOnlyCallsSuperFinalize"/>

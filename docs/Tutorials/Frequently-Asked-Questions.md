@@ -1,16 +1,19 @@
+---
+icon: material/chat-question
+---
 #FAQ
 If you have any questions please read this page first. You can easily look for your questions using the table of contents 
 to the right. It's very likely that it has been already asked and answered. 
 If not, feel free to ask us in the
-<a href="https://discordapp.com/invite/rK6mfHq" target="_blank">discord :fontawesome-brands-discord:</a> !.
+[Discord :fontawesome-brands-discord:](https://discordapp.com/invite/rK6mfHq)
 
 ## Where is the command for creating quests?
 There is no such command. BetonQuest is too complex to edit it using commands or chest GUI's.
-We have a [VSCode addon](./Getting-Started/Setting-up-the-editor.md) to make editing easier.
+We have a [VSCode addon](./Getting-Started/Setup-Guide/Setting-up-the-editor.md) to make editing easier.
 
 
 ## Can you add particles over NPCs' heads like in "Quests" plugin?
-Yes! Check out the [EffectLib](../Documentation/Compatibility/#effectlib) compatibility documentation.
+Yes! Check out the [EffectLib](../Documentation/Compatibility.md/#effectlib) compatibility documentation.
 
 
 ## Can I assign multiple conversation files to one NPC?
@@ -154,7 +157,7 @@ Starting the random quest must be blocked with a special tag. If there is no suc
 
 ## The same random daily quest for every player
 
-To do this use something called "[Static event](../../Documentation/Reference/#static-events)".
+To do this use something called "[Static event](../Documentation/Reference/#static-events)".
 Run a static `folder` event every day at some late hour (for example 4am).
 The `folder` event should be `random:1` and contain several different `globaltag` events.
 These events will set a specific tag. Now when the player starts the conversation and asks about the daily quest the NPC
@@ -276,3 +279,17 @@ Now, simply add this `Rewards` event to every one of your objectives and you hav
 complete a quest's objective in a non-linear fashion! You can add as many or as little objectives as you want, you just
 have to add the additional objectives to the conditions.
 
+## Creating quest menus
+To create a menu that gives the player a overview of his open quests just define one menu item for each quest.
+Set the [conditions](../Documentation/Menu-Menu.md#the-items-section) for this item so it is only displayed if the quest is not finished (use the [tag condition](../Documentation/Conditions-List.md#tag-tag)).  
+Then assign all those items to [a row of slots](../Documentation/Menu-Menu.md#the-slots-section) so that they are sorted perfectly.
+
+You can also add click events to display npc locations, add compass targets, directly open the conversations or cancel the quest.
+
+Or you could define separate items for open and finished quests or even to show the progress. Just be a bit creative.
+
+## Menus displaying players stats
+You may also use menus to display the stats of a player. Just use [variables](../Documentation/Variables-List.md) in the text or for the amount of an item.
+
+For example try displaying a players money using the varible from [Vault integration](http://dev.bukkit.org/bukkit-plugins/vault/)
+or use [PlaceholderAPI](../Documentation/Compatibility.md#placeholderapi) to show placeholders from many other plugins.

@@ -9,11 +9,13 @@ import org.betonquest.betonquest.VariableNumber;
 import org.betonquest.betonquest.api.QuestEvent;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.QuestRuntimeException;
+import org.betonquest.betonquest.utils.PlayerConverter;
 import org.betonquest.betonquest.utils.Utils;
 import org.betonquest.betonquest.utils.location.CompoundLocation;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
 
 /**
  * Kills all mobs of given type at location.
@@ -26,8 +28,8 @@ public class KillMobEvent extends QuestEvent {
     private final EntityType type;
     private final CompoundLocation loc;
     private final VariableNumber radius;
-    private String name;
-    private String marked;
+    private final String name;
+    private final String marked;
 
 
     public KillMobEvent(final Instruction instruction) throws InstructionParseException {
@@ -37,20 +39,18 @@ public class KillMobEvent extends QuestEvent {
         type = instruction.getEnum(EntityType.class);
         loc = instruction.getLocation();
         radius = instruction.getVarNum();
-        name = instruction.getOptional("name");
-        if (name != null) {
-            name = Utils.format(name, true, false).replace('_', ' ');
-        }
-        marked = instruction.getOptional("marked");
-        if (marked != null) {
-            marked = Utils.addPackage(instruction.getPackage(), marked);
-        }
+        final String nameStaring = instruction.getOptional("name");
+        name = nameStaring == null ? null : Utils.format(nameStaring, true, false).replace('_', ' ');
+
+        final String markedString = instruction.getOptional("marked");
+        marked = markedString == null ? null : Utils.addPackage(instruction.getPackage(), markedString);
     }
 
     @Override
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     protected Void execute(final String playerID) throws QuestRuntimeException {
         final Location location = loc.getLocation(playerID);
+        final Player player = PlayerConverter.getPlayer(playerID);
         final double radiusSquared = this.radius.getDouble(playerID) * this.radius.getDouble(playerID);
         location
                 .getWorld()
@@ -73,7 +73,7 @@ public class KillMobEvent extends QuestEvent {
                     return entity
                             .getMetadata("betonquest-marked")
                             .stream()
-                            .anyMatch(metadataValue -> metadataValue.asString().equals(marked));
+                            .anyMatch(metadataValue -> metadataValue.asString().equals(marked.replace("%player%", player.getName())));
                 })
                 //remove them
                 .forEach(Entity::remove);

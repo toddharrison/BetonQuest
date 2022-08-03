@@ -1,3 +1,6 @@
+---
+icon: fontawesome/solid/wrench
+---
 # Configuration
 
 The configuration of BetonQuest is mainly done in the `config.yml` file. All of its options are described on this page.
@@ -54,10 +57,10 @@ The `update` section controls the Auto-Updater. It has the following settings:
 * `enabled` (default `true`). Enables or disables the Updater. If set to false, it is not possible to update with the
   updater and no version checks are executed.
 * `strategy` (default `MINOR`). The update strategy is the most important feature of the Auto-Updater. An explanation is
-  available [here](Updating/index.md#choose-an-update-strategy).
+  available [here](./Updating.md#choose-an-update-strategy).
 * `automatic` (default `true`). If true the updater will download new Versions automatically. Otherwise, the updater
   will only download new versions when the update command is executed. Advice is
-  available [here](Updating/index.md#enable-or-disable-automatic-updates).
+  available [here](./Updating.md#enable-or-disable-automatic-updates).
 
 ### Journal slots
 
@@ -105,9 +108,6 @@ Read [this page](Conversations.md) for more information about chat interceptors.
 ### Conversation pullback message
 `notify_pullback` will display a message every time the player is pulled back by the `stop` option in conversations (in the case of chat-based conversations).
 It notifies players that they are in a conversation, and the pullback is not a bug.
-
-### Default Package name
-`default_package` is a name of the package that should be used when a package is not specified in /q command. This is for your convenience.
 
 ### Adjusting the backpack to the KeepInventory gamerule
 `remove_items_after_respawn` option should be turned on if "keepInventory" gamerule is not being used. 
@@ -168,6 +168,9 @@ A list of all possible sounds for the latest Minecraft version can be found [her
   * `full_main_page` makes the main page always take a full page. If a lot of information is being displayed, it is advised to make this true.
    If you use the main page only for small notifications, set it to false, so the entries can follow immediately.
   * `show_separator` shows a separator between journal entries (default: true). Customize the separator in `messages.yml` with the key `journal_separator`.
+  * `show_in_backpack` whether to display the journal in the backpack when there is no journal in the player's inventory.
+  * `lock_default_journal_slot` locks the journal to the `default_journal_slot`.
+  * `give_on_respawn` adds the journal to the player inventory.
   
 ### Journal Colors
 `journal_colors` controls the colors used in the journal. It takes color codes without the `&` character.
@@ -188,15 +191,39 @@ If you want to add a font style (bold, italic etc.) do so after placing a comma.
   * `number` is the option number
   * `option` is the text of an option
 
-### Conversation Settings: ChestIO 
-  * `conversation_IO_config` manages settings for individual conoversation IO's:
-    - `chest` manages settings for the chest conversation IO
-        - `show_number` will show the player number option if true (default: true)
-        - `show_npc_text` will show the npc text in every player option if true (default: true)
+### Conversation Settings: ChestIO
+
+* `conversation_IO_config` manages settings for individual conoversation IO's:
+  - `chest` manages settings for the chest conversation IO
+    - `show_number` will show the player number option if true (default: true)
+    - `show_npc_text` will show the npc text in every player option if true (default: true)
+
+### Quest downloader
+
+`download` controls security restrictions for the [`/q download`](Commands-and-permissions.md) command:
+
+* `pullrequests` defines if pull requests may be downloaded. **Only enable this if you really know what you are doing!**
+  Everyone can open pull requests that could contain malicious files and if a permission misconfiguration occurs this
+  will make your server vulnerable to attacks.
+* `repo_whitelist` is a list of trusted github repositories from which quests and templates can be downloaded.  
+  By default only or official tutorial repo [BetonQuest/Quest-Tutorials](https://github.com/BetonQuest/Quest-Tutorials)
+  is on this list.
+
+### Items
+
+`items` gives the possibility to override default items, that are defined and used by BetonQuest.
+The items need to be defined in a package, and then you need to reference the item here with an absolute path.
+
+* `backpack` items that are used by the backpack.
+  - `previous_button` the item to go to the previous page of items in the backpack.
+  - `next_button` the item to go to the next page of items in the backpack.
+  - `cancel_button` the item to show the quest cancelers.  
+  - `compass_button` the item to show the quest compass.
 
 ### Misc settings
-  * `date_format` is the Java [date format](https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html) used in journal dates.
-   It needs to have a space between the day and hour.
-  * `debug` is responsible for logging the plugin's activity to _debug.log_ file in _logs_ directory. Turning this on can slow your server down.
-   However, if you experience any errors, turn this on and let the plugin gather the data and send logs to the developer.
-   Note that the first run of the plugin will be logged anyway, just as a precaution.
+
+* `date_format` is the Java [date format](https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html)
+  used in journal dates. It needs to have a space between the day and hour.
+* `debug` is responsible for logging the plugin's activity to _debug.log_ file in _logs_ directory. Turning this on can
+  slow your server down. However, if you experience any errors, turn this on and let the plugin gather the data and send
+  logs to the developer. Note that the first run of the plugin will be logged anyway, just as a precaution.

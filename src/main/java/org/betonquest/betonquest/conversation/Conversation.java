@@ -12,8 +12,8 @@ import org.betonquest.betonquest.api.PlayerConversationStartEvent;
 import org.betonquest.betonquest.api.config.QuestPackage;
 import org.betonquest.betonquest.config.Config;
 import org.betonquest.betonquest.conversation.ConversationData.OptionType;
-import org.betonquest.betonquest.database.Connector.UpdateType;
 import org.betonquest.betonquest.database.Saver.Record;
+import org.betonquest.betonquest.database.UpdateType;
 import org.betonquest.betonquest.exceptions.QuestRuntimeException;
 import org.betonquest.betonquest.id.ConditionID;
 import org.betonquest.betonquest.id.EventID;
@@ -93,7 +93,6 @@ public class Conversation implements Listener {
      */
     public Conversation(final String playerID, final String conversationID,
                         final Location location, final String option) {
-
         this.conv = this;
         this.plugin = BetonQuest.getInstance();
         this.playerID = playerID;
@@ -519,7 +518,7 @@ public class Conversation implements Listener {
                 final Class<? extends ConversationIO> convIO = plugin.getConvIO(name);
                 conv.inOut = convIO.getConstructor(Conversation.class, String.class).newInstance(conv, playerID);
             } catch (final InstantiationException | IllegalAccessException | IllegalArgumentException
-                    | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+                           | InvocationTargetException | NoSuchMethodException | SecurityException e) {
                 LOG.warn(pack, "Error when loading conversation IO", e);
                 return;
             }
@@ -534,7 +533,7 @@ public class Conversation implements Listener {
                     final Class<? extends Interceptor> interceptor = plugin.getInterceptor(name);
                     conv.interceptor = interceptor.getConstructor(Conversation.class, String.class).newInstance(conv, playerID);
                 } catch (final InstantiationException | IllegalAccessException | IllegalArgumentException
-                        | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+                               | InvocationTargetException | NoSuchMethodException | SecurityException e) {
                     LOG.warn(pack, "Error when loading interceptor", e);
                     return;
                 }

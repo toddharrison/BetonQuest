@@ -1,4 +1,5 @@
 ---
+icon: material/rocket-launch
 template: home.html
 title: Home
 hide:
@@ -68,11 +69,9 @@ thead span {
 }
 </style>
 
-<div style="text-align: center;">
-  <video loop controls poster="_media/content/Home/OverviewVideoPreview.jpg" src="_media/content/Home/Features/Trailer.mp4" width="100%" style="box-shadow: 0px 0px 30px black;">
-    Sorry, your browser doesn't support embedded videos.
-  </video>
-</div>
+<video controls loop src="_media/content/Home/Features/Trailer.mp4" poster="_media/content/Home/OverviewVideoPreview.jpg" style="box-shadow: 0px 0px 30px black;" width="100%">
+  Sorry, your browser doesn't support embedded videos.
+</video>
 
 ## What server owners say
 
@@ -130,30 +129,30 @@ Sometimes, user reviews describe a plugin better than the author can:
 
 ## BetonQuest Alternatives
 
-| <p>Feature</p>           |  [BetonQuest][L1]  |  [Quests][L2]<span> PikaMug</span>  |  [Quests][L3]<span> LMBishop</span>  |  [NotQuests][L4]   |     [BeautyQuests][L5]     |  [MangoQuest][L6]  |     [QuestCreator][L7]     |       [ProQuest][L8]       |
-|--------------------------|:------------------:|:-----------------------------------:|:------------------------------------:|:------------------:|:--------------------------:|:------------------:|:--------------------------:|:--------------------------:|
-| Free                     | :white_check_mark: |         :white_check_mark:          |          :white_check_mark:          | :white_check_mark: |     :white_check_mark:     | :white_check_mark: |         :x:  (20$)         |       :x:  (19.99$)        |
-| OpenSource               | :white_check_mark: |         :white_check_mark:          |          :white_check_mark:          | :white_check_mark: |     :white_check_mark:     | :white_check_mark: |            :x:             |            :x:             |
-| API                      | :white_check_mark: |         :white_check_mark:          |          :white_check_mark:          | :white_check_mark: |     :white_check_mark:     |        :x:         | :material-check-bold: [^1] | :material-check-bold: [^1] |
-| Version Support          |    1.13 - 1.18     |             1.7 - 1.18              |              1.7 - 1.18              |    1.17 - 1.18     |        1.11 - 1.18         |   1.13 - 1.17.1    |         1.7 - 1.18         |         1.7 - 1.18         |
-| Integrated Plugins       |         30         |                 13                  |                  1                   |         19         |             15             |         6          |             30             |             1              |
-| BetonQuest integration   |                    |     :material-check-bold: [^5]      |                 :x:                  | :white_check_mark: |            :x:             |        :x:         |            :x:             |            :x:             |
-| Ingame Editor            |        :x:         |          Chat & GUI(Paid)           |                 :x:                  | :white_check_mark: |            GUI             | :white_check_mark: |            GUI             |            GUI             |
-| External Editor          | :white_check_mark: |                 :x:                 |                 :x:                  |        :x:         |            :x:             |        :x:         |            :x:             |            :x:             |
-| Database Support         |   SQLite & MySQL   |                MySQL                |                MySQL                 |   SQLite & MySQL   |           MySQL            |       MySQL        |           MySQL            |       SQLite & MySQL       |
-| BungeeCord Support       | :white_check_mark: |                 :x:                 |          :white_check_mark:          | :white_check_mark: |            :x:             |        :x:         |            :x:             |            :x:             |
-| Organized File Structure | :white_check_mark: |                 :x:                 |                 :x:                  | :white_check_mark: |            :x:             | :white_check_mark: |     :white_check_mark:     |            :x:             |
-| <p>Unique Features</p>   |                    |                                     |                                      |                    |                            |                    |                            |                            |
-| Multi-Path Conversations | :white_check_mark: |                 :x:                 |                 :x:                  | :white_check_mark: | :material-check-bold: [^3] | :white_check_mark: |     :white_check_mark:     |            :x:             |
-| Quest Journal            | :white_check_mark: |         :white_check_mark:          |                 :x:                  | :white_check_mark: |            :x:             | :white_check_mark: |     :white_check_mark:     |            :x:             |
-| Custom Menus             | :white_check_mark: |                 :x:                 |      :material-check-bold: [^2]      |        :x:         |            :x:             |        :x:         |     :white_check_mark:     |     :white_check_mark:     |
-| Quest Items              | :white_check_mark: |                 :x:                 |                 :x:                  |        :x:         |            :x:             |        :x:         |            :x:             |            :x:             |
-| Backpack for Quest Items | :white_check_mark: |                 :x:                 |                 :x:                  |        :x:         |            :x:             |        :x:         |            :x:             |            :x:             |
-| Per Player Language      | :white_check_mark: |                 :x:                 |                 :x:                  |        :x:         |            :x:             |        :x:         |            :x:             |            :x:             |
-| Clientside NPCs          | :white_check_mark: |                 :x:                 |                 :x:                  |        :x:         |            :x:             |        :x:         |     :white_check_mark:     |            :x:             |
-| Clientside Players       | :white_check_mark: |                 :x:                 |                 :x:                  |        :x:         |            :x:             |        :x:         |            :x:             |            :x:             |
-| Clientside Holograms     | :white_check_mark: |                 :x:                 |                 :x:                  |        :x:         |     :white_check_mark:     |        :x:         |     :white_check_mark:     |            :x:             |
-| Clientside Particles     | :white_check_mark: |                 :x:                 |                 :x:                  |        :x:         | :material-check-bold: [^4] |        :x:         |     :white_check_mark:     |            :x:             |
+| <p>Feature</p>           |  [BetonQuest][L1]  | [Quests][L2]<span> PikaMug</span> | [Quests][L3]<span> LMBishop</span> |  [NotQuests][L4]   |     [BeautyQuests][L5]     |  [MangoQuest][L6]  |     [QuestCreator][L7]     |       [ProQuest][L8]       |
+|--------------------------|:------------------:|:---------------------------------:|:----------------------------------:|:------------------:|:--------------------------:|:------------------:|:--------------------------:|:--------------------------:|
+| Free                     | :white_check_mark: |        :white_check_mark:         |         :white_check_mark:         | :white_check_mark: |     :white_check_mark:     | :white_check_mark: |         :x:  (20$)         |       :x:  (19.99$)        |
+| OpenSource               | :white_check_mark: |        :white_check_mark:         |         :white_check_mark:         | :white_check_mark: |     :white_check_mark:     | :white_check_mark: |            :x:             |            :x:             |
+| API                      | :white_check_mark: |        :white_check_mark:         |         :white_check_mark:         | :white_check_mark: |     :white_check_mark:     |        :x:         | :material-check-bold: [^1] | :material-check-bold: [^1] |
+| Version Support          |    1.17 - 1.19     |            1.8 - 1.19             |             1.8 - 1.19             |    1.17 - 1.19     |         1.8 - 1.19         |   1.13 - 1.17.1    |         1.7 - 1.19         |         1.7 - 1.18         |
+| Integrated Plugins       |         31         |                13                 |                 14                 |         20         |             15             |         6          |             29             |             1              |
+| BetonQuest integration   |                    |    :material-check-bold: [^5]     |                :x:                 | :white_check_mark: |            :x:             |        :x:         |            :x:             |            :x:             |
+| Ingame Editor            |        :x:         |         Chat & GUI(Paid)          |                :x:                 | :white_check_mark: |            GUI             | :white_check_mark: |            GUI             |            GUI             |
+| External Editor          | :white_check_mark: |                :x:                |                :x:                 |        :x:         |            :x:             |        :x:         |            :x:             |            :x:             |
+| Database Support         |   SQLite & MySQL   |               MySQL               |               MySQL                |   SQLite & MySQL   |           MySQL            |       MySQL        |           MySQL            |       SQLite & MySQL       |
+| BungeeCord Support       | :white_check_mark: |                :x:                |         :white_check_mark:         | :white_check_mark: |            :x:             |        :x:         |            :x:             |            :x:             |
+| Organized File Structure | :white_check_mark: |                :x:                |                :x:                 | :white_check_mark: |            :x:             | :white_check_mark: |     :white_check_mark:     |            :x:             |
+| <p>Unique Features</p>   |                    |                                   |                                    |                    |                            |                    |                            |                            |
+| Multi-Path Conversations | :white_check_mark: |                :x:                |                :x:                 | :white_check_mark: | :material-check-bold: [^3] | :white_check_mark: |     :white_check_mark:     |            :x:             |
+| Quest Journal            | :white_check_mark: |        :white_check_mark:         |                :x:                 | :white_check_mark: |            :x:             | :white_check_mark: |     :white_check_mark:     |            :x:             |
+| Custom Menus             | :white_check_mark: |                :x:                |     :material-check-bold: [^2]     |        :x:         |            :x:             |        :x:         |     :white_check_mark:     |     :white_check_mark:     |
+| Quest Items              | :white_check_mark: |                :x:                |                :x:                 |        :x:         |            :x:             |        :x:         |            :x:             |            :x:             |
+| Backpack for Quest Items | :white_check_mark: |                :x:                |                :x:                 |        :x:         |            :x:             |        :x:         |            :x:             |            :x:             |
+| Per Player Language      | :white_check_mark: |                :x:                |                :x:                 |        :x:         |            :x:             |        :x:         |            :x:             |            :x:             |
+| Clientside NPCs          | :white_check_mark: |                :x:                |                :x:                 |        :x:         |            :x:             |        :x:         |     :white_check_mark:     |            :x:             |
+| Clientside Players       | :white_check_mark: |                :x:                |                :x:                 |        :x:         |            :x:             |        :x:         |            :x:             |            :x:             |
+| Clientside Holograms     | :white_check_mark: |                :x:                |                :x:                 |        :x:         |     :white_check_mark:     |        :x:         |     :white_check_mark:     |            :x:             |
+| Clientside Particles     | :white_check_mark: |                :x:                |                :x:                 |        :x:         | :material-check-bold: [^4] |        :x:         |     :white_check_mark:     |            :x:             |
 
 
 Use this table with caution, it might be outdated (last update <span class="bq-highlight">**3rd of September 2021**</span>).
@@ -170,14 +169,14 @@ Please let us know if there is any outdated information.
 *[Clientside NPCs]: Is it possible to show NPCs only for certain players based on conditions?
 *[Clientside Players]: Can player be hidden from each other using conditions?
 *[Clientside Holograms]: Can HolographicDisplays holograms be hidden using conditions?
-[L1]: https://www.spigotmc.org/resources/betonquest.2117/
-[L2]: https://www.spigotmc.org/resources/quests.3711/
-[L3]: https://www.spigotmc.org/resources/quests.23696/
-[L4]: https://www.spigotmc.org/resources/notquests.95872/
-[L5]: https://www.spigotmc.org/resources/beautyquests.39255/
+[L1]: https://www.spigotmc.org/resources/2117/
+[L2]: https://www.spigotmc.org/resources/3711/
+[L3]: https://www.spigotmc.org/resources/23696/
+[L4]: https://www.spigotmc.org/resources/95872/
+[L5]: https://www.spigotmc.org/resources/39255/
 [L6]: https://github.com/Cutiemango/MangoQuest
-[L7]: https://www.spigotmc.org/resources/questcreator.38734/
-[L8]: https://www.spigotmc.org/resources/proquests.18249/
+[L7]: https://www.spigotmc.org/resources/38734/
+[L8]: https://www.spigotmc.org/resources/18249/
 [^1]: Private API, this means that other plugins cannot add support.
 [^2]: Limited to Quest related context.
 [^3]: There are conversations, but they are not multi-path.
@@ -197,8 +196,8 @@ Please let us know if there is any outdated information.
     #### BetonQuest vs. Script Plugins
     While BetonQuest can be used for scripting, it stays a quest plugin. It's a compromise, the best of both worlds.
     Plugins with a full focus on scripting - such as
-    <a href="https://www.spigotmc.org/resources/denizen.21039/" target="_blank">Denizen</a>
-    and <a href="https://github.com/SkriptLang/Skript/" target="_blank">Skript</a>
+    [Denizen](https://www.spigotmc.org/resources/21039/)
+    and [Skript](https://github.com/SkriptLang/Skript/)
     are suited better in certain scenarios. Many users even use these alongside BetonQuest as there is
     integration for such scripting plugins.
 
@@ -209,10 +208,9 @@ Please let us know if there is any outdated information.
 ## Beautiful multi-path Conversations
 
 !!! example inline end bq-inline-example-container note ""
-<video controls loop src="_media/content/Documentation/Conversations/MenuConvIO.mp4"
-width="100%">
-Sorry, your browser doesn't support embedded videos.
-</video>
+    <video controls loop src="_media/content/Documentation/Conversations/MenuConvIO.mp4" width="100%">
+      Sorry, your browser doesn't support embedded videos.
+    </video>
 
 Players can have immersive conversation with NPC's by utilizing BetonQuests Multi-Path-Conversation System. Questers can
 freely define multi-path stories, narrated with NPC conversations, and with multiple endings that affect a player's
@@ -230,10 +228,9 @@ See the full list of integrations [here](Documentation/Compatibility.md).
 ## Custom Notification System
 
 !!! example inline end bq-inline-example-container note ""
-<video controls loop src="_media/content/Documentation/Notifications/NotifySystemOverview.mp4"
-width="100%">
-Sorry, your browser doesn't support embedded videos.
-</video>
+    <video controls loop src="_media/content/Documentation/Notifications/NotifySystemOverview.mp4" width="100%">
+      Sorry, your browser doesn't support embedded videos.
+    </video>
 
 * Questers can make use of BetonQuests notifyIO system that provides access to all of Minecafts GUI elements to display
   notifications.
@@ -246,10 +243,9 @@ Sorry, your browser doesn't support embedded videos.
 
 ## Player, NPC and Hologram Hider
 !!! example inline end bq-inline-example-container note ""
-<video controls loop src="_media/content/Documentation/Compatibility/PlayerHider.mp4"
-width="100%">
-Sorry, your browser doesn't support embedded videos.
-</video>
+    <video controls loop src="_media/content/Documentation/Compatibility/PlayerHider.mp4" width="100%">
+      Sorry, your browser doesn't support embedded videos.
+    </video>
 
 BetonQuest allows you to hide players from each other based on conditions. This can be used to create story-regions
 where players are always alone.  
@@ -269,64 +265,54 @@ Some members even made machines with this quest plugin - that really shows that 
 Take a look at this handpicked selection:
 
 <div class="examples"> 
-    <div>
-      <h3> Wandering Trader by Ley </h3>
-        <video controls loop
-        src="_media/content/Home/Features/WanderingTrader.mp4"
-        width="100%">
-        Sorry, your browser doesn't support embedded videos.
-      </video>
-      The trader appears for a few minutes and then leaves until the next day.
+  <div>
+    <h3> Wandering Trader by Ley </h3>
+    <video controls loop src="_media/content/Home/Features/WanderingTrader.mp4" width="100%">
+      Sorry, your browser doesn't support embedded videos.
+    </video>
+    The trader appears for a few minutes and then leaves until the next day.
   </div>
   <div>
     <h3> Bookshop by Esron </h3>
-      <video controls loop src="_media/content/Home/Features/BookShop.mp4"
-      width="100%">
+    <video controls loop src="_media/content/Home/Features/BookShop.mp4" width="100%">
       Sorry, your browser doesn't support embedded videos.
-      </video>
-      A daily quest with NPC voice acting using OpenAudioMC.
+    </video>
+    A daily quest with NPC voice acting using OpenAudioMC.
   </div>
   <div>
     <h3> Menu by Esron </h3>
-      <video controls loop poster="_media/content/Home/Features/RPGMenuVideoThumbnail.png" src="_media/content/Home/Features/RPGMenu.mp4"
-      width="100%">
+    <video controls loop src="_media/content/Home/Features/RPGMenu.mp4" poster="_media/content/Home/Features/RPGMenuVideoThumbnail.png" width="100%">
       Sorry, your browser doesn't support embedded videos.
-      </video>
-      A server / quest menu made with the menu feature.
+    </video>
+    A server / quest menu made with the menu feature.
   </div>
   <div>
     <h3> Bards by Esron </h3>
-      <video controls loop src="_media/content/Home/Features/Bards.mp4"
-      width="100%">
+    <video controls loop src="_media/content/Home/Features/Bards.mp4" width="100%">
       Sorry, your browser doesn't support embedded videos.
-      </video>
-      A bar setup with musicians and other NPC's. The player can use the conversation system to select a song.  The audio is made with OpenAudioMC. 
+    </video>
+    A bar setup with musicians and other NPC's. The player can use the conversation system to select a song.  The audio is made with OpenAudioMC. 
   </div>
   <div>
     <h3>Water Well by Titanium</h3>
-      <video controls loop src="_media/content/Home/Features/WaterWell.mp4"
-      width="100%">
+    <video controls loop src="_media/content/Home/Features/WaterWell.mp4" width="100%">
       Sorry, your browser doesn't support embedded videos.
-      </video>
-      A functional well as part of a quest.
+    </video>
+    A functional well as part of a quest.
   </div>
   <div>
     <h3> Elevator by Titanium </h3>
-        <video controls loop
-        src="_media/content/Home/Features/Elevator.mp4"
-        width="100%">
-        Sorry, your browser doesn't support embedded videos.
-      </video>
+    <video controls loop src="_media/content/Home/Features/Elevator.mp4" width="100%">
+      Sorry, your browser doesn't support embedded videos.
+    </video>
     A functional elevator.
   </div>
   <div>
-      <h3> Corpse Quest by Titanium </h3>
-          <video controls loop
-          src="_media/content/Home/Features/Corpse.mp4"
-          width="100%">
-          Sorry, your browser doesn't support embedded videos.
-        </video>
-      The player needs to collect corpses.
+    <h3> Corpse Quest by Titanium </h3>
+    <video controls loop src="_media/content/Home/Features/Corpse.mp4" width="100%">
+      Sorry, your browser doesn't support embedded videos.
+    </video>
+    The player needs to collect corpses.
   </div>
 </div>
 

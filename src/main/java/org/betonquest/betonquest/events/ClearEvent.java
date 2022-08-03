@@ -6,12 +6,14 @@ import org.betonquest.betonquest.VariableNumber;
 import org.betonquest.betonquest.api.QuestEvent;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.QuestRuntimeException;
+import org.betonquest.betonquest.utils.PlayerConverter;
 import org.betonquest.betonquest.utils.Utils;
 import org.betonquest.betonquest.utils.location.CompoundLocation;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.metadata.MetadataValue;
 
 import java.util.Collection;
@@ -29,7 +31,7 @@ public class ClearEvent extends QuestEvent {
     private final VariableNumber range;
     private final String name;
     private final boolean kill;
-    private String marked;
+    private final String marked;
 
     public ClearEvent(final Instruction instruction) throws InstructionParseException {
         super(instruction, true);
@@ -48,10 +50,8 @@ public class ClearEvent extends QuestEvent {
         range = instruction.getVarNum();
         name = instruction.getOptional("name");
         kill = instruction.hasArgument("kill");
-        marked = instruction.getOptional("marked");
-        if (marked != null) {
-            marked = Utils.addPackage(instruction.getPackage(), marked);
-        }
+        final String markedString = instruction.getOptional("marked");
+        marked = markedString == null ? null : Utils.addPackage(instruction.getPackage(), markedString);
     }
 
     @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.NPathComplexity", "PMD.CognitiveComplexity"})
@@ -59,6 +59,7 @@ public class ClearEvent extends QuestEvent {
     @Override
     protected Void execute(final String playerID) throws QuestRuntimeException {
         final Location location = loc.getLocation(playerID);
+        final Player player = PlayerConverter.getPlayer(playerID);
         final Collection<Entity> entities = location.getWorld().getEntities();
         loop:
         for (final Entity entity : entities) {
@@ -71,7 +72,7 @@ public class ClearEvent extends QuestEvent {
                 }
                 final List<MetadataValue> meta = entity.getMetadata("betonquest-marked");
                 for (final MetadataValue m : meta) {
-                    if (!m.asString().equals(marked)) {
+                    if (!m.asString().equals(marked.replace("%player%", player.getName()))) {
                         continue loop;
                     }
                 }

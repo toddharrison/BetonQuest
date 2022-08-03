@@ -2,9 +2,9 @@ package org.betonquest.betonquest.notify;
 
 import com.comphenix.packetwrapper.WrapperPlayServerEntityStatus;
 import com.comphenix.packetwrapper.WrapperPlayServerSetSlot;
-import io.papermc.lib.PaperLib;
 import lombok.CustomLog;
 import org.betonquest.betonquest.BetonQuest;
+import org.betonquest.betonquest.api.config.QuestPackage;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -35,8 +35,8 @@ public class TotemNotifyIO extends NotifyIO {
      * @param data map with user instructions.
      * @throws InstructionParseException if the users input couldn't be parsed.
      */
-    public TotemNotifyIO(final Map<String, String> data) throws InstructionParseException {
-        super(data);
+    public TotemNotifyIO(final QuestPackage pack, final Map<String, String> data) throws InstructionParseException {
+        super(pack, data);
         customModelData = getIntegerData("custommodeldata", 2);
     }
 
@@ -58,20 +58,12 @@ public class TotemNotifyIO extends NotifyIO {
     }
 
     private void sendOffhandPacket(final Player player, final ItemStack offHandItem) {
-        final WrapperPlayServerSetSlot slotPacket;
-
-        //TODO version switch:
-        // remove if minecraft version support below 1.17 is dropped
-        if (PaperLib.isVersion(17, 1)) {
-            slotPacket = new WrapperPlayServerSetSlot() {
-                @Override
-                public void setSlot(final int value) {
-                    handle.getIntegers().write(2, value);
-                }
-            };
-        } else {
-            slotPacket = new WrapperPlayServerSetSlot();
-        }
+        final WrapperPlayServerSetSlot slotPacket = new WrapperPlayServerSetSlot() {
+            @Override
+            public void setSlot(final int value) {
+                handle.getIntegers().write(2, value);
+            }
+        };
 
         slotPacket.setSlot(45);
         slotPacket.setSlotData(offHandItem);

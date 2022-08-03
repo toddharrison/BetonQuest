@@ -5,8 +5,8 @@ import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.GlobalObjectives;
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.config.Config;
-import org.betonquest.betonquest.database.Connector;
 import org.betonquest.betonquest.database.Saver;
+import org.betonquest.betonquest.database.UpdateType;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
 import org.betonquest.betonquest.exceptions.QuestRuntimeException;
@@ -171,7 +171,7 @@ public abstract class Objective {
      * @param playerID ID of the player for whom the property is to be returned
      * @return the property with given name
      */
-    abstract public String getProperty(final String name, final String playerID);
+    abstract public String getProperty(String name, String playerID);
 
     /**
      * This method fires events for the objective and removes it from player's
@@ -290,7 +290,8 @@ public abstract class Objective {
     private Optional<ObjectiveData> createObjectiveData(final String playerID, final String instructionString) {
         try {
             return Optional.of(constructObjectiveDataUnsafe(playerID, instructionString));
-        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException exception) {
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException |
+                 InvocationTargetException exception) {
             handleObjectiveDataConstructionError(playerID, exception);
             return Optional.empty();
         }
@@ -553,8 +554,8 @@ public abstract class Objective {
         @SuppressWarnings("PMD.DoNotUseThreads")
         protected void update() {
             final Saver saver = BetonQuest.getInstance().getSaver();
-            saver.add(new Saver.Record(Connector.UpdateType.REMOVE_OBJECTIVES, playerID, objID));
-            saver.add(new Saver.Record(Connector.UpdateType.ADD_OBJECTIVES, playerID, objID, toString()));
+            saver.add(new Saver.Record(UpdateType.REMOVE_OBJECTIVES, playerID, objID));
+            saver.add(new Saver.Record(UpdateType.ADD_OBJECTIVES, playerID, objID, toString()));
             final QuestDataUpdateEvent event = new QuestDataUpdateEvent(playerID, objID, toString());
             final Server server = BetonQuest.getInstance().getServer();
             server.getScheduler().runTask(BetonQuest.getInstance(), () -> server.getPluginManager().callEvent(event));

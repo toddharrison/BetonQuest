@@ -1,3 +1,6 @@
+---
+icon: octicons/book-16
+---
 # Reference
 
 This chapter describes all aspects of BetonQuest in one place. You should read it at least once to know what you're dealing with and where to search for information if you ever have any problems.
@@ -221,15 +224,29 @@ enabled: false
 ```
 
 
-## Unified location formating
+## :octicons-location-16: Unified location formating
 
-Whenever you want to define some location in your events, conditions, objectives or any other things, you will define it with this specific format. The location can consist of 2 things: base and vector. Only the base is always required.
+Whenever you want to define some location in your events, conditions, objectives or any other things, you will define it
+with this specific format. The location consists of 2 things: base and vector. Only the base is always required.
 
-The base is a core location. Currently there are two types: absolute coordinates and variables. Absolute coordinates are defined like `100;200;300;world`, where `100` is X coordinate, `200` is Y, `300` is Z and `world` is the name of the world. These can have decimal values. If you want you can also add two more numbers at the end, yaw and pitch (these are controlling the rotation, for example in teleportation event, both are needed if you decide to add them; example: `0.5;64;0.5;world;90;-270`).
+### Base Location
+The base is a core location. There are two types: absolute coordinates and variables. Absolute coordinates are
+defined like `100;200;300;world`, where `100` is X coordinate, `200` is Y, `300` is Z and `world` is the name of the
+world. These can have decimal values. If you want you can also add two more numbers at the end, yaw and pitch 
+(these are controlling the rotation, for example in teleportation event, both are needed if you decide to add them;
+example: `0.5;64;0.5;world;90;-270`).
 
-To use a variable as the location's base it must resolve to a valid absolute coordinates. An example of such variable is `%location%`, which shows player's exact location. Simply place it instead of coordinates. There is one rule though: you can't use variable base types in events running without players (for example static events or the ones run from folder event after their player left the server). BetonQuest won't be able to resolve the location variable without the player!
+### Variables as Base Location
+To use a variable as the location's base it must resolve to valid absolute coordinates. An example of such variable 
+is `%location%`, which shows player's exact location. Simply place it instead of coordinates. There is one rule though:
+you can't use variable base types in events running without players (for example static events or the ones run from
+folder event after the player left the server). BetonQuest won't be able to resolve the location variable without the
+player!
 
-The vector is a modification of the location. It will be useful if you use global variables instead of base (described in the next subsection) or the base itself is variable, like `player`. Vectors look like `->(10;2.5;-13)` and are added to the end of the base. This will modify the location, X by 10, Y by 2.5 and Z by -13. For example, location written as `100;200;300;world_nether->(10;2.5;-13)` will generate a location with X=110, Y=202.5 and Z=287 on `world_nether` world.
+### Vectors
+The vector is a modification of the location. Vectors look like `->(10;2.5;-13)` and are added
+to the end of the base. This will modify the location, X by 10, Y by 2.5 and Z by -13. For example, location written as
+`100;200;300;world_nether->(10;2.5;-13)` will generate a location with X=110, Y=202.5 and Z=287 in the world `world_nether`.
 
 ## Global variables
 
@@ -254,7 +271,7 @@ variables:
 
 If you want to let your players cancel their quest there is a function for that. In _package.yml_ file there is `cancel`
 branch. You can specify there quests, which can be canceled, as well as actions that need to be done to actually cancel
-them. You can find an example in the `default` package. The arguments you can specify are:
+them. The arguments you can specify are:
 
 * `name` - this will be the name displayed to the player. All `_` characters will be converted to spaces. If you want to include other languages you can add here additional options (`en` for English etc.)
 * `conditions` - this is a list of conditions separated by commas. The player needs to meet all those conditions to be able to cancel this quest. Place there the ones which detect that the player has started the quest, but he has not finished it yet. 
@@ -265,7 +282,7 @@ them. You can find an example in the `default` package. The arguments you can sp
 * `events` - if you want to do something else when canceling the quest (like punishing the player), list the events here.
 * `loc` - this is a location to which the player will be teleported when canceling the quest (defined as in teleport event);
 
-To cancel the quest you need to open your backpack and select a "cancel" button (by default a bone, can be changes by naming an item "cancel_button" inside default package). There will be a list of quests which can be canceled. Just select the one that interests you and it will be canceled.
+To cancel the quest you need to open your backpack and select a "cancel" button. There will be a list of quests which can be canceled. Just select the one that interests you and it will be canceled.
 
 ## Global objectives
 
@@ -280,24 +297,6 @@ Possible use cases would be a quest which starts if a player reaches a specific 
 ```YAML
 start_quest_mine: 'location 100;200;300;world 5 events:start_quest_mine_folder global'
 ```
-## Static events
-
-Static events are events that will fire at the specified time of the day. It is possible to address multiple events with
-a `,` separated list. They are not tied to a specific player, so not all event types can be used as static.
-(Which player should receive a tag or objective? From which one should the items be taken?)
-Also, static events cannot have conditions defined (`event-conditions:` argument), as the plugin cannot check any
-condition without the player. Events, that can be used as static are flagged with `static` keyword in this
-documentation. You can define your static events in _package.yml_ file under `static` section, as such:
-
-```YAML
-static:
-  '09:00': beton
-  '23:59': lightning_strike
-  '11:23': some_command,command_announcement
-```
-
-The hour must be in `''` to avoid problems, it needs leading zero if less than 10.
-`beton`, `lightnint_strike` etc. are IDs of events.
 
 ## Journal
 
@@ -333,7 +332,7 @@ If you want to manually wrap the page, use the pipe `|` character. Use \n to go 
 
 ## Tags
 
-Tags are little pieces of text you can assign to player and then check if he has them. They are particularly useful to determine if player has started or completed quest. They are given with `tag` event and checked with `tag` condition. All tags are bound to a package, so if you add `beton` tag from within the `default` package, the tag will look like `default.beton`. If you're checking for `beton` tag from within `default` package, you're actually checking for `default.beton`. If you want to check a tag from another package, then you just need to prefix it's name with that package, for example `quest.beton`.
+Tags are little pieces of text you can assign to player and then check if he has them. They are particularly useful to determine if player has started or completed quest. They are given with `tag` event and checked with `tag` condition. All tags are bound to a package, so if you add `beton` tag from within a package named `example`, the tag will look like `example.beton`. If you're checking for `beton` tag from within `example` package, you're actually checking for `example.beton`. If you want to check a tag from another package, then you just need to prefix it's name with that package, for example `quest.beton`.
 
 ## Points
 
@@ -384,7 +383,7 @@ These are arguments that can be applied to every item:
     
     You can require the item not to have any enchantments by using `none` keyword. You can also add `+`/`-` character to the enchantment level to make the check require levels greater/less (and equal) than specified. If you don't care about the level, replace the number with a question mark.
     
-    By default all specified enchantments are required. If you want to check if the item contains a matching enchantment (and/or more enchants), add `enchants-containing` argument to the instruction string. Each specified enchantment will be required on the item by default unless you prefix its name with `none-`, for example `none-knockback` means that the item must not have any knockback enchantment. **Do not use `none-` prefix unless you're using `enchants-containing` argument**, it doesn't make any sense and will break the check!
+    By default, all specified enchantments are required. If you want to check if the item contains a matching enchantment (and/or more enchants), add `enchants-containing` argument to the instruction string. Each specified enchantment will be required on the item by default unless you prefix its name with `none-`, for example `none-knockback` means that the item must not have any knockback enchantment. **Do not use `none-` prefix unless you're using `enchants-containing` argument**, it doesn't make any sense and will break the check!
 
 - `unbreakable` - this makes the item unbreakable. You can specify it either as `unbreakable` or `unbreakable:true` to require an item to be unbreakable. If you want to check if the item is breakable, use `unbreakable:false`.
 
@@ -445,7 +444,7 @@ _This applies to potions, splash potions and lingering potions._
 
     If you want to target only potions without custom effects, use `none` keyword. You can target potions with level and time greater/less (and equal) than specified with `+`/`-` character after the number. If you don't care about the level/time, you can replace them with question mark.
     
-    By default all specified effects are required. If you want to check if the potion contains these effects among others, add `effects-containing` argument to the instruction string. Now if you want to make sure the potion doesn't contain a specific effect, prefix the effect name with `none-`. **Don't use that prefix unless you're also using `effects-containing` argument**, it doesn't make any sense and it will break the check.
+    By default, all specified effects are required. If you want to check if the potion contains these effects among others, add `effects-containing` argument to the instruction string. Now if you want to make sure the potion doesn't contain a specific effect, prefix the effect name with `none-`. **Don't use that prefix unless you're also using `effects-containing` argument**, it doesn't make any sense and it will break the check.
 
 **Examples**:
 
@@ -500,7 +499,7 @@ _This applies to fireworks._
     
     If you want to target fireworks without any effects, use `none` keyword. If you want to target any effect type, use question mark instead of the effect name. If you don't want the effect to have any main/fade colors, use `none` keyword in the place of colors. If you don't care about main/fade colors, use question marks in that place. If you don't care about trail/flicker effect, use question marks instead of `true`/`false` keyword.
     
-    By default the check will require all specified effects to be present on the firework. You can check if the firework contains specified effects among others by adding `firework-containing` argument to the instruction string. To match the item which must not have an effect, prefix the effect name with `none-` keyword. **Don't use that prefix unless you're also using `firework-containing` argument**, it doesn't make any sense and will break the check.
+    By default, the check will require all specified effects to be present on the firework. You can check if the firework contains specified effects among others by adding `firework-containing` argument to the instruction string. To match the item which must not have an effect, prefix the effect name with `none-` keyword. **Don't use that prefix unless you're also using `firework-containing` argument**, it doesn't make any sense and will break the check.
 
 - `power` - flight duration of the firework, in levels. You can use `+`/`-` character to target greater/less (and equal) levels.
 
@@ -535,7 +534,7 @@ Note that this must be an entirely new line in the lore!
 important_sword: "DIAMOND_SWORD name:Sword_for_destroying__The_Concrete lore:Made_of_pure_Mithril;&2Quest_Item"
 ```
 
-To open your backpack just type **/j** command. The inventory window will open, displaying your stored items. The first slot is always the journal, and if you get it, the slot will stay empty. You can transfer quest items back and forth between inventories by clicking on them. Left click will transfer just one item, right click will try to transfer all items. Normal items cannot be stored into the backpack, so it's not an infinite inventory.
+The backpack can be opened with the **/backpack** command. The inventory window will open, displaying your stored items. The first slot is always the journal, and if you get it, the slot will stay empty. You can transfer quest items back and forth between inventories by clicking on them. Left click will transfer just one item, right click will try to transfer all items. Normal items cannot be stored into the backpack, so it's not an infinite inventory.
 
 If you will ever have more than one page of quest items, the buttons will appear. You can customize those buttons by creating `previous_button` and `next_button` items in the _items_ section. Their name will be overwritten with the one defined in _messages.yml_.
 
@@ -578,9 +577,9 @@ Where:
   Be aware that a tag always starts with either `:` or a namespace. 
   
   - `state` - (optional) The block states can be provided in a comma separated `key=value` list surrounded by square brackets.
-   You can look up states in the Minecraft <a href="https://minecraft.gamepedia.com/Block_states" target="_blank">wiki</a>.
+   You can look up states in the Minecraft [wiki](https://minecraft.gamepedia.com/Block_states).
    Any states left out will be ignored when matching.
-   *Values* can be a <a href="https://medium.com/factory-mind/regex-tutorial-a-simple-cheatsheet-by-examples-649dc1c3f285" target="_blank">regex</a>.
+   *Values* can be a [regex](https://medium.com/factory-mind/regex-tutorial-a-simple-cheatsheet-by-examples-649dc1c3f285).
 
 Examples:
 
@@ -614,28 +613,26 @@ Example: `fence[facing=north] matches fence[facing=north] and fence[facing=north
 You can add an `exactMatch` argument if you only want to match blocks that exactly match the block state. 
 A regex is allowed in any block state value when the block selector is used to match blocks.
 
-## Hiding Player's
+## Hiding Players
 
-<video controls loop
-src="../../_media/content/Documentation/Compatibility/PlayerHider.mp4"
-width="780">
-Sorry, your browser doesn't support embedded videos.
+<video controls loop src="../../_media/content/Documentation/Compatibility/PlayerHider.mp4" width="100%">
+  Sorry, your browser doesn't support embedded videos.
 </video>
 
-You can also hide players for specific players. If the `source_player` meets the conditions
-every player that meets the `target_player` conditions is completely hidden for him.
-This is really helpful if you want a lonely place on your server,
+You can also hide players for specific players in the `player_hider` section of your package. When the `source_player` meets the conditions,
+every player that meets the `target_player` conditions will be completely hidden from them. 
+This is really useful if you want a lonely place on your server 
 or your quests break when multiple players can see or affect each other.
 You can configure the interval which checks the conditions in the [config.yml](./Configuration.md#player-hider-interval).
 
 Special behaviour:
 
-* A player that meets the `source_player`conditions can't be pushed anymore by other players.
+* A player that meets the `source_player`conditions can no longer be pushed by other players.
 * By leaving the e.g. `source_player` argument empty it will match all players.
 
 ```YAML
 player_hider:
-  example_hider:  #All players in a special region cannot see any other players in that region.
+  example_hider:  #All players in a special region cannot see any other players in that region. If a player is outside the region, they can still see the `target_player`.
     source_player: in_StoryRegion
     target_player: in_StoryRegion
   another_hider: #No one can see any players inside a secret room.

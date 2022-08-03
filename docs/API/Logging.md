@@ -1,3 +1,6 @@
+---
+icon: material/text-box-outline
+---
 --8<-- "API-State/Draft.md"
 
 This page shows you everything you need to know about the BetonQuest logger, no matter if you are working on BetonQuest 
@@ -37,8 +40,7 @@ These advantages are mainly for BetonQuest, but it is also very useful for 3rd p
 
 !!! note ""
     === "Using Lombock"
-        Using Lombock enables you to use the handy
-        <a href="https://projectlombok.org/features/log" target="_blank">@CustomLog</a>
+        Using Lombock enables you to use the handy [@CustomLog](https://projectlombok.org/features/log)
         annotation on each class you want a logger for.
         This requires a Lombock setup in your project and in your IDE.
     
@@ -62,11 +64,17 @@ These advantages are mainly for BetonQuest, but it is also very useful for 3rd p
                 ````java linenums="1"
                 @CustomLog
                 public final class MyCustomEvent {
+                //...
+                    LOG.info("Hello Log!");
+                //...
                 ````
             === "With topic"
                 ````java linenums="1"
                 @CustomLog(topic = "MyCustomTopic")
                 public final class MyCustomEvent {
+                //...
+                    LOG.info("Hello Log!");
+                //...
                 ````
     
     === "Using plain Java"    

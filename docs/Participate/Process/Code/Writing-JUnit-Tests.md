@@ -1,3 +1,6 @@
+---
+icon: material/test-tube
+---
 Here you can find a summary on how to write JUnit tests for BetonQuest. In order to understand this, you need to have
 basic knowledge of JUnit tests and mocking of objects and classes.
 
@@ -101,9 +104,7 @@ To use the `BukkitSchedulerMock` you need to create the following setup:
 ````java linenums="1" hl_lines="3-5"
 @Test
 void testMethod {
-    final BukkitSchedulerMock scheduler = new BukkitSchedulerMock();
-    try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {
-        bukkit.when(Bukkit::getScheduler).thenReturn(scheduler);
+    try (BukkitSchedulerMock scheduler = new BukkitSchedulerMock()) {
         ...
     }
 }
@@ -126,8 +127,23 @@ scheduler.getCurrentTick();
 There are some additional features of this scheduler:
 
 ````java linenums="1"
-scheduler.shutdown();
-scheduler.setShutdownTimeout(long);
-scheduler.waitAsyncTasksFinished();
-scheduler.getNumberOfQueuedAsyncTasks();
+scheduler.close(); //(1)!
+scheduler.waitAsyncTasksFinished(long); //(2)!
+scheduler.waitAsyncTasksFinished(); //(3)!
 ````
+
+1. Shuts down the scheduler. Already called thanks to with "try with resources".
+2. Wait for all async tasks to finish.
+3. One second timeout.
+
+## Expanded visibility for testing
+Sometimes you need a method, class or field to be accessible for your JUnit tests but not for external code.  
+Generally a good way to achieve this is using the default (package-local) access modifier instead of `private`.  
+Of course the unit tests must be located in the same package for this to work.
+
+To clearly mark such elements, that are more widely visible than necessary only for use in test code, 
+the `@VisibleForTesting` annotation can be added.
+Make sure you import it from `org.betonquest.betonquest.api.annotation`, not from google commons or apache.
+
+This will also suppress the PMD rule [`CommentDefaultAccessModifier`](https://pmd.github.io/latest/pmd_rules_java_codestyle.html#commentdefaultaccessmodifier) 
+which requires you to add a `/* default */` or `/* package */` comment when using default access modifier.

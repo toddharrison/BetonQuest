@@ -15,6 +15,7 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Changes the default language for the player
@@ -58,14 +59,8 @@ public class LangCommand implements CommandExecutor, SimpleTabCompleter {
             final String playerID = PlayerConverter.getID((Player) sender);
             final PlayerData playerData = BetonQuest.getInstance().getPlayerData(playerID);
             final Journal journal = playerData.getJournal();
-            int slot = -1;
-            if (Journal.hasJournal(playerID)) {
-                slot = journal.removeFromInv();
-            }
             playerData.setLanguage(lang);
-            if (slot > 0) {
-                journal.addToInv(slot);
-            }
+            journal.update();
             try {
                 Config.sendNotify(null, playerID, "language_changed", new String[]{lang}, "language_changed,info");
             } catch (final QuestRuntimeException e) {
@@ -80,10 +75,10 @@ public class LangCommand implements CommandExecutor, SimpleTabCompleter {
     }
 
     @Override
-    public List<String> simpleTabComplete(final CommandSender sender, final Command command, final String alias, final String[] args) {
+    public Optional<List<String>> simpleTabComplete(final CommandSender sender, final Command command, final String alias, final String[] args) {
         if (args.length == 1) {
-            return Config.getLanguages();
+            return Optional.of(Config.getLanguages());
         }
-        return new ArrayList<>();
+        return Optional.of(new ArrayList<>());
     }
 }

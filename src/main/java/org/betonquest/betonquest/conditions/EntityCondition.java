@@ -6,11 +6,13 @@ import org.betonquest.betonquest.VariableNumber;
 import org.betonquest.betonquest.api.Condition;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.QuestRuntimeException;
+import org.betonquest.betonquest.utils.PlayerConverter;
 import org.betonquest.betonquest.utils.Utils;
 import org.betonquest.betonquest.utils.location.CompoundLocation;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
 import org.bukkit.metadata.MetadataValue;
 
 import java.util.Collection;
@@ -28,7 +30,7 @@ public class EntityCondition extends Condition {
     private final CompoundLocation loc;
     private final VariableNumber range;
     private final String name;
-    private String marked;
+    private final String marked;
 
     @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.AvoidLiteralsInIfCondition"})
     public EntityCondition(final Instruction instruction) throws InstructionParseException {
@@ -62,10 +64,8 @@ public class EntityCondition extends Condition {
         loc = instruction.getLocation();
         range = instruction.getVarNum();
         name = instruction.getOptional("name");
-        marked = instruction.getOptional("marked");
-        if (marked != null) {
-            marked = Utils.addPackage(instruction.getPackage(), marked);
-        }
+        final String markedString = instruction.getOptional("marked");
+        marked = markedString == null ? null : Utils.addPackage(instruction.getPackage(), markedString);
     }
 
     private VariableNumber getAmount(final String typePart) throws InstructionParseException {
@@ -81,6 +81,7 @@ public class EntityCondition extends Condition {
     @Override
     protected Boolean execute(final String playerID) throws QuestRuntimeException {
         final Location location = loc.getLocation(playerID);
+        final Player player = PlayerConverter.getPlayer(playerID);
         final int[] neededAmounts = new int[types.length];
         for (int i = 0; i < neededAmounts.length; i++) {
             neededAmounts[i] = 0;
@@ -97,7 +98,7 @@ public class EntityCondition extends Condition {
                 }
                 final List<MetadataValue> meta = entity.getMetadata("betonquest-marked");
                 for (final MetadataValue m : meta) {
-                    if (!m.asString().equals(marked)) {
+                    if (!m.asString().equals(marked.replace("%player%", player.getName()))) {
                         continue loop;
                     }
                 }

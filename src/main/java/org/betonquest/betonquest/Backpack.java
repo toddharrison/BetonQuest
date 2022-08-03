@@ -2,6 +2,7 @@ package org.betonquest.betonquest;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.CustomLog;
+import org.apache.commons.lang3.tuple.Pair;
 import org.betonquest.betonquest.api.QuestCompassTargetChangeEvent;
 import org.betonquest.betonquest.api.config.QuestPackage;
 import org.betonquest.betonquest.config.Config;
@@ -85,7 +86,7 @@ public class Backpack implements Listener {
         // create display
         switch (type) {
             case DEFAULT:
-                display = new Page(0);
+                display = new Page(1);
                 break;
             case CANCEL:
                 display = new Cancelers();
@@ -145,71 +146,70 @@ public class Backpack implements Listener {
      */
     @SuppressWarnings({"PMD.ShortClassName", "PMD.CyclomaticComplexity", "PMD.AvoidFieldNameMatchingTypeName"})
     private class Page extends Display {
-
         private final int page;
+        private final int pages;
+        private final int pageOffset;
+        private final boolean showJournal;
+        private final List<ItemStack> backpackItems;
 
         /**
          * Creates and displays to the player a given page.
          *
-         * @param page number of the page to display, starting from 0
+         * @param page number of the page to display, starting from 1
          */
         @SuppressWarnings({"PMD.ExcessiveMethodLength", "PMD.NcssCount", "PMD.NPathComplexity", "PMD.CognitiveComplexity"})
         @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
         public Page(final int page) {
             super();
+            final boolean showJournalInBackpack = Boolean.parseBoolean(Config.getString("config.journal.show_in_backpack"));
             this.page = page;
-            final List<ItemStack> backpackItems = playerData.getBackpack();
-            // amount of pages, considering that the first contains 44 items and all others 45
-            final int pages = backpackItems.size() / 45 + 1;
-            // prepare the inventory
+            this.showJournal = showJournalInBackpack && !Journal.hasJournal(playerID);
+            this.backpackItems = playerData.getBackpack();
+            if (showJournal) {
+                backpackItems.add(0, playerData.getJournal().getAsItem());
+            }
+            this.pages = (int) Math.ceil(backpackItems.size() / 45F);
+            this.pageOffset = (page - 1) * 45;
+
             inv = Bukkit.createInventory(null, 54, Config.getMessage(lang, "backpack_title")
-                    + (pages == 1 ? "" : " (" + (page + 1) + "/" + pages + ")"));
+                    + (pages == 0 || pages == 1 ? "" : " (" + page + "/" + pages + ")"));
             final ItemStack[] content = new ItemStack[54];
-            int index = 0;
-            // insert the journal if the player doesn't have it in his inventory
-            if (page == 0) {
-                if (Journal.hasJournal(playerID)) {
-                    content[0] = null;
-                } else {
-                    content[0] = playerData.getJournal().getAsItem();
-                }
-                index++;
+
+            for (int index = 0; index < 45 && pageOffset + index < backpackItems.size(); index++) {
+                content[index] = backpackItems.get(pageOffset + index);
             }
-            // set all the items
-            while (index < 45 && index + (page * 45) <= backpackItems.size()) {
-                final ItemStack item = backpackItems.get(index + (page * 45) - 1);
-                content[index] = item;
-                index++;
-            }
+
             // if there are other pages, place the buttons
-            if (page > 0) {
-                ItemStack previous;
-                try {
-                    previous = new QuestItem(new ItemID(Config.getDefaultPackage(), "previous_button")).generate(1);
-                } catch (final ObjectNotFoundException e) {
-                    LOG.warn("Could not find item: " + e.getMessage(), e);
+            if (page > 1) {
+                ItemStack previous = null;
+                final String previousButton = Config.getString("config.items.backpack.previous_button");
+                if (previousButton != null && !previousButton.isEmpty()) {
+                    try {
+                        previous = new QuestItem(new ItemID(null, previousButton)).generate(1);
+                    } catch (final ObjectNotFoundException | InstructionParseException e) {
+                        LOG.warn("Could not load previous button: " + e.getMessage(), e);
+                    }
+                }
+                if (previous == null) {
                     previous = new ItemStack(Material.GLOWSTONE_DUST);
-                } catch (final InstructionParseException e) {
-                    LOG.warn("Could not load previous button: " + e.getMessage(), e);
-                    player.closeInventory();
-                    return;
                 }
                 final ItemMeta meta = previous.getItemMeta();
                 meta.setDisplayName(Config.getMessage(lang, "previous").replaceAll("&", "§"));
                 previous.setItemMeta(meta);
                 content[48] = previous;
             }
-            if (backpackItems.size() > (page + 1) * 45 - 1) {
-                ItemStack next;
-                try {
-                    next = new QuestItem(new ItemID(Config.getDefaultPackage(), "next_button")).generate(1);
-                } catch (final ObjectNotFoundException e) {
-                    LOG.warn("Could not find item: " + e.getMessage(), e);
+            if (page < pages) {
+                ItemStack next = null;
+                final String nextButton = Config.getString("config.items.backpack.next_button");
+                if (nextButton != null && !nextButton.isEmpty()) {
+                    try {
+                        next = new QuestItem(new ItemID(null, nextButton)).generate(1);
+                    } catch (final ObjectNotFoundException | InstructionParseException e) {
+                        LOG.warn("Could not load next button: " + e.getMessage(), e);
+                    }
+                }
+                if (next == null) {
                     next = new ItemStack(Material.REDSTONE);
-                } catch (final InstructionParseException e) {
-                    LOG.warn("Could not load next button: " + e.getMessage(), e);
-                    player.closeInventory();
-                    return;
                 }
                 final ItemMeta meta = next.getItemMeta();
                 meta.setDisplayName(Config.getMessage(lang, "next").replaceAll("&", "§"));
@@ -217,32 +217,34 @@ public class Backpack implements Listener {
                 content[50] = next;
             }
             // set "cancel quest" button
-            ItemStack cancel;
-            try {
-                cancel = new QuestItem(new ItemID(Config.getDefaultPackage(), "cancel_button")).generate(1);
-            } catch (final ObjectNotFoundException e) {
-                LOG.warn("Could not find object: " + e.getMessage(), e);
+            ItemStack cancel = null;
+            final String cancelButton = Config.getString("config.items.backpack.cancel_button");
+            if (cancelButton != null && !cancelButton.isEmpty()) {
+                try {
+                    cancel = new QuestItem(new ItemID(null, cancelButton)).generate(1);
+                } catch (final ObjectNotFoundException | InstructionParseException e) {
+                    LOG.warn("Could not load cancel button: " + e.getMessage(), e);
+                }
+            }
+            if (cancel == null) {
                 cancel = new ItemStack(Material.BONE);
-            } catch (final InstructionParseException e) {
-                LOG.warn("Could not load cancel button: " + e.getMessage(), e);
-                player.closeInventory();
-                return;
             }
             final ItemMeta meta = cancel.getItemMeta();
             meta.setDisplayName(Config.getMessage(lang, "cancel").replaceAll("&", "§"));
             cancel.setItemMeta(meta);
             content[45] = cancel;
             // set "compass targets" button
-            ItemStack compassItem;
-            try {
-                compassItem = new QuestItem(new ItemID(Config.getDefaultPackage(), "compass_button")).generate(1);
-            } catch (final ObjectNotFoundException e) {
-                LOG.warn("Could not find item: " + e.getMessage(), e);
+            ItemStack compassItem = null;
+            final String compassButton = Config.getString("config.items.backpack.compass_button");
+            if (compassButton != null && !compassButton.isEmpty()) {
+                try {
+                    compassItem = new QuestItem(new ItemID(null, compassButton)).generate(1);
+                } catch (final ObjectNotFoundException | InstructionParseException e) {
+                    LOG.warn("Could not load compass button: " + e.getMessage(), e);
+                }
+            }
+            if (compassItem == null) {
                 compassItem = new ItemStack(Material.COMPASS);
-            } catch (final InstructionParseException e) {
-                LOG.warn("Could not load compass button: " + e.getMessage(), e);
-                player.closeInventory();
-                return;
             }
             final ItemMeta compassMeta = compassItem.getItemMeta();
             compassMeta.setDisplayName(Config.getMessage(lang, "compass").replace('&', '&'));
@@ -254,24 +256,16 @@ public class Backpack implements Listener {
             Bukkit.getPluginManager().registerEvents(Backpack.this, BetonQuest.getInstance());
         }
 
-        @SuppressWarnings({"PMD.NcssCount", "PMD.CognitiveComplexity"})
+        @SuppressWarnings({"PMD.NcssCount", "PMD.CognitiveComplexity", "PMD.AvoidDeeplyNestedIfStmts"})
         @Override
         protected void click(final int slot, final int playerSlot, final ClickType click) {
-            if (page == 0 && slot == 0) {
-                // first page on first slot should contain the journal
-                playerData.getJournal().addToInv(Integer.parseInt(Config.getString("config.default_journal_slot")));
+            if (page == 1 && slot == 0 && showJournal) {
+                playerData.getJournal().addToInv();
                 display = new Page(page);
             } else if (slot < 45) {
-                // raw slot lower than 45 is a quest item
-                // read the id of the item from clicked slot
-                final int slotId = page * 45 + slot - 1;
-                ItemStack item = null;
-                // get the item if it exists
-                final List<ItemStack> backpackItems = playerData.getBackpack();
+                final int slotId = pageOffset + slot;
                 if (backpackItems.size() > slotId) {
-                    item = backpackItems.get(slotId);
-                }
-                if (item != null) {
+                    final ItemStack item = backpackItems.get(slotId);
                     // if the item exists, put it in player's inventory
                     final int backpackAmount = item.getAmount();
                     int getAmount = 0;
@@ -301,7 +295,7 @@ public class Backpack implements Listener {
                         if (backpackAmount - getAmount + leftAmount == 0) {
                             backpackItems.remove(slotId);
                         }
-                        playerData.setBackpack(backpackItems);
+                        playerData.setBackpack(backpackItems.subList(showJournal ? 1 : 0, backpackItems.size()));
                     }
                     display = new Page(page);
                 }
@@ -309,6 +303,7 @@ public class Backpack implements Listener {
                 // slot above 53 is player's inventory, so handle item storing
                 final ItemStack item = player.getInventory().getItem(playerSlot);
                 if (item != null) {
+                    final boolean lockJournalSlot = Boolean.parseBoolean(Config.getString("config.journal.lock_default_journal_slot"));
                     // if the item exists continue
                     if (Utils.isQuestItem(item)) {
                         // if it is a quest item, add it to the backpack
@@ -333,17 +328,17 @@ public class Backpack implements Listener {
                             item.setAmount(item.getAmount() - amount);
                             player.getInventory().setItem(playerSlot, item);
                         }
-                    } else if (Journal.isJournal(playerID, item)) {
+                    } else if (!lockJournalSlot && Journal.isJournal(playerID, item)) {
                         // if it's a journal, remove it so it appears in
                         // backpack again
                         playerData.getJournal().removeFromInv();
                     }
                     display = new Page(page);
                 }
-            } else if (slot == 48 && page > 0) {
+            } else if (slot == 48 && page > 1) {
                 // if it was a previous/next button turn the pages
                 display = new Page(page - 1);
-            } else if (slot == 50 && playerData.getBackpack().size() > (page + 1) * 45 - 1) {
+            } else if (slot == 50 && page < pages) {
                 display = new Page(page + 1);
             } else if (slot == 45) {
                 // slot 45 is a slot with quest cancelers
@@ -412,7 +407,7 @@ public class Backpack implements Listener {
 
         private final Map<Integer, Location> locations = new HashMap<>();
         private final Map<Integer, String> names = new HashMap<>();
-        private final Map<Integer, String> items = new HashMap<>();
+        private final Map<Integer, Pair<QuestPackage, String>> items = new HashMap<>();
 
         @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.ExcessiveMethodLength", "PMD.NcssCount", "PMD.NPathComplexity", "PMD.CognitiveComplexity"})
         @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
@@ -481,7 +476,7 @@ public class Backpack implements Listener {
                         names.put(counter, name);
                         final String itemName = pack.getString("compass." + key + ".item");
                         if (itemName != null) {
-                            items.put(counter, packName + "." + itemName);
+                            items.put(counter, Pair.of(pack, itemName));
                         }
                         counter++;
                     }
@@ -500,10 +495,10 @@ public class Backpack implements Listener {
             final ItemStack[] content = new ItemStack[numberOfRows * 9];
             int index = 0;
             for (final Integer slot : locations.keySet()) {
-                final String item = items.get(slot);
+                final Pair<QuestPackage, String> item = items.get(slot);
                 ItemStack compass;
                 try {
-                    compass = new QuestItem(new ItemID(Config.getDefaultPackage(), item)).generate(1);
+                    compass = new QuestItem(new ItemID(item.getKey(), item.getValue())).generate(1);
                 } catch (final InstructionParseException e) {
                     LOG.warn("Could not load compass button: " + e.getMessage(), e);
                     player.closeInventory();

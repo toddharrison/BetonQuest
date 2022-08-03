@@ -6,6 +6,8 @@ import org.betonquest.betonquest.modules.logger.BetonQuestLoggerImpl;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginLogger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.logging.Level;
 
@@ -31,7 +33,7 @@ public interface BetonQuestLogger {
      * @return A {@link BetonQuestLogger} implementation.
      * @throws IllegalStateException Thrown if this is called from a class, that extends {@link Plugin}
      */
-    static BetonQuestLogger create(final Class<?> clazz) {
+    static BetonQuestLogger create(@NotNull final Class<?> clazz) {
         return create(clazz, null);
     }
 
@@ -48,7 +50,7 @@ public interface BetonQuestLogger {
      * @throws IllegalStateException Thrown if this is called from a class, that extends {@link Plugin}
      */
     @SuppressWarnings("PMD.UseProperClassLoader")
-    static BetonQuestLogger create(final Class<?> clazz, final String topic) {
+    static BetonQuestLogger create(@NotNull final Class<?> clazz, @Nullable final String topic) {
         if (Plugin.class.isAssignableFrom(clazz)) {
             throw new IllegalStateException("It is not allowed to use the '@CustomLog' annotation from the class '"
                     + clazz.getName() + "' which directly or indirectly extends 'org.bukkit.plugin.Plugin'!");
@@ -73,7 +75,7 @@ public interface BetonQuestLogger {
      * @param plugin The plugin which is used for logging.
      * @return A {@link BetonQuestLogger} implementation.
      */
-    static BetonQuestLogger create(final Plugin plugin) {
+    static BetonQuestLogger create(@NotNull final Plugin plugin) {
         return create(plugin, null);
     }
 
@@ -88,7 +90,7 @@ public interface BetonQuestLogger {
      * @param topic  The optional topic of the logger.
      * @return A {@link BetonQuestLogger} implementation.
      */
-    static BetonQuestLogger create(final Plugin plugin, final String topic) {
+    static BetonQuestLogger create(@NotNull final Plugin plugin, @Nullable final String topic) {
         return new BetonQuestLoggerImpl(plugin, plugin.getLogger(), plugin.getClass(), topic);
     }
 
@@ -174,7 +176,7 @@ public interface BetonQuestLogger {
      * Logs an error message with the {@link Level#SEVERE} level to the log.
      * <p>
      * Use this if the underlying problem affects the servers security or functionality.
-     * Usage is also allowed if you don't know how the user can fix the underlying problem.
+     * Usage is also allowed if you don't know how the user can fix the underlying issue.
      * <p>
      * If you can provide an exception use {@link BetonQuestLogger#error(String, Throwable)} instead.
      * <p>
@@ -190,7 +192,7 @@ public interface BetonQuestLogger {
      * The {@link Throwable} is logged together with the message.
      * <p>
      * Use this if the underlying problem affects the servers security or functionality.
-     * Usage is also allowed if you don't know how the user can fix the underlying problem.
+     * Usage is also allowed if you don't know how the user can fix the underlying issue.
      * <p>
      * If you cannot provide an exception use {@link BetonQuestLogger#error(String)} instead.
      * <p>
@@ -206,7 +208,7 @@ public interface BetonQuestLogger {
      * Logs an error message with the {@link Level#SEVERE} level to the log.
      * <p>
      * Use this if the underlying problem affects the servers security or functionality.
-     * Usage is also allowed if you don't know how the user can fix the underlying problem.
+     * Usage is also allowed if you don't know how the user can fix the underlying issue.
      * <p>
      * If you can provide an exception use {@link BetonQuestLogger#error(QuestPackage, String, Throwable)} instead.
      *
@@ -220,7 +222,7 @@ public interface BetonQuestLogger {
      * The {@link Throwable} is logged together with the message.
      * <p>
      * Use this if the underlying problem affects the servers security or functionality.
-     * Usage is also allowed if you don't know how the user can fix the underlying problem.
+     * Usage is also allowed if you don't know how the user can fix the underlying issue.
      * <p>
      * If you cannot provide an exception use {@link BetonQuestLogger#error(QuestPackage, String)} instead.
      *

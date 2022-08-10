@@ -66,3 +66,12 @@ Report **Issues** here: https://github.com/BetonQuest/BetonQuest/issues/new/choo
     </dependency>
 </dependencies>
 ```
+
+---
+
+To sync a fork from upstream:
+* git remote add upstream https://github.com/BetonQuest/BetonQuest.git
+* git remote -v
+* git fetch upstream
+* git merge upstream/master
+* git push origin master

@@ -1,6 +1,7 @@
 package org.betonquest.betonquest.item;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import lombok.val;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.Journal;
 import org.betonquest.betonquest.config.Config;
@@ -45,9 +46,6 @@ import java.util.ListIterator;
 @SuppressWarnings({"PMD.GodClass", "PMD.TooManyMethods", "PMD.CommentRequired", "PMD.CyclomaticComplexity"})
 public class QuestItemHandler implements Listener {
     private static final HandlerList HANDLERS = new HandlerList();
-
-    // TODO: Added hard-coded claim protection stone name component
-    private static final String ITEM_PROTECTION_BLOCK = "Protection Block";
 
     /**
      * Registers the quest item handler as Listener.
@@ -246,12 +244,14 @@ public class QuestItemHandler implements Listener {
         }
 
         // this prevents players from placing "quest item" blocks
-        @NotNull ItemStack itemInHand = event.getItemInHand();
+        val itemInHand = event.getItemInHand();
         if (Utils.isQuestItem(itemInHand)) {
-            // TODO: Allow placement of "quest items" that are claim protection blocks
+
+            // *** Briar ***
             if (isProtectionBlockQuestItem(itemInHand)) {
                 return;
             }
+            // *** Briar ***
 
             event.setCancelled(true);
         }
@@ -280,15 +280,15 @@ public class QuestItemHandler implements Listener {
             return;
         }
         final ItemStack item = event.getItem();
-        if (item != null && !EnchantmentTarget.TOOL.includes(item.getType())) {
-            // this prevents players from interacting with "quest item" blocks
-            final String playerID = PlayerConverter.getID(event.getPlayer());
-            if (Journal.isJournal(playerID, item) || Utils.isQuestItem(item)) {
-                // Allow interaction of "quest items" that are claim protection blocks, otherwise cancel event
-                if (!Utils.isQuestItem(item) || !isProtectionBlockQuestItem(item)) {
-                    event.setCancelled(true);
-                }
+        if (item != null && !EnchantmentTarget.TOOL.includes(item.getType()) && Utils.isQuestItem(item)) {
+
+            // *** Briar ***
+            if (Utils.isQuestItem(item) && isProtectionBlockQuestItem(item)) {
+                return;
             }
+            // *** Briar ***
+
+            event.setCancelled(true);
         }
     }
 
@@ -332,6 +332,10 @@ public class QuestItemHandler implements Listener {
         return HANDLERS;
     }
 
+    // *** Briar ***
+    /** Added hard-coded claim protection stone name component */
+    private static final String ITEM_PROTECTION_BLOCK = "Protection Block";
+
     /**
      * TODO: Determine if the specified ItemStack is a claim protection block.
      * @param item The item to test.
@@ -340,4 +344,5 @@ public class QuestItemHandler implements Listener {
     private boolean isProtectionBlockQuestItem(final ItemStack item) {
         return item != null && item.toString().contains(ITEM_PROTECTION_BLOCK);
     }
+    // *** Briar ***
 }

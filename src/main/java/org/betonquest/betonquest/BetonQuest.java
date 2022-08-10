@@ -948,13 +948,14 @@ public class BetonQuest extends JavaPlugin {
         metricsSuppliers.put("events", new CompositeInstructionMetricsSupplier<>(EVENTS::keySet, eventTypes::keySet));
         metricsSuppliers.put("objectives", new CompositeInstructionMetricsSupplier<>(OBJECTIVES::keySet, OBJECTIVE_TYPES::keySet));
         metricsSuppliers.put("variables", new CompositeInstructionMetricsSupplier<>(VARIABLES::keySet, VARIABLE_TYPES::keySet));
-        new BStatsMetrics(this,  new Metrics(this, BSTATS_METRICS_ID), metricsSuppliers);
+        new BStatsMetrics(this, new Metrics(this, BSTATS_METRICS_ID), metricsSuppliers);
 
         // updater
         final Version pluginVersion = new Version(this.getDescription().getVersion());
-        final File tempFile = new File(getServer().getUpdateFolderFile(), this.getFile().getName() + ".temp");
-        final File finalFile = new File(getServer().getUpdateFolderFile(), this.getFile().getName());
-        final UpdateDownloader updateDownloader = new UpdateDownloader(getServer().getPluginsFolder().toURI(), tempFile, finalFile);
+        final File updateFolder = getServer().getUpdateFolderFile();
+        final File tempFile = new File(updateFolder, this.getFile().getName() + ".temp");
+        final File finalFile = new File(updateFolder, this.getFile().getName());
+        final UpdateDownloader updateDownloader = new UpdateDownloader(updateFolder.getParentFile().toURI(), tempFile, finalFile);
         final List<ReleaseUpdateSource> releaseHandlers = List.of(new GitHubReleaseSource("https://api.github.com/repos/BetonQuest/BetonQuest/releases"));
         final List<DevelopmentUpdateSource> developmentHandlers = List.of(new BetonQuestDevelopmentSource("https://dev.betonquest.org/api/v1"));
         final UpdateSourceHandler updateSourceHandler = new UpdateSourceHandler(releaseHandlers, developmentHandlers);

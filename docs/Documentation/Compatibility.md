@@ -822,7 +822,13 @@ Testing your placeholder is easy using this command:
 ```YAML linenums="1"
 %betonquest_someGreatQuest:objective.killZombies.left%
 ```
-    
+
+Global variables may also be called. The `globaltag` type returns `true` or `false`, depending on the presence of the tag.
+The `globalpoint` type will return an integer for the current point total value.
+
+To text these variables you would use this command:    
+`/papi parse --null %betonquest_<PackageName>:<GlobalVariableType>.<Property>%`
+
 ### Variable: `ph`
 
 You can also use placeholders from other plugins in BetonQuest. Simply insert a variable starting with `ph`, the second argument should be the placeholder without percentage characters.

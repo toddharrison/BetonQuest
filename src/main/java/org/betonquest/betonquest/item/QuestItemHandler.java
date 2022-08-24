@@ -1,6 +1,7 @@
 package org.betonquest.betonquest.item;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import lombok.val;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.Journal;
 import org.betonquest.betonquest.config.Config;
@@ -34,6 +35,7 @@ import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.ListIterator;
@@ -240,8 +242,17 @@ public class QuestItemHandler implements Listener {
         if (event.getPlayer().getGameMode() == GameMode.CREATIVE) {
             return;
         }
+
         // this prevents players from placing "quest item" blocks
-        if (Utils.isQuestItem(event.getItemInHand())) {
+        val itemInHand = event.getItemInHand();
+        if (Utils.isQuestItem(itemInHand)) {
+
+            // *** Briar ***
+            if (isProtectionBlockQuestItem(itemInHand)) {
+                return;
+            }
+            // *** Briar ***
+
             event.setCancelled(true);
         }
     }
@@ -270,6 +281,13 @@ public class QuestItemHandler implements Listener {
         }
         final ItemStack item = event.getItem();
         if (item != null && !EnchantmentTarget.TOOL.includes(item.getType()) && Utils.isQuestItem(item)) {
+
+            // *** Briar ***
+            if (Utils.isQuestItem(item) && isProtectionBlockQuestItem(item)) {
+                return;
+            }
+            // *** Briar ***
+
             event.setCancelled(true);
         }
     }
@@ -313,4 +331,18 @@ public class QuestItemHandler implements Listener {
     public HandlerList getHandlers() {
         return HANDLERS;
     }
+
+    // *** Briar ***
+    /** Added hard-coded claim protection stone name component */
+    private static final String ITEM_PROTECTION_BLOCK = "Protection Block";
+
+    /**
+     * TODO: Determine if the specified ItemStack is a claim protection block.
+     * @param item The item to test.
+     * @return True if the specified ItemStack is a claim protection block, false otherwise.
+     */
+    private boolean isProtectionBlockQuestItem(final ItemStack item) {
+        return item != null && item.toString().contains(ITEM_PROTECTION_BLOCK);
+    }
+    // *** Briar ***
 }

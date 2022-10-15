@@ -1,6 +1,6 @@
 package org.betonquest.betonquest.modules.config.transformers;
 
-import org.betonquest.betonquest.api.config.patcher.PatchTransformationRegisterer;
+import org.betonquest.betonquest.api.config.patcher.PatchTransformerRegisterer;
 import org.betonquest.betonquest.modules.config.Patcher;
 import org.betonquest.betonquest.modules.logger.util.BetonQuestLoggerService;
 import org.betonquest.betonquest.modules.logger.util.LogValidator;
@@ -25,9 +25,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class TransformerTest {
 
     /**
-     * Anonymous {@link PatchTransformationRegisterer} for testing.
+     * Anonymous {@link PatchTransformerRegisterer} for testing.
      */
-    public static final PatchTransformationRegisterer REGISTERER = new PatchTransformationRegisterer() {
+    public static final PatchTransformerRegisterer REGISTERER = new PatchTransformerRegisterer() {
     };
 
     /**
@@ -396,6 +396,83 @@ class TransformerTest {
         assertEquals(CONFIG.saveToString(), serializedConfig, "Patch was not applied correctly.");
     }
 
+
+    @Test
+    void testTransformStringToBoolean() throws InvalidConfigurationException {
+        final String patch = """
+                  2.0.0.1:
+                    - type: TYPE_TRANSFORM
+                      key: section.boolean
+                      newType: boolean
+                """;
+
+        CONFIG.set("section.boolean", true);
+        final String serializedConfig = getSerializedPatchedConfig(patch);
+
+        assertEquals(CONFIG.saveToString(), serializedConfig, "Patch was not applied correctly.");
+    }
+
+    @Test
+    void testTransformStringToInt() throws InvalidConfigurationException {
+        final String patch = """
+                  2.0.0.1:
+                    - type: TYPE_TRANSFORM
+                      key: section.int
+                      newType: int
+                """;
+
+        CONFIG.set("section.int", 3);
+        final String serializedConfig = getSerializedPatchedConfig(patch);
+
+        assertEquals(CONFIG.saveToString(), serializedConfig, "Patch was not applied correctly.");
+    }
+
+    @Test
+    void testTransformStringToFloat() throws InvalidConfigurationException {
+        final String patch = """
+                  2.0.0.1:
+                    - type: TYPE_TRANSFORM
+                      key: section.float
+                      newType: float
+                """;
+
+        CONFIG.set("section.float", 2.5F);
+        final String serializedConfig = getSerializedPatchedConfig(patch);
+
+        assertEquals(CONFIG.saveToString(), serializedConfig, "Patch was not applied correctly.");
+    }
+
+    @Test
+    void testTransformStringToDouble() throws InvalidConfigurationException {
+        final String patch = """
+                  2.0.0.1:
+                    - type: TYPE_TRANSFORM
+                      key: section.double
+                      newType: double
+                """;
+
+        CONFIG.set("section.double", 2.123_456_789_123_456_7D);
+        final String serializedConfig = getSerializedPatchedConfig(patch);
+
+        assertEquals(CONFIG.saveToString(), serializedConfig, "Patch was not applied correctly.");
+    }
+
+    @Test
+    void testTransformBooleanToString() throws InvalidConfigurationException {
+        final String patch = """
+                  2.0.0.1:
+                    - type: TYPE_TRANSFORM
+                      key: section.boolean
+                      newType: string
+                """;
+
+        CONFIG.set("section.double", "true");
+        final String serializedConfig = getSerializedPatchedConfig(patch);
+
+        assertEquals(CONFIG.saveToString(), serializedConfig, "Patch was not applied correctly.");
+    }
+
+
     private String getSerializedPatchedConfig(final String patch) throws InvalidConfigurationException {
         final YamlConfiguration patchConfig = new YamlConfiguration();
         patchConfig.loadFromString(patch);
@@ -408,7 +485,7 @@ class TransformerTest {
         CONFIG.set("configVersion", "2.0.0-CONFIG-1");
 
         final Patcher patcher = new Patcher(questConfig, patchConfig);
-        REGISTERER.registerTransformations(patcher);
+        REGISTERER.registerTransformers(patcher);
         patcher.patch();
         return questConfig.saveToString();
     }

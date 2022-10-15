@@ -14,6 +14,8 @@ import org.betonquest.betonquest.api.QuestEvent;
 import org.betonquest.betonquest.api.Variable;
 import org.betonquest.betonquest.api.config.ConfigurationFile;
 import org.betonquest.betonquest.api.config.QuestPackage;
+import org.betonquest.betonquest.api.profiles.OnlineProfile;
+import org.betonquest.betonquest.api.profiles.Profile;
 import org.betonquest.betonquest.api.quest.event.EventFactory;
 import org.betonquest.betonquest.api.quest.event.StaticEventFactory;
 import org.betonquest.betonquest.api.schedule.Schedule;
@@ -52,6 +54,7 @@ import org.betonquest.betonquest.conditions.GlobalTagCondition;
 import org.betonquest.betonquest.conditions.HandCondition;
 import org.betonquest.betonquest.conditions.HealthCondition;
 import org.betonquest.betonquest.conditions.HeightCondition;
+import org.betonquest.betonquest.conditions.HungerCondition;
 import org.betonquest.betonquest.conditions.InConversationCondition;
 import org.betonquest.betonquest.conditions.ItemCondition;
 import org.betonquest.betonquest.conditions.JournalCondition;
@@ -116,7 +119,7 @@ import org.betonquest.betonquest.events.FolderEvent;
 import org.betonquest.betonquest.events.GiveEvent;
 import org.betonquest.betonquest.events.GiveJournalEvent;
 import org.betonquest.betonquest.events.GlobalPointEvent;
-import org.betonquest.betonquest.events.GlobalTagEvent;
+import org.betonquest.betonquest.events.HungerEvent;
 import org.betonquest.betonquest.events.IfElseEvent;
 import org.betonquest.betonquest.events.KillEvent;
 import org.betonquest.betonquest.events.KillMobEvent;
@@ -135,7 +138,6 @@ import org.betonquest.betonquest.events.ScoreboardEvent;
 import org.betonquest.betonquest.events.SetBlockEvent;
 import org.betonquest.betonquest.events.SpawnMobEvent;
 import org.betonquest.betonquest.events.SudoEvent;
-import org.betonquest.betonquest.events.TagEvent;
 import org.betonquest.betonquest.events.TakeEvent;
 import org.betonquest.betonquest.events.TeleportEvent;
 import org.betonquest.betonquest.events.TimeEvent;
@@ -213,14 +215,20 @@ import org.betonquest.betonquest.objectives.SmeltingObjective;
 import org.betonquest.betonquest.objectives.StepObjective;
 import org.betonquest.betonquest.objectives.TameObjective;
 import org.betonquest.betonquest.objectives.VariableObjective;
+import org.betonquest.betonquest.quest.event.NullStaticEventFactory;
+import org.betonquest.betonquest.quest.event.burn.BurnEventFactory;
 import org.betonquest.betonquest.quest.event.journal.JournalEventFactory;
 import org.betonquest.betonquest.quest.event.legacy.FromClassQuestEventFactory;
 import org.betonquest.betonquest.quest.event.legacy.QuestEventFactory;
 import org.betonquest.betonquest.quest.event.legacy.QuestEventFactoryAdapter;
+import org.betonquest.betonquest.quest.event.tag.TagGlobalEventFactory;
+import org.betonquest.betonquest.quest.event.tag.TagPlayerEventFactory;
+import org.betonquest.betonquest.quest.event.velocity.VelocityEventFactory;
 import org.betonquest.betonquest.utils.PlayerConverter;
 import org.betonquest.betonquest.utils.Utils;
 import org.betonquest.betonquest.variables.ConditionVariable;
 import org.betonquest.betonquest.variables.GlobalPointVariable;
+import org.betonquest.betonquest.variables.GlobalTagVariable;
 import org.betonquest.betonquest.variables.ItemAmountVariable;
 import org.betonquest.betonquest.variables.LocationVariable;
 import org.betonquest.betonquest.variables.MathVariable;
@@ -228,13 +236,13 @@ import org.betonquest.betonquest.variables.NpcNameVariable;
 import org.betonquest.betonquest.variables.ObjectivePropertyVariable;
 import org.betonquest.betonquest.variables.PlayerNameVariable;
 import org.betonquest.betonquest.variables.PointVariable;
+import org.betonquest.betonquest.variables.TagVariable;
 import org.betonquest.betonquest.variables.VersionVariable;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
@@ -293,7 +301,7 @@ public class BetonQuest extends JavaPlugin {
      * Map of registered events.
      */
     private final Map<String, QuestEventFactory> eventTypes = new HashMap<>();
-    private final ConcurrentHashMap<String, PlayerData> playerDataMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Profile, PlayerData> playerDataMap = new ConcurrentHashMap<>();
     private ConfigurationFile config;
 
     /**
@@ -335,20 +343,20 @@ public class BetonQuest extends JavaPlugin {
      */
     private LastExecutionCache lastExecutionCache;
 
-    public static boolean conditions(final String playerID, final Collection<ConditionID> conditionIDs) {
+    public static boolean conditions(final Profile profile, final Collection<ConditionID> conditionIDs) {
         final ConditionID[] ids = new ConditionID[conditionIDs.size()];
         int index = 0;
         for (final ConditionID id : conditionIDs) {
             ids[index++] = id;
         }
-        return conditions(playerID, ids);
+        return conditions(profile, ids);
     }
 
     @SuppressWarnings("PMD.CognitiveComplexity")
-    public static boolean conditions(final String playerID, final ConditionID... conditionIDs) {
+    public static boolean conditions(final Profile profile, final ConditionID... conditionIDs) {
         if (Bukkit.isPrimaryThread()) {
             for (final ConditionID id : conditionIDs) {
-                if (!condition(playerID, id)) {
+                if (!condition(profile, id)) {
                     return false;
                 }
             }
@@ -356,7 +364,7 @@ public class BetonQuest extends JavaPlugin {
             final List<CompletableFuture<Boolean>> conditions = new ArrayList<>();
             for (final ConditionID id : conditionIDs) {
                 final CompletableFuture<Boolean> future = CompletableFuture.supplyAsync(
-                        () -> condition(playerID, id));
+                        () -> condition(profile, id));
                 conditions.add(future);
             }
             for (final CompletableFuture<Boolean> condition : conditions) {
@@ -377,11 +385,11 @@ public class BetonQuest extends JavaPlugin {
      * Checks if the condition described by conditionID is met
      *
      * @param conditionID ID of the condition to check
-     * @param playerID    ID of the player which should be checked
+     * @param profile     the {@link Profile} of the player which should be checked
      * @return if the condition is met
      */
     @SuppressWarnings("PMD.NPathComplexity")
-    public static boolean condition(final String playerID, final ConditionID conditionID) {
+    public static boolean condition(final Profile profile, final ConditionID conditionID) {
         // null check
         if (conditionID == null) {
             log.debug("Null condition ID!");
@@ -400,19 +408,19 @@ public class BetonQuest extends JavaPlugin {
             return false;
         }
         // check for null player
-        if (playerID == null && !condition.isStatic()) {
+        if (profile == null && !condition.isStatic()) {
             log.debug(conditionID.getPackage(), "Cannot check non-static condition without a player, returning false");
             return false;
         }
         // check for online player
-        if (playerID != null && PlayerConverter.getPlayer(playerID) == null && !condition.isPersistent()) {
+        if (profile != null && profile.getPlayer() == null && !condition.isPersistent()) {
             log.debug(conditionID.getPackage(), "Player was offline, condition is not persistent, returning false");
             return false;
         }
         // and check if it's met or not
         final boolean outcome;
         try {
-            outcome = condition.handle(playerID);
+            outcome = condition.handle(profile);
         } catch (final QuestRuntimeException e) {
             log.warn(conditionID.getPackage(), "Error while checking '" + conditionID + "' condition: " + e.getMessage(), e);
             return false;
@@ -420,17 +428,17 @@ public class BetonQuest extends JavaPlugin {
         final boolean isMet = outcome != conditionID.inverted();
         log.debug(conditionID.getPackage(),
                 (isMet ? "TRUE" : "FALSE") + ": " + (conditionID.inverted() ? "inverted" : "") + " condition "
-                        + conditionID + " for player " + PlayerConverter.getName(playerID));
+                        + conditionID + " for player " + (profile == null ? null : profile.getProfileName()));
         return isMet;
     }
 
     /**
      * Fires the event described by eventID
      *
-     * @param eventID  ID of the event to fire
-     * @param playerID ID of the player who the event is firing for
+     * @param eventID ID of the event to fire
+     * @param profile the {@link Profile} of the player who the event is firing for
      */
-    public static void event(final String playerID, final EventID eventID) {
+    public static void event(final Profile profile, final EventID eventID) {
         // null check
         if (eventID == null) {
             log.debug("Null event ID!");
@@ -449,14 +457,14 @@ public class BetonQuest extends JavaPlugin {
             return;
         }
         // fire the event
-        if (playerID == null) {
+        if (profile == null) {
             log.debug(eventID.getPackage(), "Firing static event " + eventID);
         } else {
             log.debug(eventID.getPackage(),
-                    "Firing event " + eventID + " for " + PlayerConverter.getName(playerID));
+                    "Firing event " + eventID + " for " + profile.getProfileName());
         }
         try {
-            event.fire(playerID);
+            event.fire(profile);
         } catch (final QuestRuntimeException e) {
             log.warn(eventID.getPackage(), "Error while firing '" + eventID + "' event: " + e.getMessage(), e);
         }
@@ -465,13 +473,13 @@ public class BetonQuest extends JavaPlugin {
     /**
      * Creates new objective for given player
      *
-     * @param playerID    ID of the player
+     * @param profile     the {@link Profile} of the player
      * @param objectiveID ID of the objective
      */
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH")
-    public static void newObjective(final String playerID, final ObjectiveID objectiveID) {
+    public static void newObjective(final Profile profile, final ObjectiveID objectiveID) {
         // null check
-        if (playerID == null || objectiveID == null) {
+        if (profile == null || objectiveID == null) {
             log.debug(objectiveID.getPackage(), "Null arguments for the objective!");
             return;
         }
@@ -482,25 +490,25 @@ public class BetonQuest extends JavaPlugin {
                 break;
             }
         }
-        if (objective.containsPlayer(playerID)) {
+        if (objective.containsPlayer(profile)) {
             log.debug(objectiveID.getPackage(),
-                    "Player " + PlayerConverter.getName(playerID) + " already has the " + objectiveID +
+                    "Player " + profile.getProfileName() + " already has the " + objectiveID +
                             " objective");
             return;
         }
-        objective.newPlayer(playerID);
+        objective.newPlayer(profile);
     }
 
     /**
      * Resumes the existing objective for given player
      *
-     * @param playerID    ID of the player
+     * @param profile     the {@link Profile} of the player
      * @param objectiveID ID of the objective
      * @param instruction data instruction string
      */
-    public static void resumeObjective(final String playerID, final ObjectiveID objectiveID, final String instruction) {
+    public static void resumeObjective(final Profile profile, final ObjectiveID objectiveID, final String instruction) {
         // null check
-        if (playerID == null || objectiveID == null || instruction == null) {
+        if (profile == null || objectiveID == null || instruction == null) {
             log.debug("Null arguments for the objective!");
             return;
         }
@@ -515,12 +523,12 @@ public class BetonQuest extends JavaPlugin {
             log.warn(objectiveID.getPackage(), "Objective " + objectiveID + " does not exist");
             return;
         }
-        if (objective.containsPlayer(playerID)) {
+        if (objective.containsPlayer(profile)) {
             log.debug(objectiveID.getPackage(),
-                    "Player " + PlayerConverter.getName(playerID) + " already has the " + objectiveID + " objective!");
+                    "Player " + profile.getProfileName() + " already has the " + objectiveID + " objective!");
             return;
         }
-        objective.resumeObjectiveForPlayer(playerID, instruction);
+        objective.resumeObjectiveForPlayer(profile, instruction);
     }
 
     /**
@@ -780,12 +788,15 @@ public class BetonQuest extends JavaPlugin {
         registerConditions("fly", FlyingCondition.class);
         registerConditions("burning", BurningCondition.class);
         registerConditions("inconversation", InConversationCondition.class);
+        registerConditions("hunger", HungerCondition.class);
 
         // register events
         registerEvents("objective", ObjectiveEvent.class);
         registerEvents("command", CommandEvent.class);
-        registerEvents("tag", TagEvent.class);
-        registerEvents("globaltag", GlobalTagEvent.class);
+        final TagPlayerEventFactory tagPlayerEventFactory = new TagPlayerEventFactory(this, getSaver(), getServer());
+        registerEvent("tag", tagPlayerEventFactory, tagPlayerEventFactory);
+        final TagGlobalEventFactory tagGlobalEventFactory = new TagGlobalEventFactory(this);
+        registerEvent("globaltag", tagGlobalEventFactory, tagGlobalEventFactory);
         final JournalEventFactory journalEventFactory = new JournalEventFactory(this, InstantSource.system(), getSaver(), getServer());
         registerEvent("journal", journalEventFactory, journalEventFactory);
         registerEvents("teleport", TeleportEvent.class);
@@ -830,6 +841,9 @@ public class BetonQuest extends JavaPlugin {
         registerEvents("notifyall", NotifyAllEvent.class);
         registerEvents("chat", ChatEvent.class);
         registerEvents("freeze", FreezeEvent.class);
+        registerEvent("burn", new BurnEventFactory(getServer(), getServer().getScheduler(), this));
+        registerEvent("velocity", new VelocityEventFactory(getServer(), getServer().getScheduler(), this));
+        registerEvents("hunger", HungerEvent.class);
 
         // register objectives
         registerObjectives("location", LocationObjective.class);
@@ -890,6 +904,8 @@ public class BetonQuest extends JavaPlugin {
 
         // register variable types
         registerVariable("condition", ConditionVariable.class);
+        registerVariable("tag", TagVariable.class);
+        registerVariable("globaltag", GlobalTagVariable.class);
         registerVariable("player", PlayerNameVariable.class);
         registerVariable("npc", NpcNameVariable.class);
         registerVariable("objective", ObjectivePropertyVariable.class);
@@ -914,15 +930,14 @@ public class BetonQuest extends JavaPlugin {
             loadData();
             // Load global tags and points
             globalData = new GlobalData();
-            // load data for all online players
-            for (final Player player : Bukkit.getOnlinePlayers()) {
-                final String playerID = PlayerConverter.getID(player);
-                final PlayerData playerData = new PlayerData(playerID);
-                playerDataMap.put(playerID, playerData);
+            // load data for all online profiles
+            for (final Profile onlineProfile : PlayerConverter.getOnlineProfiles()) {
+                final PlayerData playerData = new PlayerData(onlineProfile);
+                playerDataMap.put(onlineProfile, playerData);
                 playerData.startObjectives();
                 playerData.getJournal().update();
                 if (playerData.getConversation() != null) {
-                    new ConversationResumer(playerID, playerData.getConversation());
+                    new ConversationResumer(onlineProfile, playerData.getConversation());
                 }
             }
 
@@ -1186,12 +1201,11 @@ public class BetonQuest extends JavaPlugin {
         Compatibility.reload();
         // load all events, conditions, objectives, conversations etc.
         loadData();
-        // start objectives and update journals for every online player
-        for (final Player player : Bukkit.getOnlinePlayers()) {
-            final String playerID = PlayerConverter.getID(player);
-            log.debug("Updating journal for player " + PlayerConverter.getName(playerID));
-            final PlayerData playerData = instance.getPlayerData(playerID);
-            GlobalObjectives.startAll(playerID);
+        // start objectives and update journals for every online profiles
+        for (final Profile onlineProfile : PlayerConverter.getOnlineProfiles()) {
+            log.debug("Updating journal for player " + onlineProfile.getProfileName());
+            final PlayerData playerData = instance.getPlayerData(onlineProfile);
+            GlobalObjectives.startAll(onlineProfile);
             final Journal journal = playerData.getJournal();
             journal.update();
         }
@@ -1210,12 +1224,12 @@ public class BetonQuest extends JavaPlugin {
         //stop all schedules
         eventScheduling.stopAll();
         // suspend all conversations
-        for (final Player player : Bukkit.getOnlinePlayers()) {
-            final Conversation conv = Conversation.getConversation(PlayerConverter.getID(player));
+        for (final OnlineProfile onlineProfile : PlayerConverter.getOnlineProfiles()) {
+            final Conversation conv = Conversation.getConversation(onlineProfile);
             if (conv != null) {
                 conv.suspend();
             }
-            player.closeInventory();
+            onlineProfile.getOnlinePlayer().closeInventory();
         }
         // cancel database saver
         if (saver != null) {
@@ -1282,14 +1296,14 @@ public class BetonQuest extends JavaPlugin {
 
     /**
      * Stores the PlayerData in a map, so it can be retrieved using
-     * getPlayerData(String playerID)
+     * getPlayerData(Profile profile).
      *
-     * @param playerID   ID of the player
+     * @param profile    the {@link Profile} of the player
      * @param playerData PlayerData object to store
      */
-    public void putPlayerData(final String playerID, final PlayerData playerData) {
-        log.debug("Inserting data for " + PlayerConverter.getName(playerID));
-        playerDataMap.put(playerID, playerData);
+    public void putPlayerData(final Profile profile, final PlayerData playerData) {
+        log.debug("Inserting data for " + profile.getProfileName());
+        playerDataMap.put(profile, playerData);
     }
 
     /**
@@ -1297,22 +1311,22 @@ public class BetonQuest extends JavaPlugin {
      * not exist but the player is online, it will create new playerData on the
      * main thread and put it into the map.
      *
-     * @param playerID ID of the player
+     * @param profile the {@link Profile} of the player
      * @return PlayerData object for the player
      */
-    public PlayerData getPlayerData(final String playerID) {
-        PlayerData playerData = playerDataMap.get(playerID);
-        if (playerData == null && PlayerConverter.getPlayer(playerID) != null) {
-            playerData = new PlayerData(playerID);
-            putPlayerData(playerID, playerData);
+    public PlayerData getPlayerData(final Profile profile) {
+        PlayerData playerData = playerDataMap.get(profile);
+        if (playerData == null && profile.getPlayer().isPresent()) {
+            playerData = new PlayerData(profile);
+            putPlayerData(profile, playerData);
         }
         return playerData;
     }
 
-    public PlayerData getOfflinePlayerData(final String playerID) {
-        final PlayerData playerData = getPlayerData(playerID);
+    public PlayerData getOfflinePlayerData(final Profile profile) {
+        final PlayerData playerData = getPlayerData(profile);
         if (playerData == null) {
-            return new PlayerData(playerID);
+            return new PlayerData(profile);
         }
         return playerData;
     }
@@ -1329,10 +1343,10 @@ public class BetonQuest extends JavaPlugin {
     /**
      * Removes the database playerData from the map
      *
-     * @param playerID ID of the player whose playerData is to be removed
+     * @param profile the {@link Profile} of the player whose playerData is to be removed
      */
-    public void removePlayerData(final String playerID) {
-        playerDataMap.remove(playerID);
+    public void removePlayerData(final Profile profile) {
+        playerDataMap.remove(profile);
     }
 
     /**
@@ -1360,7 +1374,19 @@ public class BetonQuest extends JavaPlugin {
     }
 
     /**
-     * Registers an event with its name and a factory to create new instances of the event.
+     * Registers an event that does not support static execution with its name
+     * and a factory to create new normal instances of the event.
+     *
+     * @param name         name of the event
+     * @param eventFactory factory to create the event
+     */
+    public void registerEvent(final String name, final EventFactory eventFactory) {
+        registerEvent(name, eventFactory, new NullStaticEventFactory());
+    }
+
+    /**
+     * Registers an event with its name and two factories to create normal and
+     * static instances of the event.
      *
      * @param name               name of the event
      * @param eventFactory       factory to create the event
@@ -1441,13 +1467,13 @@ public class BetonQuest extends JavaPlugin {
     /**
      * Returns the list of objectives of this player
      *
-     * @param playerID ID of the player
+     * @param profile the {@link Profile} of the player
      * @return list of this player's active objectives
      */
-    public List<Objective> getPlayerObjectives(final String playerID) {
+    public List<Objective> getPlayerObjectives(final Profile profile) {
         final List<Objective> list = new ArrayList<>();
         for (final Objective objective : OBJECTIVES.values()) {
-            if (objective.containsPlayer(playerID)) {
+            if (objective.containsPlayer(profile)) {
                 list.add(objective);
             }
         }
@@ -1507,10 +1533,10 @@ public class BetonQuest extends JavaPlugin {
      *
      * @param packName name of the package
      * @param name     name of the variable (instruction, with % characters)
-     * @param playerID ID of the player
+     * @param profile  the {@link Profile} of the player
      * @return the value of this variable for given player
      */
-    public String getVariableValue(final String packName, final String name, final String playerID) {
+    public String getVariableValue(final String packName, final String name, final Profile profile) {
         if (!Config.getPackages().containsKey(packName)) {
             log.warn("Variable '" + name + "' contains the non-existent package '" + packName + "' !");
             return "";
@@ -1522,7 +1548,11 @@ public class BetonQuest extends JavaPlugin {
                 log.warn(pack, "Could not resolve variable '" + name + "'.");
                 return "";
             }
-            return var.getValue(playerID);
+            if (profile == null && !var.isStaticness()) {
+                log.warn(pack, "Variable '" + name + "' cannot be executed without a player reference!");
+                return "";
+            }
+            return var.getValue(profile);
         } catch (final InstructionParseException e) {
             log.warn(pack, "&cCould not create variable '" + name + "': " + e.getMessage(), e);
             return "";

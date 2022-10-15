@@ -35,22 +35,43 @@ give accurate results. Experiment with this objective a bit to make sure you've 
     arrow 100.5;200.5;300.5;world 1.1 events:reward conditions:correct_player_position
     ```
 
-## Block: `block`
+## :material-pickaxe: Break or Place Blocks: `block`
 
-To complete this objective the player must break or place the specified amount of blocks. The first argument is a
-[Block Selector](./Reference.md#block-selectors). Next is amount. It can be more than 0 for placing and
-less than 0 for destroying. You can also use the `notify` keyword to display messages to the player each time he updates
-amount of blocks, optionally with the notification interval after colon.
+To complete this objective the player must break or place the specified amount of blocks.
 
-This objective has three properties: `amount`, `left` and `total`. `amount` is the amount of blocks already done,
-`left` is the amount of blocks still needed to complete the objective and `total` is the amount of blocks initially
-needed.
-Note that it follows the same rules as the amount argument, meaning that blocks to break are a negative number!
+| Parameter       | Syntax                                           | Default Value          | Explanation                                                                                                                                                                                                                                                               |
+|-----------------|--------------------------------------------------|------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| _Block Type_    | [Block Selector](./Reference.md#block-selectors) | :octicons-x-circle-16: | The block which must be broken / placed.                                                                                                                                                                                                                                  |
+| _Amount_        | Number                                           | :octicons-x-circle-16: | The amount of blocks to break / place. Less than 0 for breaking and more than 0 for placing blocks.                                                                                                                                                                       |
+| _Safety Check_  | Keyword (`noSafety`)                             | Safety Check Enabled   | The Safety Check prevents faking the objective. The progress will be reduced when the player does to opposite of what they are supposed to do. Example: Player must break 10 blocks. They place 10 of their stored blocks. Now the total amount of blocks to break is 20. |
+| _Notifications_ | Keyword (`notify`)                               | Disabled               | Displays messages to the player each time they progress the objective. Optionally with the notification interval after colon.                                                                                                                                             |
 
-!!! example
-    ```YAML
-    block LOG -16 events:reward notify:5
-    ```
+
+```YAML
+objectives:
+  breakLogs: "block LOG -16 events:reward notify"
+  placeBricks: "block BRICKS 64 events:epicReward notify:5"
+  breakIron: "block IRON_ORE -16 noSafety notify events:dailyReward"
+```
+
+<h5> Variable Properties </h5> 
+
+Note that these follow the same rules as the amount argument, meaning that blocks to break are a negative number!
+
+| Name     | Example Output | Explanation                                                                                         |
+|----------|----------------|-----------------------------------------------------------------------------------------------------|
+| _amount_ | -6 / 6         | Shows the amount of blocks already broken / placed.                                                 |
+| _left_   | -4 / 4         | Shows the amount of blocks that still need to be broken / placed for the objective to be completed. |
+| _total_  | -10 / 10       | Shows the initial amount of blocks that needed to be broken / placed.                               |
+
+You can use these variables to always get positive values:
+
+| Name              | Example Output | Explanation                                                                                                  |
+|-------------------|----------------|--------------------------------------------------------------------------------------------------------------|
+| _absoluteAmount_  | 6              | Shows the absolute amount of blocks already broken / placed.                                                 |
+| _absoluteLeft_    | 4              | Shows the absolute amount of blocks that still need to be broken / placed for the objective to be completed. |
+| _absoluteTotal_   | 10             | Shows the initial absolute amount of blocks that needed to be broken / placed.                               |
+
 
 ## Breed animals: `breed`
 
@@ -290,12 +311,7 @@ Solution: The Cake is a lie!
 The objective's instruction string is defined as follows:
 
 1. The first argument is the password, use underscore characters (`_`) instead of spaces.
-   The password is a [regular expression](https://medium.com/factory-mind/regex-tutorial-a-simple-cheatsheet-by-examples-649dc1c3f285).
-   They are a little complicated but worth the effort if you want more control over what exactly matches. 
-   Websites like [regex101.com](https://regex101.com/) help with that complexity though.
-   The official [documentation](https://docs.oracle.com/en/java/javase/14/docs/api/java.base/java/util/regex/Pattern.html#sum) for regular expressions
-   in Java might also help you.
-   If you don't want to get into them just write down the password but keep in mind that the players answer needs to be an exact match! 
+   The password is a [regular expression](Reference.md#regex-regular-expressions). 
 
 2. The prefix can be changed: The default (when no prefix is set) is the translated prefix from the *messages.yml* config in the user's language.             
    Note that every custom prefix is suffixed with `:⠀`, so `prefix:Library_password` will require the user to enter `Library password: myfancypassword`.     
@@ -311,10 +327,11 @@ The objective's instruction string is defined as follows:
 4. If you want to trigger one or more events when the player failed to guess the password you can use the argument `fail` with a list of events (comma separated).
    With disabled prefix every command or chat message will trigger these events!
 
-!!! example
-    ```YAML
-    password beton ignoreCase prefix:secret fail:failEvent1,failEvent2 events:message,reward
-    ```
+
+```YAML
+objectives:
+  theBetonPassword: "password beton ignoreCase prefix:secret fail:failEvent1,failEvent2 events:message,reward"
+```
 
 ## Pickup item: `pickup`
 

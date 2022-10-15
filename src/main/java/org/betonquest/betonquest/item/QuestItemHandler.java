@@ -4,11 +4,13 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.val;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.Journal;
+import org.betonquest.betonquest.api.profiles.Profile;
 import org.betonquest.betonquest.config.Config;
 import org.betonquest.betonquest.utils.PlayerConverter;
 import org.betonquest.betonquest.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
@@ -36,6 +38,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.ListIterator;
@@ -63,16 +66,16 @@ public class QuestItemHandler implements Listener {
         if (event.getPlayer().getGameMode() == GameMode.CREATIVE) {
             return;
         }
-        final String playerID = PlayerConverter.getID(event.getPlayer());
+        final Profile profile = PlayerConverter.getID(event.getPlayer());
         final ItemStack item = event.getItemDrop().getItemStack();
-        if (Journal.isJournal(playerID, item)) {
+        if (Journal.isJournal(profile, item)) {
             if (isJournalSlotLocked()) {
                 event.setCancelled(true);
             } else {
                 event.getItemDrop().remove();
             }
         } else if (Utils.isQuestItem(item)) {
-            BetonQuest.getInstance().getPlayerData(playerID).addItem(item.clone(), item.getAmount());
+            BetonQuest.getInstance().getPlayerData(profile).addItem(item.clone(), item.getAmount());
             event.getItemDrop().remove();
         }
     }
@@ -87,14 +90,14 @@ public class QuestItemHandler implements Listener {
         if (event.getWhoClicked().getGameMode() == GameMode.CREATIVE) {
             return;
         }
-        final String playerID = PlayerConverter.getID((Player) event.getWhoClicked());
+        final Profile profile = PlayerConverter.getID((Player) event.getWhoClicked());
         ItemStack item = null;
         switch (event.getAction()) {
             case PICKUP_ALL:
             case PICKUP_HALF:
             case PICKUP_ONE:
             case PICKUP_SOME:
-                if (isJournalSlotLocked() && Journal.isJournal(playerID, event.getCurrentItem())) {
+                if (isJournalSlotLocked() && Journal.isJournal(profile, event.getCurrentItem())) {
                     event.setCancelled(true);
                     return;
                 }
@@ -109,7 +112,7 @@ public class QuestItemHandler implements Listener {
                         } else {
                             swapped = event.getWhoClicked().getInventory().getItem(event.getHotbarButton());
                         }
-                        if (Journal.isJournal(playerID, event.getCurrentItem()) || Journal.isJournal(playerID, swapped)) {
+                        if (Journal.isJournal(profile, event.getCurrentItem()) || Journal.isJournal(profile, swapped)) {
                             event.setCancelled(true);
                             return;
                         }
@@ -129,7 +132,7 @@ public class QuestItemHandler implements Listener {
             case PLACE_ONE:
             case PLACE_SOME:
             case SWAP_WITH_CURSOR:
-                if (isJournalSlotLocked() && Journal.isJournal(playerID, event.getCurrentItem())) {
+                if (isJournalSlotLocked() && Journal.isJournal(profile, event.getCurrentItem())) {
                     event.setCancelled(true);
                     return;
                 }
@@ -140,7 +143,7 @@ public class QuestItemHandler implements Listener {
             default:
                 break;
         }
-        if (Journal.isJournal(playerID, item) || Utils.isQuestItem(item)) {
+        if (Journal.isJournal(profile, item) || Utils.isQuestItem(item)) {
             event.setCancelled(true);
         }
     }
@@ -153,8 +156,8 @@ public class QuestItemHandler implements Listener {
         if (event.getWhoClicked().getGameMode() == GameMode.CREATIVE) {
             return;
         }
-        final String playerID = PlayerConverter.getID((Player) event.getWhoClicked());
-        if (Journal.isJournal(playerID, event.getOldCursor()) || Utils.isQuestItem(event.getOldCursor())) {
+        final Profile profile = PlayerConverter.getID((Player) event.getWhoClicked());
+        if (Journal.isJournal(profile, event.getOldCursor()) || Utils.isQuestItem(event.getOldCursor())) {
             event.setCancelled(true);
         }
     }
@@ -165,8 +168,8 @@ public class QuestItemHandler implements Listener {
             return;
         }
         final ItemStack item = event.getPlayerItem();
-        final String playerID = PlayerConverter.getID(event.getPlayer());
-        if (item != null && (Journal.isJournal(playerID, item) || Utils.isQuestItem(item))) {
+        final Profile profile = PlayerConverter.getID(event.getPlayer());
+        if (item != null && (Journal.isJournal(profile, item) || Utils.isQuestItem(item))) {
             event.setCancelled(true);
         }
     }
@@ -176,9 +179,9 @@ public class QuestItemHandler implements Listener {
         if (event.getEntity().getGameMode() == GameMode.CREATIVE) {
             return;
         }
-        final String playerID = PlayerConverter.getID(event.getEntity());
+        final Profile profile = PlayerConverter.getID(event.getEntity());
         // check if there is data for this player; NPCs don't have data
-        if (BetonQuest.getInstance().getPlayerData(playerID) == null) {
+        if (BetonQuest.getInstance().getPlayerData(profile) == null) {
             return;
         }
         // this prevents the journal from dropping on death by removing it from
@@ -187,12 +190,12 @@ public class QuestItemHandler implements Listener {
         final ListIterator<ItemStack> litr = drops.listIterator();
         while (litr.hasNext()) {
             final ItemStack stack = litr.next();
-            if (Journal.isJournal(playerID, stack)) {
+            if (Journal.isJournal(profile, stack)) {
                 litr.remove();
             }
             // remove all quest items and add them to backpack
             if (Utils.isQuestItem(stack)) {
-                BetonQuest.getInstance().getPlayerData(playerID).addItem(stack.clone(), stack.getAmount());
+                BetonQuest.getInstance().getPlayerData(profile).addItem(stack.clone(), stack.getAmount());
                 litr.remove();
             }
         }
@@ -230,8 +233,8 @@ public class QuestItemHandler implements Listener {
             final ItemStack item = (event.getHand() == EquipmentSlot.HAND) ? event.getPlayer().getInventory().getItemInMainHand()
                     : event.getPlayer().getInventory().getItemInOffHand();
 
-            final String playerID = PlayerConverter.getID(event.getPlayer());
-            if (Journal.isJournal(playerID, item) || Utils.isQuestItem(item)) {
+            final Profile profile = PlayerConverter.getID(event.getPlayer());
+            if (Journal.isJournal(profile, item) || Utils.isQuestItem(item)) {
                 event.setCancelled(true);
             }
         }
@@ -280,10 +283,10 @@ public class QuestItemHandler implements Listener {
             return;
         }
         final ItemStack item = event.getItem();
-        if (item != null && !EnchantmentTarget.TOOL.includes(item.getType()) && Utils.isQuestItem(item)) {
+        if (item != null && !EnchantmentTarget.TOOL.includes(item.getType()) && Utils.isQuestItem(item) && item.getType() != Material.WRITTEN_BOOK) {
 
             // *** Briar ***
-            if (Utils.isQuestItem(item) && isProtectionBlockQuestItem(item)) {
+            if (isProtectionBlockQuestItem(item)) {
                 return;
             }
             // *** Briar ***
@@ -318,8 +321,8 @@ public class QuestItemHandler implements Listener {
         if (event.getPlayer().getGameMode() == GameMode.CREATIVE) {
             return;
         }
-        final String playerID = PlayerConverter.getID(event.getPlayer());
-        if (isJournalSlotLocked() && (Journal.isJournal(playerID, event.getMainHandItem()) || Journal.isJournal(playerID, event.getOffHandItem()))) {
+        final Profile profile = PlayerConverter.getID(event.getPlayer());
+        if (isJournalSlotLocked() && (Journal.isJournal(profile, event.getMainHandItem()) || Journal.isJournal(profile, event.getOffHandItem()))) {
             event.setCancelled(true);
         }
     }
@@ -337,11 +340,11 @@ public class QuestItemHandler implements Listener {
     private static final String ITEM_PROTECTION_BLOCK = "Protection Block";
 
     /**
-     * TODO: Determine if the specified ItemStack is a claim protection block.
+     * Determine if the specified ItemStack is a claim protection block.
      * @param item The item to test.
      * @return True if the specified ItemStack is a claim protection block, false otherwise.
      */
-    private boolean isProtectionBlockQuestItem(final ItemStack item) {
+    private boolean isProtectionBlockQuestItem(final @Nullable ItemStack item) {
         return item != null && item.toString().contains(ITEM_PROTECTION_BLOCK);
     }
     // *** Briar ***

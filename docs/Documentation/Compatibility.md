@@ -2,7 +2,7 @@
 icon: material/handshake
 ---
 # Compatibility
-**In total 31 plugins have dedicated support for BetonQuest.**
+**In total 32 plugins have dedicated support for BetonQuest.**
 
 BetonQuest hooks into other plugins by itself to provide more events, conditions and objectives or other features. 
 25 plugins are supported right now:    
@@ -15,6 +15,7 @@ Some plugins also hook into BetonQuest and provide support by themselves:
 [CalebCompass](https://www.spigotmc.org/resources/82674/),
 [NotQuests](https://www.spigotmc.org/resources/95872/),
 [HonnyCompass](https://github.com/honnisha/HonnyCompass)
+[MythicDungeons](https://www.spigotmc.org/resources/102699/)
 
 There are also plugins that hook into BetonQuest that require a clientside mod:  
 [BetonQuestGUI](https://github.com/giovanni-bozzano/betonquest-gui-plugin),
@@ -347,22 +348,31 @@ This event simply gives the player specified amount of Heroes experience. The fi
 ### Hidden Holograms
 Installing this plugin will enable you to create hidden holograms, which will be shown to players only if they meet specified conditions. Note that you need to have [ProtocolLib](https://www.spigotmc.org/resources/1997/) installed in order to hide holograms from certain players.
 
-In order to create a hologram, you have to add a `holograms` section. Add a node named as your hologram to this section and define `lines`, `conditions` and `location` subnodes. The fist one should be a list of texts - these will be the lines of a hologram. Color codes are supported. Second is a list of conditions separated by commas. Third is a location in a standard format, like in `teleport` event. An example of such hologram definition:
+In order to create a hologram, you have to add a `holograms` section. Add a node named as your hologram to this section and define `lines`, `conditions` and `location` subnodes. The first one should be a list of texts - these will be the lines of a hologram. Color codes are supported. Second is a list of conditions separated by commas. Third is a location in a standard format, like in `teleport` event. An example of such hologram definition:
 
 ```YAML
 holograms:
   beton:
     lines:
-    - '&bThis is Beton.'
     - 'item:custom_item'
-    - '&eBeton is strong.'
+    - '&2Top questers this month'
+    - 'top:completed_quests;desc;10;&a;§6;2;&6'
+    - '&2Your amount: &6{bq:azerothquests:point.completed_quests.amount}'
+    - '&Total amount: &6{bqg:azerothquests:globalpoint.total_completed_quests.amount}'
+    conditions: has_some_quest, !finished_some_quest    
     location: 100;200;300;world
-    conditions: has_some_quest, !finished_some_quest
     # How often to check conditions (optional)
     check_interval: 20
 ```
 
 A line can also represent a floating item. To do so enter the line as 'item:`custom_item`'. It will be replaced with the `custom_item` defined in the `items` section. If the Item is defined for example as map, a floating map will be seen between two lines of text.
+
+Holograms created by BetonQuest can rank users by the score of a point. Such scoreboards (not to be confused with the Minecraft vanilla scoreboard) are configured as one line and replaced by multiple lines according to the limit definition. Each scoreboard line comes in the format `#. name - score` The short syntax is 'top:`point`;`order`;`limit`'. The specified `point` must be located inside the package the hologram is declared in. To use a point from another package, put `package.point` instead. The `order` is either 'desc' for descending or 'asc' for ascending. If something other is specified, descending will be used by default. The limit should be a positive number. In the short declaration, the whole line will be white. To color each of the four elements of a line (place, name, dash and score), the definition syntax can be extended to 'top:`point`;`order`;`limit`;`c1`;`c2`;`c3`;`c4`'. The color codes can be prefixed with either `§` or `&`, but do not have to be. If for example `c2` is left blank (two following semicolons), it is treated as an 'f' (color code for white).
+
+Each BetonQuest variable can be displayed on a hologram in a text line. However, the syntax differs slightly since this uses a HolographicDisplays utility. The syntax is '{bq:`package`:`variable`}'. The package name cannot be left empty. The `variable` uses the same definition syntax as in conversations. Variables are displayed for each player individually.
+
+!!! warning "Potential lags"
+    The HolographicDisplays documentations warns against using too many individual hologram variables since they are rendered for each player individually. To save resources, there is a variable without individual rendering. To use it replace 'bq' with 'bqg'. However, this means that only player-unrelated variables such as `globalpoint` and `globaltag` can be used. Using them with player specific variables will not necessarily throw errors but can produce weird results.
 
 The holograms are updated every 10 seconds. If you want to make it faster, add `hologram_update_interval` option in _config.yml_ file and set it to a number of ticks you want to pass between updates (one second is 20 ticks). Don't set it to 0 or negative numbers, it will result in an error.
 
@@ -622,6 +632,8 @@ mmocorebreakblock 1 block:eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVy #... this is a heads 
 
 #### MMOCore Profession levelup: `mmoprofessionlevelup`
 This objective requires the player to level the given profession to the specified level.
+Use `main` to check for class level ups.
+
 ```YAML linenums="1"
 mmoprofessionlevelup MINING 10
 ```
@@ -786,7 +798,7 @@ Check whether the player is near a specific MythicMobs entity. The first argumen
 | Parameter  | Syntax                                           | Default Value          | Explanation                                                                                                                             |
 |------------|--------------------------------------------------|------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
 | _location_ | [ULF](./Reference.md#unified-location-formating) | :octicons-x-circle-16: | The location to spawn the mob at.                                                                                                       |
-| _name_     | name:level                                       | :octicons-x-circle-16: | MythicMobs mob name. Optionally, a level can be specifed after a colon.                                                                 |
+| _name_     | name:level                                       | :octicons-x-circle-16: | MythicMobs mob name. A level must be specifed after a colon.                                                                            |
 | _amount_   | Positive Number                                  | :octicons-x-circle-16: | Amount of mobs to spawn.                                                                                                                |
 | _target_   | Keyword                                          | False                  | Will make the mob target the player.                                                                                                    |
 | _private_  | Keyword                                          | Disabled               | Will hide the mob from all other players until restart. This does not hide particles or block sound from the mob. Also see notes below. |
@@ -794,8 +806,8 @@ Check whether the player is near a specific MythicMobs entity. The first argumen
 
 
 ```YAML title="Example"
-events::
-  spawnBoss: mspawnmob 100;200;300;world MegaBoss target
+events:
+  spawnBoss: mspawnmob 100;200;300;world MegaBoss:1 1 target
   spawnKnights: mspawnmob 100;200;300;world SkeletalKnight:3 5
   spawnPrivateDevil: mspawnmob 100;200;300;world Mephisto:1 5 target private marked:DungeonBoss3
 ```
@@ -815,14 +827,14 @@ If you have this plugin, BetonQuest will add a `betonquest` placeholder to it an
 You can use all BetonQuest variables in any other plugin that supports PlaceholderAPI.
 You can even use BetonQuests conditions using the [condition variable](Variables-List.md#expose-conditions-to-3rd-party-plugins-condition)!    
 This works using the `%betonquest_package:variable%` placeholder. The `package:` part is the name of a package.
-The `variable` part is just a BetonQuest variable without percentage characters, like `point.beton.amount`.
+The `variable` part is just a [BetonQuest variable](Variables-List.md) without percentage characters, like `point.beton.amount`.
 
 Testing your placeholder is easy using this command:    
 `/papi parse <PlayerName> %betonquest_<PackageName>:<VariableType>.<Property>%`
 ```YAML linenums="1"
 %betonquest_someGreatQuest:objective.killZombies.left%
 ```
-    
+
 ### Variable: `ph`
 
 You can also use placeholders from other plugins in BetonQuest. Simply insert a variable starting with `ph`, the second argument should be the placeholder without percentage characters.
@@ -859,53 +871,53 @@ ProtocolLib also enables a conversation IO that makes use of a chat menu system.
   Sorry, your browser doesn't support embedded videos.
 </video>
 
-Customize how it looks by adding the following lines:
+Customize how it looks by adding the following lines to your quest package:
 
 ```YAML
 menu_conv_io:
-  line_length: 50
-  refresh_delay: 180
+  line_length: 50 # (1)!
+  refresh_delay: 180 # (2)!
+  selectionCooldown: 10 # (3)!
 
-  npc_wrap: '&l &r'
-  npc_text: '&l &r&f{npc_text}'
-  npc_text_reset: '&f'
-  option_wrap: '&r&l &l &l &l &r'
-  option_text: '&l &l &l &l &r&8[ &b{option_text}&8 ]'
-  option_text_reset: '&b'
-  option_selected: '&l &r &r&7»&r &8[ &f&n{option_text}&8 ]'
-  option_selected_reset: '&f'
-  option_selected_wrap: '&r&l &l &l &l &r&f&n'
+  npc_wrap: '&l &r' # (4)!
+  npc_text: '&l &r&f{npc_text}' # (5)!
+  npc_text_reset: '&f' # (6)!
+  option_wrap: '&r&l &l &l &l &r' # (7)!
+  option_text: '&l &l &l &l &r&8[ &b{option_text}&8 ]' # (8)!
+  option_text_reset: '&b' # (9)! 
+  option_selected: '&l &r &r&7»&r &8[ &f&n{option_text}&8 ]' # (10)!
+  option_selected_reset: '&f' # (11)!
+  option_selected_wrap: '&r&l &l &l &l &r&f&n' # (12)!
 
-  control_select: jump,left_click
-  control_cancel: sneak
-  control_move: scroll,move
+  control_select: jump,left_click # (13)!
+  control_cancel: sneak # (14)! 
+  control_move: scroll,move # (15)! 
 
-  npc_name_type: chat
-  npc_name_align: center
-  npc_name_format: '&e{npc_name}&r'
-  npc_name_newline_separator: true
+  npc_name_type: chat # (16)!
+  npc_name_align: center # (17)!
+  npc_name_format: '&e{npc_name}&r' # (18)!
+  npc_name_newline_separator: true # (19)!
 ```
 
-Where:
-
-  * `line_length` - Maximum size of a line till its wrapped
-  * `refresh_delay` - Specify how many ticks to auto update display. Default 180
-  * `npc_wrap` - What text to prefix each new line in the NPC text that wraps
-  * `npc_text` - How to write the NPC text. Replaces {1} with the npcs text
-  * `npc_text_reset` - When a color reset is found, what to replace it with
-  * `option_wrap` - What text to prefix each new line in an option that wraps
-  * `option_text` - How to write an option. Replaces {1} with the option text
-  * `option_text_reset` - When a color reset is found, what to replace it with
-  * `option_selected` - How to write a selected option. Replaces {1} with the option text
-  * `option_selected_reset` - When a color reset is found, what to replace it with
-  * `option_selected_wrap` - What text to prefix each new line in a selected option that wraps
-  * `control_select` - Space separated actions to select. Can be any of 'jump', 'left_click', 'sneak'
-  * `control_cancel` - Space separated actions to select. Can be any of 'jump', 'left_click', 'sneak'
-  * `control_move` - Space separated actions to move selection. Can be any of 'move', 'scroll'
-  * `npc_name_type` - Type of NPC name display. Can be one of: 'none', 'chat'
-  * `npc_name_align` - For npc name type of 'chat', how to align name. One of: 'left', 'right', 'center'
-  * `npc_name_format` - How to format the npc name
-  * `npc_name_newline_separator` - Whether an empty line is inserted after the NPC's name if there is space leftover. 
+1. Maximum size of a line till its wrapped.
+2. Specify how many ticks to auto update display. Default 180.
+3. The cooldown for selecting another option after selecting an option. Measured in ticks. 20 ticks = 1 second.
+4. What text to prefix each new line in the NPC text that wraps.
+5. How to write the NPC text. Replaces {1} with the npcs text.
+6. When a color reset is found, what to replace it with.
+7. What text to prefix each new line in an option that wraps.
+8. How to write an option. Replaces {1} with the option text.
+9. When a color reset is found, what to replace it with.
+10. How to write a selected option. Replaces {1} with the option text.
+11. When a color reset is found, what to replace it with.
+12. What text to prefix each new line in a selected option that wraps.
+13. Comma separated actions to select options. Can be any of `jump`, `left_click`, `sneak`.
+14. Comma separated actions to cancel the conversation. Can be any of `jump`, `left_click`, `sneak`.
+15. Comma separated actions to move the selection. Can be any of `move`, `scroll`.
+16. Type of NPC name display. Can be one of: `none`, `chat`.
+17. For npc name type of `chat`, how to align name. One of: `left`, `right`, `center`.
+18. How to format the npc name.
+19. Whether an empty line is inserted after the NPC's name if there is space leftover.
 
 Variables:
 
@@ -915,7 +927,7 @@ Variables:
 
 ### Chat Interceptor: `packet`
 
-Intercept pretty much anything sent to the player by intercepting packets sent to them. This can be enabled by default by setting the `default_interceptor` to `packet` in config.yml or per conversation by setting `interceptor` to `packet` in the top level of the conversation.
+Intercepts pretty much anything sent to the player by intercepting packets sent to them. This can be enabled by default by setting the `default_interceptor` to `packet` in config.yml or per conversation by setting `interceptor` to `packet` in the top level of the conversation.
 
 ### Freeze players: 'freeze'
 This event allows you to freeze player for the given amount of ticks:

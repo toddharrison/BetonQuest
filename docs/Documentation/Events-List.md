@@ -250,6 +250,16 @@ Works the same way as a normal tag event, but instead of setting a tag for one p
     globaltag add global_areNPCsAgressive
     ```
 
+## Hunger: `hunger`
+
+This event changes the food level of the player. The second argument is the modification type. There are `give`, `take` and `set`. The second argument is the amount. With `set` can the food level be anything. If `give` or `take` is specified and the final amount won't be more than 20 or less than 0. If the hunger level is below 7, the player cannot sprint.
+
+!!! example
+    ```YAML
+    hunger set 20
+    hunger give 5
+    ```
+
 ## If else: `if`
 
 This event will check a condition, and based on the outcome it will run the first or second event. The instruction string is `if condition event1 else event2`, where `condition` is a condition ID and `event1` and `event2` are event IDs. `else` keyword is mandatory between events for no practical reason.
@@ -548,8 +558,9 @@ Looking for [console commands](#command-command)?
 
 **persistent**, **static**
 
-This event adds (or removes) a tag to the player. The first argument after event's name must be `add` or `del`.
-Next goes the tag name. It can't contain spaces (though `_` is fine). Additional tags can be added, separated by commas (without spaces).
+This event adds a tag to or deletes a tag from the player. The first argument after event's name must be
+`add` or `delete`. Next goes the tag name. It can't contain spaces (though `_` is fine).
+Multiple tags can be added and deleted separated by commas (without spaces).
 
 !!! example
     ```YAML
@@ -648,3 +659,33 @@ Gives the specified amount of experience points to the player. You can give whol
     ```YAML
     experience 4 level
     ```
+## Burn: `burn`
+
+| Parameter  | Syntax            | Default Value               | Explanation                                                        |
+|------------|-------------------|-----------------------------|--------------------------------------------------------------------|
+| _duration_ | `duration:number` | :octicons-x-circle-16:      | The duration the player will burn (in seconds). Can be a variable. |
+
+```YAML title="Example"
+events:
+  burn: "burn duration:4"
+  punishing_fire: "burn duration:%point.punishment.amount%"
+```
+    
+## :fontawesome-solid-wind: Move the player: `velocity`
+
+| Parameter      | Syntax                          | Default Value          | Explanation                                                                                                                                                                                                                                                                                                               |
+|----------------|---------------------------------|------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| _vector_       | `vector:(x;y;z)`                | :octicons-x-circle-16: | The values of the vector, which are decimal numbers, can be interpreted as absolute numbers like the coordinate or as relative directions. For more understanding the relative direction is similar to `^ ^ ^` in minecraft or in other words `(sideways;upwards;forwards)`. Can be a variable.                           |
+| _direction_    | `direction:directionType`       | `absolute`             | There are 3 types how the vector can get applied to the player:<br> `absolute` won't change the vector at all.<br> `relative` will redirect the vector to the view of the player.<br> `relative_y` is a mix between absolute and relative. It will still direct to the view but only horizontally, so y will be absolute. |
+| _modification_ | `modification:modificationType` | `set`                  | Possible modifications are `set` and `add`. The modification type determines how the vector should be merged with the player's velocity. The player's velocity is the external force applied on the player.                                                                                                               |
+
+--8<-- "Documentation/Vector-Explanation.md"
+
+```YAML title="Example"
+events:
+  jumppad: "velocity vector:(2;0.8;4)"
+  dash: "velocity vector:(0;0.1;1.3) direction:relative_y"
+  variable_dash: "velocity vector:%objective.customVariable.dashLength% direction:relative_y"
+  fly: "velocity vector:(0;0.1;2) direction:relative modification:add"
+  
+```

@@ -5,6 +5,7 @@ import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.Point;
 import org.betonquest.betonquest.api.Variable;
+import org.betonquest.betonquest.api.profiles.Profile;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
 import org.betonquest.betonquest.id.ID;
@@ -65,8 +66,8 @@ public class PointVariable extends Variable {
     }
 
     @Override
-    public String getValue(final String playerID) {
-        return getValue(BetonQuest.getInstance().getPlayerData(playerID).getPoints());
+    public String getValue(final Profile profile) {
+        return getValue(BetonQuest.getInstance().getPlayerData(profile).getPoints());
     }
 
     protected String getValue(final List<Point> points) {
@@ -81,14 +82,11 @@ public class PointVariable extends Variable {
         if (point != null) {
             count = point.getCount();
         }
-        switch (type) {
-            case AMOUNT:
-                return Integer.toString(count);
-            case LEFT:
-                return Integer.toString(amount - count);
-            default:
-                return "";
-        }
+        return switch (type) {
+            case AMOUNT -> Integer.toString(count);
+            case LEFT -> Integer.toString(amount - count);
+            default -> "";
+        };
     }
 
     protected enum Type {

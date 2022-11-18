@@ -5,7 +5,7 @@ import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
 import lombok.CustomLog;
 import org.betonquest.betonquest.BetonQuest;
-import org.betonquest.betonquest.api.config.QuestPackage;
+import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.profiles.OnlineProfile;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.bukkit.Bukkit;
@@ -36,11 +36,11 @@ public class AdvancementNotifyIO extends NotifyIO {
     @Override
     protected void notifyPlayer(final String message, final OnlineProfile onlineProfile) {
         final NamespacedKey key = loadAdvancement(message);
-        Bukkit.getScheduler().runTask(BetonQuest.getInstance(), run -> grant(key, onlineProfile.getOnlinePlayer()));
+        Bukkit.getScheduler().runTask(BetonQuest.getInstance(), run -> grant(key, onlineProfile.getPlayer()));
         new BukkitRunnable() {
             @Override
             public void run() {
-                revoke(key, onlineProfile.getOnlinePlayer());
+                revoke(key, onlineProfile.getPlayer());
                 remove(key);
             }
         }.runTaskLater(BetonQuest.getInstance(), 10);

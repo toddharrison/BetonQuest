@@ -13,7 +13,7 @@ import org.betonquest.betonquest.api.Objective;
 import org.betonquest.betonquest.api.QuestEvent;
 import org.betonquest.betonquest.api.Variable;
 import org.betonquest.betonquest.api.config.ConfigurationFile;
-import org.betonquest.betonquest.api.config.QuestPackage;
+import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.profiles.OnlineProfile;
 import org.betonquest.betonquest.api.profiles.Profile;
 import org.betonquest.betonquest.api.quest.event.EventFactory;
@@ -248,6 +248,7 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.event.Event;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -416,7 +417,7 @@ public class BetonQuest extends JavaPlugin {
             log.debug(conditionID.getPackage(), "Cannot check non-static condition without a player, returning false");
             return false;
         }
-        if (profile != null && profile.getPlayer() == null && !condition.isPersistent()) {
+        if (profile != null && profile.getOnlineProfile().isEmpty() && !condition.isPersistent()) {
             log.debug(conditionID.getPackage(), "Player was offline, condition is not persistent, returning false");
             return false;
         }
@@ -434,13 +435,15 @@ public class BetonQuest extends JavaPlugin {
         return isMet;
     }
 
+
     /**
-     * Fires the event described by eventID
+     * Fires an event for the {@link Profile} if it meets the event's conditions.
+     * If the profile is null, the event will be fired as a static event.
      *
+     * @param profile the {@link Profile} for which the event must be executed or null
      * @param eventID ID of the event to fire
-     * @param profile the {@link Profile} of the player who the event is firing for
      */
-    public static void event(final Profile profile, final EventID eventID) {
+    public static void event(@Nullable final Profile profile, final EventID eventID) {
         if (eventID == null) {
             log.debug("Null event ID!");
             return;
@@ -616,7 +619,7 @@ public class BetonQuest extends JavaPlugin {
                     try {
                         CANCELERS.put(entry.getKey() + "." + key, new QuestCanceler(pack, key));
                     } catch (final InstructionParseException e) {
-                        log.warn(pack, "Could not load '" + pack.getPackagePath() + "." + key + "' quest canceler: " + e.getMessage(), e);
+                        log.warn(pack, "Could not load '" + pack.getQuestPath() + "." + key + "' quest canceler: " + e.getMessage(), e);
                     }
                 }
             }
@@ -636,6 +639,11 @@ public class BetonQuest extends JavaPlugin {
         return pluginTag;
     }
 
+    /**
+     * Ensures that the given event is called on the main server thread.
+     *
+     * @param event the event to call
+     */
     public void callSyncBukkitEvent(final Event event) {
         if (getServer().isPrimaryThread()) {
             getServer().getPluginManager().callEvent(event);
@@ -900,13 +908,13 @@ public class BetonQuest extends JavaPlugin {
         registerScheduleType("realtime-cron", RealtimeCronSchedule.class, new RealtimeCronScheduler(this, lastExecutionCache));
 
         new Compatibility();
+        globalData = new GlobalData();
 
         // schedule quest data loading on the first tick, so all other
         // plugins can register their types
         Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
             loadData();
-            globalData = new GlobalData();
-            for (final Profile onlineProfile : PlayerConverter.getOnlineProfiles()) {
+            for (final OnlineProfile onlineProfile : PlayerConverter.getOnlineProfiles()) {
                 final PlayerData playerData = new PlayerData(onlineProfile);
                 playerDataMap.put(onlineProfile, playerData);
                 playerData.startObjectives();
@@ -990,7 +998,7 @@ public class BetonQuest extends JavaPlugin {
 
         // load new data
         for (final QuestPackage pack : Config.getPackages().values()) {
-            final String packName = pack.getPackagePath();
+            final String packName = pack.getQuestPath();
             log.debug(pack, "Loading stuff in package " + packName);
             final ConfigurationSection eConfig = Config.getPackages().get(packName).getConfig().getConfigurationSection("events");
             if (eConfig != null) {
@@ -1128,7 +1136,7 @@ public class BetonQuest extends JavaPlugin {
             if (conversationsConfig != null) {
                 for (final String convName : conversationsConfig.getKeys(false)) {
                     try {
-                        CONVERSATIONS.put(pack.getPackagePath() + "." + convName, new ConversationData(pack, convName, conversationsConfig.getConfigurationSection(convName)));
+                        CONVERSATIONS.put(pack.getQuestPath() + "." + convName, new ConversationData(pack, convName, conversationsConfig.getConfigurationSection(convName)));
                     } catch (final InstructionParseException e) {
                         log.warn(pack, "Error in '" + packName + "." + convName + "' conversation: " + e.getMessage(), e);
                     }
@@ -1212,7 +1220,7 @@ public class BetonQuest extends JavaPlugin {
             if (conv != null) {
                 conv.suspend();
             }
-            onlineProfile.getOnlinePlayer().closeInventory();
+            onlineProfile.getPlayer().closeInventory();
         }
         // cancel database saver
         if (saver != null) {
@@ -1284,8 +1292,8 @@ public class BetonQuest extends JavaPlugin {
     }
 
     /**
-     * Retrieves PlayerData object for specified player. If the playerData does
-     * not exist but the player is online, it will create new playerData on the
+     * Retrieves PlayerData object for specified profile. If the playerData does
+     * not exist but the profile is online, it will create new playerData on the
      * main thread and put it into the map.
      *
      * @param profile the {@link Profile} of the player
@@ -1293,7 +1301,7 @@ public class BetonQuest extends JavaPlugin {
      */
     public PlayerData getPlayerData(final Profile profile) {
         PlayerData playerData = playerDataMap.get(profile);
-        if (playerData == null && profile.getPlayer().isPresent()) {
+        if (playerData == null && profile.getOnlineProfile().isPresent()) {
             playerData = new PlayerData(profile);
             putPlayerData(profile, playerData);
         }

@@ -23,7 +23,7 @@ public class WorldCondition extends Condition {
         world = Bukkit.getWorld(name);
         if (world == null) {
             try {
-                world = new CompoundLocation(instruction.getPackage().getPackagePath(), name).getLocation(null).getWorld();
+                world = new CompoundLocation(instruction.getPackage().getQuestPath(), name).getLocation(null).getWorld();
             } catch (InstructionParseException | QuestRuntimeException e) {
                 throw new InstructionParseException("There is no such world: " + name, e);
             }
@@ -32,7 +32,7 @@ public class WorldCondition extends Condition {
 
     @Override
     protected Boolean execute(final Profile profile) {
-        return profile.getOnlineProfile().getOnlinePlayer().getWorld().equals(world);
+        return profile.getOnlineProfile().get().getPlayer().getWorld().equals(world);
     }
 
 }

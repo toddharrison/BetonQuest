@@ -4,7 +4,7 @@ import com.comphenix.packetwrapper.WrapperPlayServerEntityStatus;
 import com.comphenix.packetwrapper.WrapperPlayServerSetSlot;
 import lombok.CustomLog;
 import org.betonquest.betonquest.BetonQuest;
-import org.betonquest.betonquest.api.config.QuestPackage;
+import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.profiles.OnlineProfile;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.bukkit.Bukkit;
@@ -43,9 +43,9 @@ public class TotemNotifyIO extends NotifyIO {
 
     @Override
     protected void notifyPlayer(final String message, final OnlineProfile onlineProfile) {
-        sendOffhandPacket(onlineProfile.getOnlinePlayer(), buildFakeTotem());
-        playSilentTotemEffect(onlineProfile.getOnlinePlayer());
-        sendOffhandPacket(onlineProfile.getOnlinePlayer(), onlineProfile.getOnlinePlayer().getInventory().getItemInOffHand());
+        sendOffhandPacket(onlineProfile.getPlayer(), buildFakeTotem());
+        playSilentTotemEffect(onlineProfile.getPlayer());
+        sendOffhandPacket(onlineProfile.getPlayer(), onlineProfile.getPlayer().getInventory().getItemInOffHand());
     }
 
 

@@ -6,7 +6,7 @@ import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.QuestCompassTargetChangeEvent;
 import org.betonquest.betonquest.api.QuestEvent;
-import org.betonquest.betonquest.api.config.QuestPackage;
+import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.profiles.Profile;
 import org.betonquest.betonquest.config.Config;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
@@ -15,7 +15,6 @@ import org.betonquest.betonquest.utils.location.CompoundLocation;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Player;
 
 import java.util.Locale;
 
@@ -41,7 +40,7 @@ public class CompassEvent extends QuestEvent {
         for (final QuestPackage pack : Config.getPackages().values()) {
             final ConfigurationSection section = pack.getConfig().getConfigurationSection("compass");
             if (section != null && section.contains(compass)) {
-                compassLocation = new CompoundLocation(pack.getPackagePath(), pack.getString("compass." + compass + ".location"));
+                compassLocation = new CompoundLocation(pack.getQuestPath(), pack.getString("compass." + compass + ".location"));
                 break;
             }
         }
@@ -72,12 +71,11 @@ public class CompassEvent extends QuestEvent {
                     LOG.warn(instruction.getPackage(), "Failed to set compass: " + compass, e);
                     return null;
                 }
-                if (profile.getPlayer().isPresent()) {
-                    final Player player = profile.getPlayer().get();
+                if (profile.getOnlineProfile().isPresent()) {
                     final QuestCompassTargetChangeEvent event = new QuestCompassTargetChangeEvent(profile, location);
                     Bukkit.getServer().getPluginManager().callEvent(event);
                     if (!event.isCancelled()) {
-                        player.setCompassTarget(location);
+                        profile.getOnlineProfile().get().getPlayer().setCompassTarget(location);
                     }
                 }
         }

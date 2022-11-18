@@ -6,6 +6,7 @@ import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.VariableNumber;
 import org.betonquest.betonquest.api.CountingObjective;
+import org.betonquest.betonquest.api.profiles.OnlineProfile;
 import org.betonquest.betonquest.api.profiles.Profile;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.QuestRuntimeException;
@@ -40,7 +41,7 @@ public class FishObjective extends CountingObjective implements Listener {
         blockSelector = new BlockSelector(instruction.next());
         targetAmount = instruction.getInt();
 
-        final String pack = instruction.getPackage().getPackagePath();
+        final String pack = instruction.getPackage().getQuestPath();
         final String loc = instruction.getOptional("hookLocation");
         final String range = instruction.getOptional("range");
         if (loc != null && range != null) {
@@ -62,17 +63,17 @@ public class FishObjective extends CountingObjective implements Listener {
         if (event.getState() != State.CAUGHT_FISH) {
             return;
         }
-        final Profile profile = PlayerConverter.getID(event.getPlayer());
-        if (!containsPlayer(profile) || event.getCaught() == null || event.getCaught().getType() != EntityType.DROPPED_ITEM) {
+        final OnlineProfile onlineProfile = PlayerConverter.getID(event.getPlayer());
+        if (!containsPlayer(onlineProfile) || event.getCaught() == null || event.getCaught().getType() != EntityType.DROPPED_ITEM) {
             return;
         }
-        if (isInvalidLocation(event, profile)) {
+        if (isInvalidLocation(event, onlineProfile)) {
             return;
         }
         final ItemStack item = ((Item) event.getCaught()).getItemStack();
-        if (blockSelector.match(item.getType()) && checkConditions(profile)) {
-            getCountingData(profile).progress(item.getAmount());
-            completeIfDoneOrNotify(profile);
+        if (blockSelector.match(item.getType()) && checkConditions(onlineProfile)) {
+            getCountingData(onlineProfile).progress(item.getAmount());
+            completeIfDoneOrNotify(onlineProfile);
         }
     }
 

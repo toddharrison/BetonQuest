@@ -18,12 +18,12 @@ public class CancelEvent extends QuestEvent {
 
     public CancelEvent(final Instruction instruction) throws InstructionParseException {
         super(instruction, false);
-        canceler = BetonQuest.getCanceler().get(instruction.getPackage().getPackagePath() + "." + instruction.next());
+        canceler = BetonQuest.getCanceler().get(instruction.getPackage().getQuestPath() + "." + instruction.next());
     }
 
     @Override
     protected Void execute(final Profile profile) throws QuestRuntimeException {
-        canceler.cancel(profile);
+        canceler.cancel(profile.getOnlineProfile().get());
         return null;
     }
 

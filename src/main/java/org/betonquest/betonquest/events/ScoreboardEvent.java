@@ -34,7 +34,7 @@ public class ScoreboardEvent extends QuestEvent {
             multi = false;
         }
         try {
-            count = new VariableNumber(instruction.getPackage().getPackagePath(), number);
+            count = new VariableNumber(instruction.getPackage().getQuestPath(), number);
         } catch (final InstructionParseException e) {
             throw new InstructionParseException("Could not parse score count", e);
         }
@@ -48,7 +48,7 @@ public class ScoreboardEvent extends QuestEvent {
         if (obj == null) {
             throw new QuestRuntimeException("Scoreboard objective " + objective + " does not exist!");
         }
-        final Score score = obj.getScore(profile.getOfflinePlayer());
+        final Score score = obj.getScore(profile.getPlayer());
         if (multi) {
             score.setScore((int) Math.floor(score.getScore() * count.getDouble(profile)));
         } else {

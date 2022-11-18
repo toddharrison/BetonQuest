@@ -15,7 +15,7 @@ import org.betonquest.betonquest.Pointer;
 import org.betonquest.betonquest.api.Objective;
 import org.betonquest.betonquest.api.bukkit.config.custom.multi.MultiConfiguration;
 import org.betonquest.betonquest.api.config.ConfigAccessor;
-import org.betonquest.betonquest.api.config.QuestPackage;
+import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.profiles.Profile;
 import org.betonquest.betonquest.compatibility.Compatibility;
 import org.betonquest.betonquest.config.Config;
@@ -1114,10 +1114,9 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         if (profile == null) {
             return;
         }
-        final boolean isOnline = profile.getPlayer() != null;
+        final boolean isOnline = profile.getOnlineProfile().isPresent();
         PlayerData playerData = instance.getPlayerData(profile);
-        // if the player is offline then get his PlayerData outside of the
-        // list
+        // if the player is offline then get his PlayerData outside the list
         if (playerData == null) {
             LOG.debug("Player is offline, loading his data");
             playerData = new PlayerData(profile);
@@ -1812,7 +1811,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
 
     private void sendMessage(final CommandSender sender, final String messageName, final String... variables) {
         if (sender instanceof Player) {
-            Config.sendMessage(null, PlayerConverter.getID((Player) sender).getOnlineProfile(), messageName, variables);
+            Config.sendMessage(null, PlayerConverter.getID((Player) sender), messageName, variables);
         } else {
             final String message = Config.getMessage(Config.getLanguage(), messageName, variables);
             sender.sendMessage(message);

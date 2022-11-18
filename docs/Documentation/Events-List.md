@@ -357,12 +357,12 @@ Displays a notification using the NotifyIO system.
     `eventName: {=="==}notify Peter:Heya %player%!{=="==}` :arrow_right: `eventName: {=="==}notify Peter{++\\++}:Heya %player%!{=="==}`<br>
     `otherEvent: notify You own %math.calc:5% fish!` :arrow_right: `otherEvent: You own %math.calc{++\++}:5% fish!`
 
-| Option                                                     | Description                                                                                                                                 |
-|------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
-| message  	                                                 | The message that will be displayed. Supports variables and translations. *Required, must be first*             	                            |
-| category 	                                                 | Will load all settings from that Notification Category. Can be a comma-seperated list. The first existent category will be used. *Optional* |   
-| io       	                                                 | Any [NotifyIO](Notification-IO's-&-Categories.md). Overrides the "category" settings. *Optional*                                            |
-| [NotifyIO](Notification-IO's-&-Categories.md#notify-ios) 	 | Any setting from the defined notifyIO. Can be used multiple times. Overrides the "category" settings. *Optional*                            |
+| Option                                                   | Description                                                                                                                                 |
+|----------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
+| message                                                  | The message that will be displayed. Supports variables and translations. *Required, must be first*                                          |
+| category                                                 | Will load all settings from that Notification Category. Can be a comma-seperated list. The first existent category will be used. *Optional* |   
+| io                                                       | Any [NotifyIO](Notification-IO's-&-Categories.md). Overrides the "category" settings. *Optional*                                            |
+| [NotifyIO](Notification-IO's-&-Categories.md#notify-ios) | Any setting from the defined notifyIO. Can be used multiple times. Overrides the "category" settings. *Optional*                            |
 
 The fallback NotifyIO is `chat` if no argument other than `message` is specified.    
 `message` is the only argument of this event that is not `key:value` based. You can freely add any text with spaces there.
@@ -417,15 +417,22 @@ This events works just like the [notify](#notification-notify) event but shows t
 
 **persistent**, **static**
 
-Manages the objectives. Syntax is `objective <action> name`, where `<action>` can be _start_/_add_ (one of the two),
-_delete_/_remove_ or _complete_/_finish_. Name is the name of the objective, as defined in the _objectives_ section.
+Adds, removes or completes the specified objective(s). 
+
+| Parameter      | Syntax                             | Default Value          | Explanation                             |
+|----------------|------------------------------------|------------------------|-----------------------------------------|
+| _action_       | Keyword: `add`,`remove`,`complete` | :octicons-x-circle-16: | The action to do with the objective(s). |
+| _objective(s)_ | `objectiveName` or `obj1,obj2`     | :octicons-x-circle-16: | The objective(s) to run the action on.  |
+
 
 Using this in static contexts only works when removing objectives!
 
-!!! example
-    ```YAML
-    objective start wood
-    ```
+
+```YAML
+events:
+  startQuest: "objective add killTheDragon,goToDungeon"
+  progressQuest: "objective complete killTheDragon"
+```
 
 ## OPsudo: `opsudo`
 

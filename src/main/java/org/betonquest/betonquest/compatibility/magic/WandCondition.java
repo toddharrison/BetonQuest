@@ -54,7 +54,7 @@ public class WandCondition extends Condition {
                     final VariableNumber level;
                     final String[] spellParts = spell.split(":");
                     try {
-                        level = new VariableNumber(instruction.getPackage().getPackagePath(), spellParts[1]);
+                        level = new VariableNumber(instruction.getPackage().getQuestPath(), spellParts[1]);
                     } catch (final InstructionParseException e) {
                         throw new InstructionParseException("Could not parse spell level", e);
                     }
@@ -73,7 +73,7 @@ public class WandCondition extends Condition {
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     @Override
     protected Boolean execute(final Profile profile) {
-        final Player player = profile.getOnlineProfile().getOnlinePlayer();
+        final Player player = profile.getOnlineProfile().get().getPlayer();
         int heldAmount;
 
         switch (type) {

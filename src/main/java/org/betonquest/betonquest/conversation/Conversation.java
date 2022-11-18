@@ -9,7 +9,7 @@ import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.ConversationOptionEvent;
 import org.betonquest.betonquest.api.PlayerConversationEndEvent;
 import org.betonquest.betonquest.api.PlayerConversationStartEvent;
-import org.betonquest.betonquest.api.config.QuestPackage;
+import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.profiles.OnlineProfile;
 import org.betonquest.betonquest.api.profiles.Profile;
 import org.betonquest.betonquest.config.Config;
@@ -98,7 +98,7 @@ public class Conversation implements Listener {
         this.conv = this;
         this.plugin = BetonQuest.getInstance();
         this.onlineProfile = onlineProfile;
-        this.player = onlineProfile.getOnlinePlayer();
+        this.player = onlineProfile.getPlayer();
         this.pack = Config.getPackages().get(conversationID.substring(0, conversationID.indexOf('.')));
         this.language = plugin.getPlayerData(onlineProfile).getLanguage();
         this.location = location;
@@ -180,7 +180,7 @@ public class Conversation implements Listener {
                 convName = data.getName();
                 optionName = option;
             }
-            final ConversationData currentData = plugin.getConversation(pack.getPackagePath() + "." + convName);
+            final ConversationData currentData = plugin.getConversation(pack.getQuestPath() + "." + convName);
             if (force || BetonQuest.conditions(this.onlineProfile, currentData.getConditionIDs(optionName, OptionType.NPC))) {
                 this.option = optionName;
                 data = currentData;
@@ -299,7 +299,7 @@ public class Conversation implements Listener {
         //only display status messages if conversationIO allows it
         if (conv.inOut.printMessages()) {
             // print message
-            conv.inOut.print(Config.parseMessage(pack.getPackagePath(), onlineProfile, "conversation_end", data.getQuester(language)));
+            conv.inOut.print(Config.parseMessage(pack.getQuestPath(), onlineProfile, "conversation_end", data.getQuester(language)));
         }
         //play conversation end sound
         Config.playSound(onlineProfile, "end");
@@ -372,7 +372,7 @@ public class Conversation implements Listener {
         if (blacklist.contains(cmdName)) {
             event.setCancelled(true);
             try {
-                Config.sendNotify(getPackage().getPackagePath(), PlayerConverter.getID(event.getPlayer()).getOnlineProfile(), "command_blocked", "command_blocked,error");
+                Config.sendNotify(getPackage().getQuestPath(), PlayerConverter.getID(event.getPlayer()), "command_blocked", "command_blocked,error");
             } catch (final QuestRuntimeException e) {
                 LOG.warn(pack, "The notify system was unable to play a sound for the 'command_blocked' category. Error was: '" + e.getMessage() + "'", e);
             }
@@ -518,7 +518,7 @@ public class Conversation implements Listener {
             try {
                 final String name = data.getConversationIO();
                 final Class<? extends ConversationIO> convIO = plugin.getConvIO(name);
-                conv.inOut = convIO.getConstructor(Conversation.class, Profile.class).newInstance(conv, onlineProfile);
+                conv.inOut = convIO.getConstructor(Conversation.class, OnlineProfile.class).newInstance(conv, onlineProfile);
             } catch (final InstantiationException | IllegalAccessException | IllegalArgumentException
                            | InvocationTargetException | NoSuchMethodException | SecurityException e) {
                 LOG.warn(pack, "Error when loading conversation IO", e);
@@ -533,7 +533,7 @@ public class Conversation implements Listener {
                 try {
                     final String name = data.getInterceptor();
                     final Class<? extends Interceptor> interceptor = plugin.getInterceptor(name);
-                    conv.interceptor = interceptor.getConstructor(Conversation.class, Profile.class).newInstance(conv, onlineProfile);
+                    conv.interceptor = interceptor.getConstructor(Conversation.class, OnlineProfile.class).newInstance(conv, onlineProfile);
                 } catch (final InstantiationException | IllegalAccessException | IllegalArgumentException
                                | InvocationTargetException | NoSuchMethodException | SecurityException e) {
                     LOG.warn(pack, "Error when loading interceptor", e);
@@ -561,7 +561,7 @@ public class Conversation implements Listener {
                 if (conv.inOut.printMessages()) {
                     // print message about starting a conversation only if it
                     // is started, not resumed
-                    conv.inOut.print(Config.parseMessage(pack.getPackagePath(), onlineProfile, "conversation_start", new String[]{data.getQuester(language)},
+                    conv.inOut.print(Config.parseMessage(pack.getQuestPath(), onlineProfile, "conversation_start", new String[]{data.getQuester(language)},
                             prefixName, prefixVariables));
                 }
                 //play the conversation start sound

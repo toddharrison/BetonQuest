@@ -31,7 +31,7 @@ public class OpSudoEvent extends QuestEvent {
     @Override
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     protected Void execute(final Profile profile) {
-        final Player player = profile.getOnlineProfile().getOnlinePlayer();
+        final Player player = profile.getOnlineProfile().get().getPlayer();
         final boolean previousOp = player.isOp();
         try {
             player.setOp(true);
@@ -39,7 +39,7 @@ public class OpSudoEvent extends QuestEvent {
                 String com = command.command;
                 for (final String var : command.variables) {
                     com = com.replace(var, BetonQuest.getInstance().getVariableValue(
-                            instruction.getPackage().getPackagePath(), var, profile));
+                            instruction.getPackage().getQuestPath(), var, profile));
                 }
                 player.performCommand(com);
             }

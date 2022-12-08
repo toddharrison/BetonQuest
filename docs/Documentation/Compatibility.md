@@ -343,7 +343,8 @@ This event simply gives the player specified amount of Heroes experience. The fi
     ```
 
 ## [HolographicDisplays](http://dev.bukkit.org/bukkit-plugins/holographic-displays/)
-
+!!! info ""
+    **Required HolographicDisplays version: _3.0.0_ or above** 
 
 ### Hidden Holograms
 Installing this plugin will enable you to create hidden holograms, which will be shown to players only if they meet specified conditions. Note that you need to have [ProtocolLib](https://www.spigotmc.org/resources/1997/) installed in order to hide holograms from certain players.
@@ -753,8 +754,9 @@ mmoitemtake ARMOR KINGS_CHESTPLATE invOrder:Armor,Backpack
 
 
 ## [MythicMobs](http://dev.bukkit.org/bukkit-plugins/mythicmobs/)
+!!! info ""
+    **Required MythicMobs version: _5.0.0_ or above** 
 
-Having MythicMobs allows you to use MythicMobs MobKill objective and MythicMobs SpawnMob event.
 
 ### Objectives
 
@@ -798,14 +800,14 @@ Check whether the player is near a specific MythicMobs entity. The first argumen
 
 #### :material-skull: Spawn MythicMob: `mspawnmob`
 
-| Parameter  | Syntax                                           | Default Value          | Explanation                                                                                                                             |
-|------------|--------------------------------------------------|------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| _location_ | [ULF](./Reference.md#unified-location-formating) | :octicons-x-circle-16: | The location to spawn the mob at.                                                                                                       |
-| _name_     | name:level                                       | :octicons-x-circle-16: | MythicMobs mob name. A level must be specifed after a colon.                                                                            |
-| _amount_   | Positive Number                                  | :octicons-x-circle-16: | Amount of mobs to spawn.                                                                                                                |
-| _target_   | Keyword                                          | False                  | Will make the mob target the player.                                                                                                    |
-| _private_  | Keyword                                          | Disabled               | Will hide the mob from all other players until restart. This does not hide particles or block sound from the mob. Also see notes below. |
-| _marked_   | marked:text                                      | None                   | Marks the mob. You can check for marked mobs in mmobkill objective.                                                                     |
+| Parameter  | Syntax                                              | Default Value          | Explanation                                                                                                                             |
+|------------|-----------------------------------------------------|------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| _location_ | [ULF](./Data-Formats.md#unified-location-formating) | :octicons-x-circle-16: | The location to spawn the mob at.                                                                                                       |
+| _name_     | name:level                                          | :octicons-x-circle-16: | MythicMobs mob name. A level must be specifed after a colon.                                                                            |
+| _amount_   | Positive Number                                     | :octicons-x-circle-16: | Amount of mobs to spawn.                                                                                                                |
+| _target_   | Keyword                                             | False                  | Will make the mob target the player.                                                                                                    |
+| _private_  | Keyword                                             | Disabled               | Will hide the mob from all other players until restart. This does not hide particles or block sound from the mob. Also see notes below. |
+| _marked_   | marked:text                                         | None                   | Marks the mob. You can check for marked mobs in mmobkill objective.                                                                     |
 
 
 ```YAML title="Example"

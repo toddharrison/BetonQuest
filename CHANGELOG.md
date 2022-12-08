@@ -138,12 +138,16 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - spectator mode is now disabled for chest conversation io to prevent being stuck in the conversation
 - packet chat interceptor does not catch action bar anymore
 - time event does not work with floating point values
+- global variable recursive resolution cross packages
 - `location` objective - is now more robust if the player changes a world
 - `brew` objective - now counts newly brewed potions even if there were already some potions of the desired type in
+- `chestput` objective - did now work with double chests
   other slots present
 - `menu`(open) event - showed the previous menu again
 - non .yml files causing errors when loading quest packages
-- `pickrandom` event did not calculated chance correctly
+- `pickrandom` event - did not calculated chance correctly
+- `pickrandom` event - did not allowed dashes in event names
+- `action` objective - ignored offhand at all
 - Things that are also fixed in 1.12.X:
     - parsing of math variable
     - Citizens compatibility for not spawned NPCs

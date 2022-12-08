@@ -69,35 +69,15 @@ a "Maven" tab on the right side of the editor if that's the case. Otherwise, do 
 First, open the "Project" tab on the left site. Then right-click the `pom.xml` file in the projects root folder. 
 Select "Add as Maven Project". 
 
-To build the BetonQuest jar, you simply need to run `mvn verify`.
+At this point it is always recommended to run `mvn verify` to check if the software builds fine before making any changes.
+To build the BetonQuest jar, you also run `mvn verify`.
 You can do this from the command line or use IntelliJ's `Maven` tab (double-click on `BetonQuest/Lifecycle/verify`).
 You can then find a `BetonQuest.jar` in the newly created folder `/target/artifacts`.
 
 ### Build speed up
 As BetonQuest has a lot of dependencies, the build can take a long time, especially for the first build.
-You can speed this up with the following configuration, that downloads all dependencies from our own Repository Manager
-instead of searching through all repositories that are defined in the project.
-
-If you do not already have the file, create a new file in this location: `<HOME DIRECTORY>\.m2\settings.xml`.
-The home directory on Windows is `C:\Users\<YOUR USER NAME>`.
-Then adopt or copy the following into the file:
-
-````XML linenums="1"
-<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
-                      http://maven.apache.org/xsd/settings-1.0.0.xsd">
-
-  <mirrors>
-    <mirror>
-      <id>BetonQuest-Mirror</id>
-      <url>https://betonquest.org/nexus/repository/default/</url>
-      <mirrorOf>betonquest-papermc-repo,betonquest-enginehub-repo,betonquest-heroes-repo,betonquest-lumine-repo,betonquest-citizensnpcs-repo,betonquest-codemc-repo,betonquest-placeholderapi-repo,betonquest-dmulloy2-repo,betonquest-lichtspiele-repo,betonquest-elmakers-repo,betonquest-jitpack-repo,betonquest-sonatype-releases-repo,betonquest-sonatype-snapshots-repo,betonquest-minecraft-repo</mirrorOf>
-    </mirror>
-  </mirrors>
-
-</settings>
-````
+By default, the build speed up is only enabled when running Maven from the command line, but not when using IntelliJ.
+To enable it, go to `File/Settings/Build, Execution, Deployment/Build Tools/Maven` and check `Use settings from .mvn/maven.config`.
 
 ### Build on Start
 The first build of a day can take a while, because every version gets re-checked once every day.
@@ -123,6 +103,7 @@ Install all other dependencies by entering `pip install -r config/docs-requireme
     Set your license key by executing `setx MKDOCS_MATERIAL_INSIDERS LICENSE_KEY_HERE /M` (Windows) in the terminal.
     Now you need to restart IntelliJ for the changes to take effect. 
     Then run `pip install -r config/docs-requirements-insiders.txt` instead of `docs-requirements.txt`.
+    Run `mkdocs serve --config-file mkdocs.insiders.yml` to preview the docs.
 
 ### See your changes live
 Run this command in IntelliJ's integrated terminal (at the bottom) to create a docs preview in your browser:

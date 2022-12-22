@@ -20,6 +20,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
     - All existing users must add aureliumskills: 'true' to their config.yml's hook section.
     - added AureliumStatsLevelCondition
     - added AureliumSkillsLevelExperienceEvent
+- add DecentHolograms Compatibility
+    - holograms from DecentHolograms are a direct alternative to HolographicDisplays
 - add LuckPerms context integration for tags
     - All existing users must add luckperms: 'true' to their config.yml's hook section.
 - added Event Schedules to replace old static-events system
@@ -31,6 +33,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - allow access to objective variable properties from other packages
 - allow point variables from other packages
 - API method in objective API that starts and stops it per player
+- config option `default_hologram` to set hologram priority if multiple hologram plugins are loaded at once
 - config option `journal.show_in_backpack` to remove the journal from the backpack
 - config option `journal.lock_default_journal_slot` to lock the journal to the `default_journal_slot`
 - config option `journal.give_on_respawn` to add the journal to the inventory after the player respawns
@@ -117,6 +120,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - HolographicDisplays updated to 3.0.0
 - Added staticness indicator to variables that can be executed without a direct player connection
 - written book quest items can now be read
+- `experience` objective event and condition were reworked
+  - condition and objective do not support raw experience anymore
+  - all allow decimal level and variables now
+- changed backpack configuration. "" will hide the compass or canceler
 - Things that are also changed in 1.12.X:
     - math variable now allows rounding output with the ~ operator
     - French translation has been updated
@@ -139,6 +146,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - packet chat interceptor does not catch action bar anymore
 - time event does not work with floating point values
 - global variable recursive resolution cross packages
+- inaccurate location variable decimal rounding
 - `location` objective - is now more robust if the player changes a world
 - `brew` objective - now counts newly brewed potions even if there were already some potions of the desired type in
 - `chestput` objective - did now work with double chests

@@ -144,6 +144,8 @@ public class Backpack implements Listener {
         private final int pages;
         private final int pageOffset;
         private final boolean showJournal;
+        private final boolean showCancel;
+        private final boolean showCompass;
         private final List<ItemStack> backpackItems;
 
         /**
@@ -214,37 +216,47 @@ public class Backpack implements Listener {
             ItemStack cancel = null;
             final String cancelButton = Config.getString("config.items.backpack.cancel_button");
             if (cancelButton != null && !cancelButton.isEmpty()) {
-                try {
-                    cancel = new QuestItem(new ItemID(null, cancelButton)).generate(1);
-                } catch (final ObjectNotFoundException | InstructionParseException e) {
-                    LOG.warn("Could not load cancel button: " + e.getMessage(), e);
+                showCancel = true;
+                if (!"DEFAULT".equalsIgnoreCase(cancelButton)) {
+                    try {
+                        cancel = new QuestItem(new ItemID(null, cancelButton)).generate(1);
+                    } catch (final ObjectNotFoundException | InstructionParseException e) {
+                        LOG.warn("Could not load cancel button: " + e.getMessage(), e);
+                    }
                 }
+                if (cancel == null) {
+                    cancel = new ItemStack(Material.BONE);
+                }
+                final ItemMeta meta = cancel.getItemMeta();
+                meta.setDisplayName(Config.getMessage(lang, "cancel").replaceAll("&", "§"));
+                cancel.setItemMeta(meta);
+                content[45] = cancel;
+                // set "compass targets" button
+            } else {
+                showCancel = false;
             }
-            if (cancel == null) {
-                cancel = new ItemStack(Material.BONE);
-            }
-            final ItemMeta meta = cancel.getItemMeta();
-            meta.setDisplayName(Config.getMessage(lang, "cancel").replaceAll("&", "§"));
-            cancel.setItemMeta(meta);
-            content[45] = cancel;
-            // set "compass targets" button
             ItemStack compassItem = null;
             final String compassButton = Config.getString("config.items.backpack.compass_button");
             if (compassButton != null && !compassButton.isEmpty()) {
-                try {
-                    compassItem = new QuestItem(new ItemID(null, compassButton)).generate(1);
-                } catch (final ObjectNotFoundException | InstructionParseException e) {
-                    LOG.warn("Could not load compass button: " + e.getMessage(), e);
+                showCompass = true;
+                if (!"DEFAULT".equalsIgnoreCase(compassButton)) {
+                    try {
+                        compassItem = new QuestItem(new ItemID(null, compassButton)).generate(1);
+                    } catch (final ObjectNotFoundException | InstructionParseException e) {
+                        LOG.warn("Could not load compass button: " + e.getMessage(), e);
+                    }
                 }
+                if (compassItem == null) {
+                    compassItem = new ItemStack(Material.COMPASS);
+                }
+                final ItemMeta compassMeta = compassItem.getItemMeta();
+                compassMeta.setDisplayName(Config.getMessage(lang, "compass").replace('&', '&'));
+                compassItem.setItemMeta(compassMeta);
+                content[46] = compassItem;
+                // set the inventory and display it
+            } else {
+                showCompass = false;
             }
-            if (compassItem == null) {
-                compassItem = new ItemStack(Material.COMPASS);
-            }
-            final ItemMeta compassMeta = compassItem.getItemMeta();
-            compassMeta.setDisplayName(Config.getMessage(lang, "compass").replace('&', '&'));
-            compassItem.setItemMeta(compassMeta);
-            content[46] = compassItem;
-            // set the inventory and display it
             inv.setContents(content);
             onlineProfile.getPlayer().openInventory(inv);
             Bukkit.getPluginManager().registerEvents(Backpack.this, BetonQuest.getInstance());
@@ -334,10 +346,10 @@ public class Backpack implements Listener {
                 display = new Page(page - 1);
             } else if (slot == 50 && page < pages) {
                 display = new Page(page + 1);
-            } else if (slot == 45) {
+            } else if (slot == 45 && showCancel) {
                 // slot 45 is a slot with quest cancelers
                 display = new Cancelers();
-            } else if (slot == 46) {
+            } else if (slot == 46 && showCompass) {
                 // slot 46 is a slot with compass pointers
                 display = new Compass();
             }
@@ -369,7 +381,7 @@ public class Backpack implements Listener {
             int numberOfRows = (size - size % 9) / 9 + 1;
             if (numberOfRows > 6) {
                 numberOfRows = 6;
-                LOG.warn("Player " + onlineProfile.getPlayer().getName() + " has too many active quests, please"
+                LOG.warn(onlineProfile + " has too many active quests, please"
                         + " don't allow for so many of them. It slows down your server!");
             }
             inv = Bukkit.createInventory(null, numberOfRows * 9, Config.getMessage(lang, "cancel_page"));
@@ -480,7 +492,7 @@ public class Backpack implements Listener {
             final int size = locations.size();
             final int numberOfRows = (size - size % 9) / 9 + 1;
             if (numberOfRows > 6) {
-                LOG.warn("Player " + onlineProfile.getPlayer().getName() + " has too many compass pointers, please"
+                LOG.warn(onlineProfile + " has too many compass pointers, please"
                         + " don't allow for so many of them. It slows down your server!");
                 onlineProfile.getPlayer().closeInventory();
                 return;

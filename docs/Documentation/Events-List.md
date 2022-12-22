@@ -191,7 +191,7 @@ so those events should not be blocked by any conditions!
 | Parameter       | Syntax            | Default Value          | Explanation                                                                                     |
 |-----------------|-------------------|------------------------|-------------------------------------------------------------------------------------------------|
 | _events to run_ | eventName1,event2 | :octicons-x-circle-16: | One or multiple events to run. Contains event names seperated by commas.                        |
-| _delay_         | Keyword           | 1 tick                 | The delay before the folder starts executing it's events.                                       |
+| _delay_         | Keyword           | without delay          | The delay before the folder starts executing it's events.                                       |
 | _period_        | period:number     | 1 tick                 | The time between each event. Minimum value is one tick (~20ms).                                 |
 | _time unit_     | Keyword           | Seconds                | The unit of time to use for delay and period. Either `ticks` or `minutes`. Omit to use seconds. |
 | _random_        | random:number     | Disabled               | Enables "random mode". Will randomly pick the defined amount of events .                        |
@@ -349,13 +349,15 @@ Displays a notification using the NotifyIO system.
 !!! warning
     All colons (`:`) in the message part of the notification need to be escaped, including those inside variables.
     One backslash (`\`) is required when using no quoting at all (`...`) or single quotes
-    (`'...'`). Two backslashes are required (`\\`) when using double quotes (`"..."`).
+    (`'...'`). Two backslashes are required (`\\`) when using double quotes (`"..."`).  
+    You also need to escape the backslash itself, if you use double quotes for some things like `\n`.
 
     Examples:<br>
     `eventName: notify Peter:Heya %player%!` :arrow_right: `eventName: notify Peter{++\++}:Heya %player%!`<br>
     `eventName: {=='==}notify Peter:Heya %player%!{=='==}` :arrow_right: `eventName: {=='==}notify Peter{++\++}:Heya %player%!{=='==}`<br>
     `eventName: {=="==}notify Peter:Heya %player%!{=="==}` :arrow_right: `eventName: {=="==}notify Peter{++\\++}:Heya %player%!{=="==}`<br>
-    `otherEvent: notify You own %math.calc:5% fish!` :arrow_right: `otherEvent: You own %math.calc{++\++}:5% fish!`
+    `otherEvent: notify You own %math.calc:5% fish!` :arrow_right: `otherEvent: You own %math.calc{++\++}:5% fish!`<br>
+    `newLine: {=="==}notify Some multiline \n message{=="==}` :arrow_right: `newLine: {=="==}notify Some multiline {++\++}\n message{=="==}`
 
 | Option                                                   | Description                                                                                                                                 |
 |----------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
@@ -501,7 +503,7 @@ This event also supports an optional `notify` argument that will display informa
 This event allows you to specify multiple instructions in one, long instruction. Each instruction must be started
 with the `^` character (it divides all the instructions). It's not the same as the `folder` event, because you have to
 specify the actual instruction, not an event name.
-Don't use conditions here, it behaves strangely. We will fix this in 2.0.
+Don't use conditions here, it behaves strangely.
 
 !!! example
     ```YAML
@@ -663,11 +665,14 @@ events:
     
 ## Give experience: `experience`
 
-Gives the specified amount of experience points to the player. You can give whole levels by adding the `level` argument.
+Gives the specified amount of experience points to the player. You can give levels by adding the `level` argument.
+You can also define decimal numbers when giving levels, for example `experience 1.5 level` will give 1 level and half.
 
 !!! example
     ```YAML
+    experience 15
     experience 4 level
+    experience 4.5 level
     ```
 ## Burn: `burn`
 

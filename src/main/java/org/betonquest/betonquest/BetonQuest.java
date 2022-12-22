@@ -431,7 +431,7 @@ public class BetonQuest extends JavaPlugin {
         final boolean isMet = outcome != conditionID.inverted();
         log.debug(conditionID.getPackage(),
                 (isMet ? "TRUE" : "FALSE") + ": " + (conditionID.inverted() ? "inverted" : "") + " condition "
-                        + conditionID + " for player " + (profile == null ? null : profile.getProfileName()));
+                        + conditionID + " for " + profile);
         return isMet;
     }
 
@@ -463,7 +463,7 @@ public class BetonQuest extends JavaPlugin {
             log.debug(eventID.getPackage(), "Firing static event " + eventID);
         } else {
             log.debug(eventID.getPackage(),
-                    "Firing event " + eventID + " for " + profile.getProfileName());
+                    "Firing event " + eventID + " for " + profile);
         }
         try {
             event.fire(profile);
@@ -493,7 +493,7 @@ public class BetonQuest extends JavaPlugin {
         }
         if (objective.containsPlayer(profile)) {
             log.debug(objectiveID.getPackage(),
-                    "Player " + profile.getProfileName() + " already has the " + objectiveID +
+                    profile + " already has the " + objectiveID +
                             " objective");
             return;
         }
@@ -525,7 +525,7 @@ public class BetonQuest extends JavaPlugin {
         }
         if (objective.containsPlayer(profile)) {
             log.debug(objectiveID.getPackage(),
-                    "Player " + profile.getProfileName() + " already has the " + objectiveID + " objective!");
+                    profile + " already has the " + objectiveID + " objective!");
             return;
         }
         objective.resumeObjectiveForPlayer(profile, instruction);
@@ -554,18 +554,16 @@ public class BetonQuest extends JavaPlugin {
                 return e.getValue();
             }
         }
-        final String[] parts = instruction.replace("%", "").split("\\.");
-        if (parts.length <= 0) {
-            throw new InstructionParseException("Not enough arguments in variable " + variableID);
-        }
-        final Class<? extends Variable> variableClass = VARIABLE_TYPES.get(parts[0]);
+        final Instruction instructionVar = variableID.generateInstruction();
+        final Class<? extends Variable> variableClass = VARIABLE_TYPES.get(instructionVar.getPart(0));
         // if it's null then there is no such type registered, log an error
         if (variableClass == null) {
-            throw new InstructionParseException("Variable type " + parts[0] + " is not registered");
+            throw new InstructionParseException("Variable type " + instructionVar.getPart(0) + " is not registered");
         }
+
         try {
             final Variable variable = variableClass.getConstructor(Instruction.class)
-                    .newInstance(new VariableInstruction(pack, null, instruction));
+                    .newInstance(new VariableInstruction(variableID.getPackage(), null, "%" + instructionVar.getInstruction() + "%"));
             VARIABLES.put(variableID, variable);
             log.debug(pack, "Variable " + variableID + " loaded");
             return variable;
@@ -579,6 +577,10 @@ public class BetonQuest extends JavaPlugin {
             log.reportException(pack, e);
         }
         return null;
+    }
+
+    public static boolean isVariableType(final String type) {
+        return VARIABLE_TYPES.get(type) != null;
     }
 
     /**
@@ -1188,7 +1190,7 @@ public class BetonQuest extends JavaPlugin {
         loadData();
         // start objectives and update journals for every online profiles
         for (final Profile onlineProfile : PlayerConverter.getOnlineProfiles()) {
-            log.debug("Updating journal for player " + onlineProfile.getProfileName());
+            log.debug("Updating journal for player " + onlineProfile);
             final PlayerData playerData = instance.getPlayerData(onlineProfile);
             GlobalObjectives.startAll(onlineProfile);
             final Journal journal = playerData.getJournal();
@@ -1284,7 +1286,7 @@ public class BetonQuest extends JavaPlugin {
      * @param playerData PlayerData object to store
      */
     public void putPlayerData(final Profile profile, final PlayerData playerData) {
-        log.debug("Inserting data for " + profile.getProfileName());
+        log.debug("Inserting data for " + profile);
         playerDataMap.put(profile, playerData);
     }
 
@@ -1543,7 +1545,7 @@ public class BetonQuest extends JavaPlugin {
                 return "";
             }
             if (profile == null && !var.isStaticness()) {
-                log.warn(pack, "Variable '" + name + "' cannot be executed without a player reference!");
+                log.warn(pack, "Variable '" + name + "' cannot be executed without a profile reference!");
                 return "";
             }
             return var.getValue(profile);

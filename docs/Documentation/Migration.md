@@ -15,6 +15,8 @@ Skip to the first version that is newer than the version that you're migrating f
 - [2.0.0-DEV-98 - RPGMenu Merge](#200-dev-98-rpgmenu-merge)
 - [2.0.0-DEV-238 - Package Structure Rework](#200-dev-238-package-structure-rework)
 - [2.0.0-DEV-337 - Event Scheduling Rework](#200-dev-337-event-scheduling-rework)
+- [2.0.0-DEV-450 - Package section](#200-dev-450-package-section)
+- [2.0.0-DEV-485 - Experience changes](#200-dev-485-experience-changes)
 
 ### 2.0.0-DEV-98 - RPGMenu Merge
 
@@ -99,7 +101,7 @@ All existing RPGMenu users must update their RPGMenu config file. Simply rename 
                 option1:
                 # ...
             ```
-                  
+
 ### 2.0.0-DEV-337 - Event Scheduling Rework
 
 - All your static events need to be converted to the new scheduling system.
@@ -133,3 +135,30 @@ All existing RPGMenu users must update their RPGMenu config file. Simply rename 
               You still have to put it in 'quotes'.
         
             4. The former value is now the events value.
+
+### 2.0.0-DEV-450 - Package Section
+
+- There is now a new section `package` for organizing package related settings.
+  As a result of this the `enabled` boolean was moved to this section.
+  If you use the `enabled` boolean you need to move it to the `package` section.
+  
+    !!! info "Example"
+            ```YAML title="Old Syntax"
+            enabled: false
+            ```
+            
+            ```YAML title="New Syntax"
+            package:
+              enabled: false
+            ```
+
+### 2.0.0-DEV-485 - Experience changes
+
+Due to a misuse, all code regarding player experience (`experience` event, condition and objective) has been changed.
+It is not possible to obtain the amount of experience points a player has, only their level can be obtained.  
+If you used these you might have to adjust the configured values because the behaviour changed as follows:
+
+- The `experience` objective and condition do not allow raw experience anymore. Only levels are supported from now on.
+- The `experience` objective, condition and event now supports decimal numbers.  
+  For example, you can use `experience 1.5` to check for one and a half level.  
+  You can convert raw experience points to levels, using such decimal numbers.

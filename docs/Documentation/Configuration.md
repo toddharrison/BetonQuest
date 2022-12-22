@@ -99,6 +99,14 @@ Read [this page](Conversations.md) for more information about conversation inter
 `default_interceptor` is a comma-separated list of chat interceptors with the first valid one used.
 Read [this page](Conversations.md) for more information about chat interceptors.
 
+### Default Hologram Plugin
+The [holograms integration](Compatibility.md#holograms) works with multiple plugins.
+You can use the `default_hologram` option to set which plugin should be used.
+        
+`default_hologram: DecentHolograms,HolographicDisplays` will make DecentHolograms the default hologram plugin. If it is not installed, 
+HolographicDisplays will be used instead. If you want to use HolographicDisplays as the default, you can use `default_hologram: HolographicDisplays`
+
+
 ### Conversation Chat Display options
 `display_chat_after_conversation` this will prevent all chat messages from displaying during a conversation and it will show them once it's finished.
 
@@ -212,14 +220,25 @@ If you want to add a font style (bold, italic etc.) do so after placing a comma.
 
 ### Items
 
-`items` gives the possibility to override default items, that are defined and used by BetonQuest.
-The items need to be defined in a package, and then you need to reference the item here with an absolute path.
+The items section allows you to override the default items that are displayed across BetonQuest's GUIs.
+All items you specify here need to be defined in a package. You need to reference the item with a full path.
 
-* `backpack` items that are used by the backpack.
-  - `previous_button` the item to go to the previous page of items in the backpack.
-  - `next_button` the item to go to the next page of items in the backpack.
-  - `cancel_button` the item to show the quest cancelers.  
-  - `compass_button` the item to show the quest compass.
+The `cancel_button` and `compass_button` can be removed from the backpack by setting their values to `""`.
+
+```YAML
+items:
+  backpack: #(1)!
+    previous_button: "my_package.backpack_previous_button" #(2)!
+    next_button: "my_package.backpack_next_button" #(3)!
+    cancel_button: "my_package.backpack_cancel_button" #(4)!
+    compass_button: "my_package.backpack_compass_button" #(5)!
+```
+
+1. All items that are used by the backpack.
+2. The button to go to the previous backpack page.
+3. The button to go to the next backpack page.
+4. The quest cancelers. Can be removed from the backpack by setting the value to `""`.
+5. The quest compass. Can be removed from the backpack by setting the value to `""`.
 
 ### Misc settings
 

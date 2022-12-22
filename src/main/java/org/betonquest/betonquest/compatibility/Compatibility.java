@@ -10,7 +10,9 @@ import org.betonquest.betonquest.compatibility.citizens.CitizensIntegrator;
 import org.betonquest.betonquest.compatibility.denizen.DenizenIntegrator;
 import org.betonquest.betonquest.compatibility.effectlib.EffectLibIntegrator;
 import org.betonquest.betonquest.compatibility.heroes.HeroesIntegrator;
-import org.betonquest.betonquest.compatibility.holographicdisplays.HolographicDisplaysIntegrator;
+import org.betonquest.betonquest.compatibility.holograms.HologramProvider;
+import org.betonquest.betonquest.compatibility.holograms.decentholograms.DecentHologramsIntegrator;
+import org.betonquest.betonquest.compatibility.holograms.holographicdisplays.HolographicDisplaysIntegrator;
 import org.betonquest.betonquest.compatibility.jobsreborn.JobsRebornIntegrator;
 import org.betonquest.betonquest.compatibility.luckperms.LuckPermsIntegrator;
 import org.betonquest.betonquest.compatibility.magic.MagicIntegrator;
@@ -74,6 +76,9 @@ public class Compatibility implements Listener {
         for (final Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
             integratePlugin(plugin);
         }
+
+        //Must be called after all plugins have been integrated
+        HologramProvider.init();
 
         //Delay after server start to finish all hooking first
         new BukkitRunnable() {
@@ -160,8 +165,8 @@ public class Compatibility implements Listener {
         LOG.info("Hooking into " + name);
 
         try {
-            integrators.get(name).setValue(integrator);
             integrator.hook();
+            integrators.get(name).setValue(integrator);
         } catch (final HookException exception) {
             final String message = String.format("Could not hook into %s %s! %s",
                     hookedPlugin.getName(),
@@ -183,7 +188,6 @@ public class Compatibility implements Listener {
                     + "You can turn it off by setting 'hook." + name.toLowerCase(Locale.ROOT)
                     + "' to false in config.yml file.");
         }
-
     }
 
     private void registerCompatiblePlugins() {
@@ -206,12 +210,13 @@ public class Compatibility implements Listener {
         register("Quests", QuestsIntegrator.class);
         register("Shopkeepers", ShopkeepersIntegrator.class);
         register("PlaceholderAPI", PlaceholderAPIIntegrator.class);
-        register("HolographicDisplays", HolographicDisplaysIntegrator.class);
         register("ProtocolLib", ProtocolLibIntegrator.class);
         register("Brewery", BreweryIntegrator.class);
         register("Jobs", JobsRebornIntegrator.class);
         register("LuckPerms", LuckPermsIntegrator.class);
         register("AureliumSkills", AureliumSkillsIntegrator.class);
+        register("DecentHolograms", DecentHologramsIntegrator.class);
+        register("HolographicDisplays", HolographicDisplaysIntegrator.class);
     }
 
     private void register(final String name, final Class<? extends Integrator> integrator) {

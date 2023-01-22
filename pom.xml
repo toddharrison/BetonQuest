@@ -4,8 +4,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <properties>
-    <betonquest.version.base>2.0.0</betonquest.version.base>
-    <betonquest.version>${betonquest.version.base}-DEV-UNOFFICIAL</betonquest.version>
+    <revision>2.0.0</revision>
+    <changelist>-SNAPSHOT</changelist>
+    <betonquest.version>${revision}-DEV-UNOFFICIAL</betonquest.version>
     <minecraft.api.version>1.18</minecraft.api.version>
     <maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -18,7 +19,7 @@
   <name>BetonQuest</name>
   <groupId>org.betonquest</groupId>
   <artifactId>betonquest</artifactId>
-  <version>${betonquest.version.base}-SNAPSHOT</version>
+  <version>${revision}${changelist}</version>
   <description>All Your Adventure Supplies</description>
 
   <licenses>
@@ -186,14 +187,14 @@
     <dependency>
       <groupId>me.blackvein.quests</groupId>
       <artifactId>quests-api</artifactId>
-      <version>4.6.0</version>
+      <version>4.6.2</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>me.blackvein.quests</groupId>
       <artifactId>quests-core</artifactId>
-      <version>4.6.0</version>
+      <version>4.6.2</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
@@ -211,7 +212,7 @@
     <dependency>
       <groupId>com.comphenix.protocol</groupId>
       <artifactId>ProtocolLib</artifactId>
-      <version>4.7.0</version>
+      <version>5.0.0-SNAPSHOT</version>
       <scope>provided</scope>
       <optional>true</optional>
       <exclusions>
@@ -521,27 +522,9 @@
     </repository>
   </repositories>
 
-  <pluginRepositories>
-    <!-- needed for maven-shade-plugin 3.X.X-SNAPSHOT for java 17 support -->
-    <pluginRepository>
-      <id>apache-snapshot-repo</id>
-      <url>https://repository.apache.org/content/repositories/snapshots/</url>
-    </pluginRepository>
-  </pluginRepositories>
-
   <build>
     <directory>target/artifacts</directory>
-    <sourceDirectory>src/main/java</sourceDirectory>
     <resources>
-      <resource>
-        <directory>src/main/java</directory>
-        <includes>
-          <include>**/*.class</include>
-        </includes>
-        <excludes>
-          <exclude>**/*</exclude>
-        </excludes>
-      </resource>
       <resource>
         <directory>src/main/resources</directory>
         <filtering>true</filtering>
@@ -555,22 +538,6 @@
         </includes>
       </resource>
     </resources>
-
-    <testSourceDirectory>src/test/java</testSourceDirectory>
-    <testResources>
-      <testResource>
-        <directory>src/test/java</directory>
-        <includes>
-          <include>**/*.class</include>
-        </includes>
-        <excludes>
-          <exclude>**/*</exclude>
-        </excludes>
-      </testResource>
-      <testResource>
-        <directory>src/test/resources</directory>
-      </testResource>
-    </testResources>
 
     <plugins>
       <plugin>
@@ -615,6 +582,31 @@
             <phase>generate-sources</phase>
             <goals>
               <goal>delombok</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+        <configuration>
+          <updatePomFile>true</updatePomFile>
+          <flattenMode>resolveCiFriendliesOnly</flattenMode>
+          <outputDirectory>${project.build.directory}</outputDirectory>
+        </configuration>
+        <executions>
+          <execution>
+            <id>flatten</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>flatten</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>flatten.clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>clean</goal>
             </goals>
           </execution>
         </executions>
@@ -818,7 +810,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-enforcer-plugin</artifactId>
-          <version>3.0.0-M3</version>
+          <version>3.1.0</version>
         </plugin>
         <plugin>
           <groupId>org.projectlombok</groupId>
@@ -828,17 +820,22 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.8.1</version>
+          <version>3.10.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>flatten-maven-plugin</artifactId>
+          <version>1.2.5</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
-          <version>3.3.1-SNAPSHOT</version>
+          <version>3.4.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-pmd-plugin</artifactId>
-          <version>3.17.0</version>
+          <version>3.19.0</version>
           <dependencies>
             <dependency>
               <groupId>net.sourceforge.pmd</groupId>
@@ -854,7 +851,7 @@
           <configuration>
             <analysisCache>true</analysisCache>
             <rulesets>
-              <ruleset>config/pmd-ruleset.xml</ruleset>
+              <ruleset>${basedir}/config/pmd-ruleset.xml</ruleset>
             </rulesets>
             <includeTests>true</includeTests>
           </configuration>
@@ -862,9 +859,9 @@
         <plugin>
           <groupId>com.github.spotbugs</groupId>
           <artifactId>spotbugs-maven-plugin</artifactId>
-          <version>4.5.2.0</version>
+          <version>4.7.3.0</version>
           <configuration>
-            <excludeFilterFile>config/spotbugs-exclude.xml</excludeFilterFile>
+            <excludeFilterFile>${basedir}/config/spotbugs-exclude.xml</excludeFilterFile>
             <effort>max</effort>
             <threshold>low</threshold>
           </configuration>
@@ -872,7 +869,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-checkstyle-plugin</artifactId>
-          <version>3.1.2</version>
+          <version>3.2.0</version>
           <dependencies>
             <dependency>
               <groupId>com.puppycrawl.tools</groupId>
@@ -881,7 +878,7 @@
             </dependency>
           </dependencies>
           <configuration>
-            <configLocation>config/checkstyle.xml</configLocation>
+            <configLocation>${basedir}/config/checkstyle.xml</configLocation>
             <propertyExpansion>checkstyle.config.path=${basedir}/config</propertyExpansion>
             <includeTestSourceDirectory>true</includeTestSourceDirectory>
           </configuration>
@@ -894,12 +891,12 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-clean-plugin</artifactId>
-          <version>3.1.0</version>
+          <version>3.2.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-resources-plugin</artifactId>
-          <version>3.2.0</version>
+          <version>3.3.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -909,7 +906,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>3.3.0</version>
+          <version>3.4.1</version>
           <configuration>
             <!-- This is disabled because Java 16 has a stricter police for missing comments which the project does not meet yet. -->
             <failOnWarnings>false</failOnWarnings>
@@ -920,12 +917,12 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
-          <version>3.2.0</version>
+          <version>3.3.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>3.0.0-M5</version>
+          <version>3.0.0-M7</version>
           <configuration>
             <reuseForks>false</reuseForks>
             <forkCount>0.5C</forkCount>
@@ -935,17 +932,17 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-install-plugin</artifactId>
-          <version>3.0.0-M1</version>
+          <version>3.1.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-deploy-plugin</artifactId>
-          <version>3.0.0-M1</version>
+          <version>3.0.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-site-plugin</artifactId>
-          <version>3.9.1</version>
+          <version>4.0.0-M4</version>
         </plugin>
         <plugin>
           <groupId>org.ec4j.maven</groupId>
@@ -955,12 +952,12 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-project-info-reports-plugin</artifactId>
-          <version>3.1.2</version>
+          <version>3.4.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jxr-plugin</artifactId>
-          <version>3.1.1</version>
+          <version>3.3.0</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
@@ -970,7 +967,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-report-plugin</artifactId>
-          <version>3.0.0-M5</version>
+          <version>3.0.0-M7</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
@@ -980,12 +977,12 @@
         <plugin>
           <groupId>org.pitest</groupId>
           <artifactId>pitest-maven</artifactId>
-          <version>1.7.3</version>
+          <version>1.10.3</version>
           <dependencies>
             <dependency>
               <groupId>org.pitest</groupId>
               <artifactId>pitest-junit5-plugin</artifactId>
-              <version>0.16</version>
+              <version>1.1.0</version>
             </dependency>
           </dependencies>
         </plugin>

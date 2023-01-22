@@ -62,6 +62,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `mmoprofessionlevelup` objective can now check the main character level as well
 - `burning` condition
 - `inconversation` condition
+- `language` condition
 - `heroesattribute` condition - Heroes compatibility feature: Checks a player's level for a particular attribute against a value
 - `variable` condition - regex can now also be a variable
 - `mmspawn` event now has argument `target` Makes the spawned mob target the player
@@ -157,6 +158,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `pickrandom` event - did not allowed dashes in event names
 - `action` objective - ignored offhand at all
 - Things that are also fixed in 1.12.X:
+    - ProtocolLib's based `packet` interceptor was fixed for MC 1.19, now ProtocolLib 5.0.0 is required
     - parsing of math variable
     - Citizens compatibility for not spawned NPCs
     - NotifyIOs are case-sensitive

@@ -48,6 +48,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - holograms
     - variable support
     - top lists ordered by point values of players
+    - `npcs` list now supports global variables as NPC ID in NPC Holograms
 - `freeze` event - ProtocolLib compatibility feature: Blocks the player from moving for the specified amount of ticks
 - `block` objective - properties: `absoluteAmount`, `absoluteLeft` and `absoluteTotal`
 - `command` objective
@@ -78,7 +79,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `block` objective - added property variables `absoluteLeft`, `absoluteTotal`, `absoluteAmount` that always return absolute values
 - `hunger` condition and event
 - `variable` condition - forceSync argument forces the condition to be checked on the main thread
-- `variable` condition - now supports variables as both the input and the regular expression 
+- `variable` condition - now supports variables as both the input and the regular expression
+- `command` event - now suppress console output
 - Things that are also added in 1.12.X:
     - new line support for `journal_lore` in `messages.yml`
     - FastAsyncWorldEdit compatibility

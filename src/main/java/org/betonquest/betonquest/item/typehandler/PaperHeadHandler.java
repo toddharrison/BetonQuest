@@ -16,7 +16,15 @@ import java.util.UUID;
  */
 public class PaperHeadHandler extends HeadHandler {
     /**
+     * Construct a new HeadHandler.
+     */
+    public PaperHeadHandler() {
+        super();
+    }
+
+    /**
      * Parse the metadata of a SkullMeta instance that needs to be persisted so that it can be correctly reconstituted.
+     *
      * @param skullMeta The SkullMeta to parse.
      * @return A Map of the properties parsed from the SkullMeta.
      */
@@ -39,11 +47,12 @@ public class PaperHeadHandler extends HeadHandler {
         return parsedValues;
     }
 
-    /**
-     * Construct a new HeadHandler.
-     */
-    public PaperHeadHandler() {
-        super();
+    private static String encodeSkin(final PlayerProfile playerProfile) {
+        return playerProfile.getProperties().stream()
+                .filter(it -> "textures".equals(it.getName()))
+                .map(ProfileProperty::getValue)
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
@@ -74,13 +83,5 @@ public class PaperHeadHandler extends HeadHandler {
         } else {
             return checkOwner(ownerName);
         }
-    }
-
-    private static String encodeSkin(final PlayerProfile playerProfile) {
-        return playerProfile.getProperties().stream()
-                .filter(it -> "textures".equals(it.getName()))
-                .map(ProfileProperty::getValue)
-                .findFirst()
-                .orElse(null);
     }
 }

@@ -20,7 +20,15 @@ import java.util.UUID;
 @CustomLog
 public class SpigotHeadHandler extends HeadHandler {
     /**
+     * Construct a new HeadHandler.
+     */
+    public SpigotHeadHandler() {
+        super();
+    }
+
+    /**
      * Parse the metadata of a SkullMeta instance that needs to be persisted so that it can be correctly reconstituted.
+     *
      * @param skullMeta The SkullMeta to parse.
      * @return A Map of the properties parsed from the SkullMeta.
      */
@@ -32,11 +40,9 @@ public class SpigotHeadHandler extends HeadHandler {
         return parsedValues;
     }
 
-    /**
-     * Construct a new HeadHandler.
-     */
-    public SpigotHeadHandler() {
-        super();
+    private static String encodeSkin(final URL skinUrl) {
+        return Base64.getEncoder()
+                .encodeToString(skinUrl.toString().getBytes(Charset.defaultCharset()));
     }
 
     @Override
@@ -77,10 +83,5 @@ public class SpigotHeadHandler extends HeadHandler {
         } else {
             return checkOwner(ownerName);
         }
-    }
-
-    private static String encodeSkin(final URL skinUrl) {
-        return Base64.getEncoder()
-                .encodeToString(skinUrl.toString().getBytes(Charset.defaultCharset()));
     }
 }

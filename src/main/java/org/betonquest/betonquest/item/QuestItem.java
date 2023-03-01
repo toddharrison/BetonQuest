@@ -43,12 +43,6 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.UUID;
 
-import static org.betonquest.betonquest.item.typehandler.HeadHandler.META_OWNER;
-import static org.betonquest.betonquest.item.typehandler.HeadHandler.META_PLAYER_ID;
-import static org.betonquest.betonquest.item.typehandler.HeadHandler.META_TEXTURE;
-import static org.betonquest.betonquest.item.typehandler.HeadHandler.getServerInstance;
-import static org.betonquest.betonquest.item.typehandler.HeadHandler.serializeSkullMeta;
-
 /**
  * Represents an item handled by the configuration.
  */
@@ -63,7 +57,7 @@ public class QuestItem {
     private final UnbreakableHandler unbreakable = new UnbreakableHandler();
     private final PotionHandler potion = new PotionHandler();
     private final BookHandler book = new BookHandler();
-    private final HeadHandler head = getServerInstance();
+    private final HeadHandler head = HeadHandler.getServerInstance();
     private final ColorHandler color = new ColorHandler();
     private final FireworkHandler firework = new FireworkHandler();
     private final CustomModelDataHandler customModelData = new CustomModelDataHandler();
@@ -146,13 +140,14 @@ public class QuestItem {
                 }
                 case "effects" -> potion.setCustom(data);
                 case "effects-containing" -> potion.setNotExact();
-                case META_OWNER -> head.setOwner(data);
-                case META_PLAYER_ID -> head.setPlayerId(data);
-                case META_TEXTURE -> head.setTexture(data);
+                case HeadHandler.META_OWNER -> head.setOwner(data);
+                case HeadHandler.META_PLAYER_ID -> head.setPlayerId(data);
+                case HeadHandler.META_TEXTURE -> head.setTexture(data);
                 case "color" -> color.set(data);
                 case "firework" -> firework.setEffects(data);
                 case "power" -> firework.setPower(data);
                 case "firework-containing" -> firework.setNotExact();
+                default -> throw new InstructionParseException("Unknown argument: " + argumentName);
             }
         }
     }
@@ -262,7 +257,7 @@ public class QuestItem {
                 }
             }
             if (meta instanceof SkullMeta) {
-                skull = serializeSkullMeta((SkullMeta) meta);
+                skull = HeadHandler.serializeSkullMeta((SkullMeta) meta);
             }
             if (meta instanceof FireworkMeta) {
                 final FireworkMeta fireworkMeta = (FireworkMeta) meta;

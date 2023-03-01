@@ -113,15 +113,21 @@ public abstract class HeadHandler {
     }
 
     /**
-     * Get the owner name, or default to the player name in the specified Profile.
-     * @param profile The Profile providing the default owner name.
-     * @return The player name.
+     * Get the profile of the skull's owner.
+     * Also resolves the owner name to a player if it is a variable.
+     *
+     * @param profile The Profile that the item is made for
+     * @return The profile of the skull's owner.
      */
-    public String getOwner(final Profile profile) {
+    public @Nullable Profile getOwner(final Profile profile) {
         if (profile != null && VARIABLE_PLAYER_NAME.equals(owner)) {
-            return profile.getPlayer().getName();
+            return profile;
         }
-        return owner;
+        if (owner != null) {
+            final OfflinePlayer player = Bukkit.getOfflinePlayer(owner);
+            return PlayerConverter.getID(player);
+        }
+        return null;
     }
 
     /**

@@ -622,7 +622,7 @@ public class QuestItem {
     /**
      * @return owner of the head, used independently of player ID and texture
      */
-    public String getOwner() {
+    public Profile getOwner() {
         return head.getOwner(null);
     }
 

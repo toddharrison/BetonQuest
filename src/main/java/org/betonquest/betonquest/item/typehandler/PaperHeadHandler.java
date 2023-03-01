@@ -31,11 +31,11 @@ public class PaperHeadHandler extends HeadHandler {
     public static Map<String, String> parseSkullMeta(final SkullMeta skullMeta) {
         final Map<String, String> parsedValues = new HashMap<>();
         if (skullMeta.hasOwner()) {
-            parsedValues.put(META_OWNER, skullMeta.getOwner());
+            parsedValues.put(META_OWNER, skullMeta.getOwningPlayer().getName());
         }
         final PlayerProfile playerProfile = skullMeta.getPlayerProfile();
         if (playerProfile != null) {
-            final UUID playerId = playerProfile.getUniqueId();
+            final UUID playerId = playerProfile.getId();
             if (playerId != null) {
                 parsedValues.put(META_PLAYER_ID, playerId.toString());
             }
@@ -57,12 +57,12 @@ public class PaperHeadHandler extends HeadHandler {
 
     @Override
     public void populate(final SkullMeta skullMeta, final Profile profile) {
-        final String owner = getOwner(profile);
+        final Profile owner = getOwner(profile);
         final UUID playerId = getPlayerId();
         final String texture = getTexture();
 
         if (owner != null) {
-            skullMeta.setOwner(owner);
+            skullMeta.setOwningPlayer(owner.getPlayer());
         }
         if (playerId != null && texture != null) {
             final PlayerProfile playerProfile = Bukkit.getServer().createProfile(playerId);

@@ -161,16 +161,11 @@ public abstract class HeadHandler {
      * @return True if this metadata is required and matches, false otherwise.
      */
     public boolean checkOwner(final String string) {
-        switch (ownerE) {
-            case WHATEVER:
-                return true;
-            case REQUIRED:
-                return string != null && string.equals(owner);
-            case FORBIDDEN:
-                return string == null;
-            default:
-                return false;
-        }
+        return switch (ownerE) {
+            case WHATEVER -> true;
+            case REQUIRED -> string != null && string.equals(owner);
+            case FORBIDDEN -> string == null;
+        };
     }
 
     /**
@@ -179,16 +174,11 @@ public abstract class HeadHandler {
      * @return True if this metadata is required and matches, false otherwise.
      */
     public boolean checkPlayerId(final UUID playerId) {
-        switch (playerIdE) {
-            case WHATEVER:
-                return true;
-            case REQUIRED:
-                return playerId != null && playerId.equals(this.playerId);
-            case FORBIDDEN:
-                return playerId == null;
-            default:
-                return false;
-        }
+        return switch (playerIdE) {
+            case WHATEVER -> true;
+            case REQUIRED -> playerId != null && playerId.equals(this.playerId);
+            case FORBIDDEN -> playerId == null;
+        };
     }
 
     /**
@@ -197,16 +187,11 @@ public abstract class HeadHandler {
      * @return True if this metadata is required and matches, false otherwise.
      */
     public boolean checkTexture(final String string) {
-        switch (textureE) {
-            case WHATEVER:
-                return true;
-            case REQUIRED:
-                return string != null && string.equals(texture);
-            case FORBIDDEN:
-                return string == null;
-            default:
-                return false;
-        }
+        return switch (textureE) {
+            case WHATEVER -> true;
+            case REQUIRED -> string != null && string.equals(texture);
+            case FORBIDDEN -> string == null;
+        };
     }
 
     /**

@@ -58,6 +58,7 @@ import org.betonquest.betonquest.conditions.HungerCondition;
 import org.betonquest.betonquest.conditions.InConversationCondition;
 import org.betonquest.betonquest.conditions.ItemCondition;
 import org.betonquest.betonquest.conditions.JournalCondition;
+import org.betonquest.betonquest.conditions.LanguageCondition;
 import org.betonquest.betonquest.conditions.LocationCondition;
 import org.betonquest.betonquest.conditions.LookingAtCondition;
 import org.betonquest.betonquest.conditions.MooncycleCondition;
@@ -93,13 +94,13 @@ import org.betonquest.betonquest.conversation.SimpleInterceptor;
 import org.betonquest.betonquest.conversation.SlowTellrawConvIO;
 import org.betonquest.betonquest.conversation.TellrawConvIO;
 import org.betonquest.betonquest.database.AsyncSaver;
+import org.betonquest.betonquest.database.Backup;
 import org.betonquest.betonquest.database.Database;
 import org.betonquest.betonquest.database.GlobalData;
 import org.betonquest.betonquest.database.MySQL;
 import org.betonquest.betonquest.database.PlayerData;
 import org.betonquest.betonquest.database.SQLite;
 import org.betonquest.betonquest.database.Saver;
-import org.betonquest.betonquest.events.CancelEvent;
 import org.betonquest.betonquest.events.ChatEvent;
 import org.betonquest.betonquest.events.ChestClearEvent;
 import org.betonquest.betonquest.events.ChestGiveEvent;
@@ -117,28 +118,20 @@ import org.betonquest.betonquest.events.FolderEvent;
 import org.betonquest.betonquest.events.GiveEvent;
 import org.betonquest.betonquest.events.GiveJournalEvent;
 import org.betonquest.betonquest.events.GlobalPointEvent;
-import org.betonquest.betonquest.events.HungerEvent;
-import org.betonquest.betonquest.events.IfElseEvent;
 import org.betonquest.betonquest.events.KillEvent;
 import org.betonquest.betonquest.events.KillMobEvent;
-import org.betonquest.betonquest.events.LanguageEvent;
-import org.betonquest.betonquest.events.LeverEvent;
 import org.betonquest.betonquest.events.LightningEvent;
 import org.betonquest.betonquest.events.NotifyAllEvent;
 import org.betonquest.betonquest.events.NotifyEvent;
 import org.betonquest.betonquest.events.ObjectiveEvent;
 import org.betonquest.betonquest.events.OpSudoEvent;
-import org.betonquest.betonquest.events.PartyEvent;
 import org.betonquest.betonquest.events.PickRandomEvent;
 import org.betonquest.betonquest.events.PointEvent;
 import org.betonquest.betonquest.events.RunEvent;
 import org.betonquest.betonquest.events.ScoreboardEvent;
-import org.betonquest.betonquest.events.SetBlockEvent;
 import org.betonquest.betonquest.events.SpawnMobEvent;
 import org.betonquest.betonquest.events.SudoEvent;
 import org.betonquest.betonquest.events.TakeEvent;
-import org.betonquest.betonquest.events.TeleportEvent;
-import org.betonquest.betonquest.events.TimeEvent;
 import org.betonquest.betonquest.events.VariableEvent;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
@@ -167,8 +160,8 @@ import org.betonquest.betonquest.modules.updater.UpdateSourceHandler;
 import org.betonquest.betonquest.modules.updater.Updater;
 import org.betonquest.betonquest.modules.updater.source.DevelopmentUpdateSource;
 import org.betonquest.betonquest.modules.updater.source.ReleaseUpdateSource;
-import org.betonquest.betonquest.modules.updater.source.implementations.BetonQuestDevelopmentSource;
 import org.betonquest.betonquest.modules.updater.source.implementations.GitHubReleaseSource;
+import org.betonquest.betonquest.modules.updater.source.implementations.NexusReleaseAndDevelopmentSource;
 import org.betonquest.betonquest.modules.versioning.Version;
 import org.betonquest.betonquest.modules.versioning.java.JREVersionPrinter;
 import org.betonquest.betonquest.notify.ActionBarNotifyIO;
@@ -215,18 +208,27 @@ import org.betonquest.betonquest.objectives.TameObjective;
 import org.betonquest.betonquest.objectives.VariableObjective;
 import org.betonquest.betonquest.quest.event.NullStaticEventFactory;
 import org.betonquest.betonquest.quest.event.burn.BurnEventFactory;
+import org.betonquest.betonquest.quest.event.cancel.CancelEventFactory;
+import org.betonquest.betonquest.quest.event.cancelconversation.CancelConversationEventFactory;
 import org.betonquest.betonquest.quest.event.damage.DamageEventFactory;
 import org.betonquest.betonquest.quest.event.door.DoorEventFactory;
+import org.betonquest.betonquest.quest.event.hunger.HungerEventFactory;
 import org.betonquest.betonquest.quest.event.journal.JournalEventFactory;
+import org.betonquest.betonquest.quest.event.language.LanguageEventFactory;
 import org.betonquest.betonquest.quest.event.legacy.FromClassQuestEventFactory;
 import org.betonquest.betonquest.quest.event.legacy.QuestEventFactory;
 import org.betonquest.betonquest.quest.event.legacy.QuestEventFactoryAdapter;
+import org.betonquest.betonquest.quest.event.lever.LeverEventFactory;
+import org.betonquest.betonquest.quest.event.logic.IfElseEventFactory;
+import org.betonquest.betonquest.quest.event.party.PartyEventFactory;
+import org.betonquest.betonquest.quest.event.setblock.SetBlockEventFactory;
 import org.betonquest.betonquest.quest.event.tag.TagGlobalEventFactory;
 import org.betonquest.betonquest.quest.event.tag.TagPlayerEventFactory;
+import org.betonquest.betonquest.quest.event.teleport.TeleportEventFactory;
+import org.betonquest.betonquest.quest.event.time.TimeEventFactory;
 import org.betonquest.betonquest.quest.event.velocity.VelocityEventFactory;
 import org.betonquest.betonquest.quest.event.weather.WeatherEventFactory;
 import org.betonquest.betonquest.utils.PlayerConverter;
-import org.betonquest.betonquest.utils.Utils;
 import org.betonquest.betonquest.variables.ConditionVariable;
 import org.betonquest.betonquest.variables.GlobalPointVariable;
 import org.betonquest.betonquest.variables.GlobalTagVariable;
@@ -271,8 +273,8 @@ import java.util.regex.Pattern;
 /**
  * Represents BetonQuest plugin.
  */
-@SuppressWarnings({"PMD.CouplingBetweenObjects", "PMD.CyclomaticComplexity", "PMD.ExcessiveClassLength", "PMD.GodClass",
-        "PMD.TooManyMethods", "PMD.CommentRequired", "PMD.AvoidDuplicateLiterals", "PMD.AvoidFieldNameMatchingMethodName",
+@SuppressWarnings({"PMD.CouplingBetweenObjects", "PMD.CyclomaticComplexity", "PMD.GodClass", "PMD.TooManyMethods",
+        "PMD.CommentRequired", "PMD.AvoidDuplicateLiterals", "PMD.AvoidFieldNameMatchingMethodName",
         "PMD.AtLeastOneConstructor", "PMD.ExcessivePublicCount", "PMD.TooManyFields"})
 public class BetonQuest extends JavaPlugin {
     private final static int BSTATS_METRICS_ID = 551;
@@ -431,7 +433,7 @@ public class BetonQuest extends JavaPlugin {
         final boolean isMet = outcome != conditionID.inverted();
         log.debug(conditionID.getPackage(),
                 (isMet ? "TRUE" : "FALSE") + ": " + (conditionID.inverted() ? "inverted" : "") + " condition "
-                        + conditionID + " for player " + (profile == null ? null : profile.getProfileName()));
+                        + conditionID + " for " + profile);
         return isMet;
     }
 
@@ -463,7 +465,7 @@ public class BetonQuest extends JavaPlugin {
             log.debug(eventID.getPackage(), "Firing static event " + eventID);
         } else {
             log.debug(eventID.getPackage(),
-                    "Firing event " + eventID + " for " + profile.getProfileName());
+                    "Firing event " + eventID + " for " + profile);
         }
         try {
             event.fire(profile);
@@ -493,7 +495,7 @@ public class BetonQuest extends JavaPlugin {
         }
         if (objective.containsPlayer(profile)) {
             log.debug(objectiveID.getPackage(),
-                    "Player " + profile.getProfileName() + " already has the " + objectiveID +
+                    profile + " already has the " + objectiveID +
                             " objective");
             return;
         }
@@ -525,7 +527,7 @@ public class BetonQuest extends JavaPlugin {
         }
         if (objective.containsPlayer(profile)) {
             log.debug(objectiveID.getPackage(),
-                    "Player " + profile.getProfileName() + " already has the " + objectiveID + " objective!");
+                    profile + " already has the " + objectiveID + " objective!");
             return;
         }
         objective.resumeObjectiveForPlayer(profile, instruction);
@@ -554,18 +556,16 @@ public class BetonQuest extends JavaPlugin {
                 return e.getValue();
             }
         }
-        final String[] parts = instruction.replace("%", "").split("\\.");
-        if (parts.length <= 0) {
-            throw new InstructionParseException("Not enough arguments in variable " + variableID);
-        }
-        final Class<? extends Variable> variableClass = VARIABLE_TYPES.get(parts[0]);
+        final Instruction instructionVar = variableID.generateInstruction();
+        final Class<? extends Variable> variableClass = VARIABLE_TYPES.get(instructionVar.getPart(0));
         // if it's null then there is no such type registered, log an error
         if (variableClass == null) {
-            throw new InstructionParseException("Variable type " + parts[0] + " is not registered");
+            throw new InstructionParseException("Variable type " + instructionVar.getPart(0) + " is not registered");
         }
+
         try {
             final Variable variable = variableClass.getConstructor(Instruction.class)
-                    .newInstance(new VariableInstruction(pack, null, instruction));
+                    .newInstance(new VariableInstruction(variableID.getPackage(), null, "%" + instructionVar.getInstruction() + "%"));
             VARIABLES.put(variableID, variable);
             log.debug(pack, "Variable " + variableID + " loaded");
             return variable;
@@ -579,6 +579,10 @@ public class BetonQuest extends JavaPlugin {
             log.reportException(pack, e);
         }
         return null;
+    }
+
+    public static boolean isVariableType(final String type) {
+        return VARIABLE_TYPES.get(type) != null;
     }
 
     /**
@@ -652,7 +656,7 @@ public class BetonQuest extends JavaPlugin {
         }
     }
 
-    @SuppressWarnings({"PMD.ExcessiveMethodLength", "PMD.NcssCount", "PMD.DoNotUseThreads", "PMD.NPathComplexity", "PMD.CognitiveComplexity"})
+    @SuppressWarnings({"PMD.NcssCount", "PMD.DoNotUseThreads", "PMD.NPathComplexity", "PMD.CognitiveComplexity"})
     @Override
     public void onEnable() {
         instance = this;
@@ -706,12 +710,11 @@ public class BetonQuest extends JavaPlugin {
             }
         }
 
-        database.createTables(isMySQLUsed);
+        database.createTables();
 
         saver = new AsyncSaver();
         saver.start();
-
-        Utils.loadDatabaseFromBackup();
+        Backup.loadDatabaseFromBackup();
 
         new JoinQuitListener();
 
@@ -751,6 +754,7 @@ public class BetonQuest extends JavaPlugin {
         registerConditions("height", HeightCondition.class);
         registerConditions("item", ItemCondition.class);
         registerConditions("hand", HandCondition.class);
+        registerConditions("language", LanguageCondition.class);
         registerConditions("location", LocationCondition.class);
         registerConditions("armor", ArmorCondition.class);
         registerConditions("effect", EffectCondition.class);
@@ -789,7 +793,7 @@ public class BetonQuest extends JavaPlugin {
         registerEvent("tag", new TagPlayerEventFactory(this, getSaver()));
         registerEvent("globaltag", new TagGlobalEventFactory(this));
         registerEvent("journal", new JournalEventFactory(this, InstantSource.system(), getSaver()));
-        registerEvents("teleport", TeleportEvent.class);
+        registerNonStaticEvent("teleport", new TeleportEventFactory(getServer(), getServer().getScheduler(), this));
         registerEvents("explosion", ExplosionEvent.class);
         registerEvents("lightning", LightningEvent.class);
         registerEvents("point", PointEvent.class);
@@ -803,12 +807,12 @@ public class BetonQuest extends JavaPlugin {
         registerEvents("deletepoint", DeletePointEvent.class);
         registerEvents("spawn", SpawnMobEvent.class);
         registerEvents("killmob", KillMobEvent.class);
-        registerEvents("time", TimeEvent.class);
+        registerEvent("time", new TimeEventFactory(getServer(), getServer().getScheduler(), this));
         registerNonStaticEvent("weather", new WeatherEventFactory(getServer(), getServer().getScheduler(), this));
         registerEvents("folder", FolderEvent.class);
-        registerEvents("setblock", SetBlockEvent.class);
+        registerEvent("setblock", new SetBlockEventFactory(getServer(), getServer().getScheduler(), this));
         registerNonStaticEvent("damage", new DamageEventFactory(getServer(), getServer().getScheduler(), this));
-        registerEvents("party", PartyEvent.class);
+        registerNonStaticEvent("party", new PartyEventFactory());
         registerEvents("clear", ClearEvent.class);
         registerEvents("run", RunEvent.class);
         registerEvents("givejournal", GiveJournalEvent.class);
@@ -818,13 +822,13 @@ public class BetonQuest extends JavaPlugin {
         registerEvents("chesttake", ChestTakeEvent.class);
         registerEvents("chestclear", ChestClearEvent.class);
         registerEvents("compass", CompassEvent.class);
-        registerEvents("cancel", CancelEvent.class);
+        registerNonStaticEvent("cancel", new CancelEventFactory());
         registerEvents("score", ScoreboardEvent.class);
-        registerEvents("lever", LeverEvent.class);
+        registerEvent("lever", new LeverEventFactory(getServer(), getServer().getScheduler(), this));
         registerEvent("door", new DoorEventFactory(getServer(), getServer().getScheduler(), this));
-        registerEvents("if", IfElseEvent.class);
+        registerEvent("if", new IfElseEventFactory());
         registerEvents("variable", VariableEvent.class);
-        registerEvents("language", LanguageEvent.class);
+        registerNonStaticEvent("language", new LanguageEventFactory(this));
         registerEvents("pickrandom", PickRandomEvent.class);
         registerEvents("experience", ExperienceEvent.class);
         registerEvents("notify", NotifyEvent.class);
@@ -833,7 +837,8 @@ public class BetonQuest extends JavaPlugin {
         registerEvents("freeze", FreezeEvent.class);
         registerNonStaticEvent("burn", new BurnEventFactory(getServer(), getServer().getScheduler(), this));
         registerNonStaticEvent("velocity", new VelocityEventFactory(getServer(), getServer().getScheduler(), this));
-        registerEvents("hunger", HungerEvent.class);
+        registerNonStaticEvent("hunger", new HungerEventFactory(getServer(), getServer().getScheduler(), this));
+        registerNonStaticEvent("cancelconversation", new CancelConversationEventFactory());
 
         registerObjectives("location", LocationObjective.class);
         registerObjectives("block", BlockObjective.class);
@@ -901,8 +906,8 @@ public class BetonQuest extends JavaPlugin {
         registerVariable("location", LocationVariable.class);
         registerVariable("math", MathVariable.class);
 
-        registerScheduleType("realtime-daily", RealtimeDailySchedule.class, new RealtimeDailyScheduler(this, lastExecutionCache));
-        registerScheduleType("realtime-cron", RealtimeCronSchedule.class, new RealtimeCronScheduler(this, lastExecutionCache));
+        registerScheduleType("realtime-daily", RealtimeDailySchedule.class, new RealtimeDailyScheduler(lastExecutionCache));
+        registerScheduleType("realtime-cron", RealtimeCronSchedule.class, new RealtimeCronScheduler(lastExecutionCache));
 
         new Compatibility();
         globalData = new GlobalData();
@@ -949,8 +954,10 @@ public class BetonQuest extends JavaPlugin {
         final File tempFile = new File(updateFolder, this.getFile().getName() + ".temp");
         final File finalFile = new File(updateFolder, this.getFile().getName());
         final UpdateDownloader updateDownloader = new UpdateDownloader(updateFolder.getParentFile().toURI(), tempFile, finalFile);
-        final List<ReleaseUpdateSource> releaseHandlers = List.of(new GitHubReleaseSource("https://api.github.com/repos/BetonQuest/BetonQuest/releases"));
-        final List<DevelopmentUpdateSource> developmentHandlers = List.of(new BetonQuestDevelopmentSource("https://dev.betonquest.org/api/v1"));
+        final GitHubReleaseSource gitHubReleaseSource = new GitHubReleaseSource("https://api.github.com/repos/BetonQuest/BetonQuest");
+        final NexusReleaseAndDevelopmentSource nexusReleaseAndDevelopmentSource = new NexusReleaseAndDevelopmentSource("https://betonquest.org/nexus");
+        final List<ReleaseUpdateSource> releaseHandlers = List.of(gitHubReleaseSource, nexusReleaseAndDevelopmentSource);
+        final List<DevelopmentUpdateSource> developmentHandlers = List.of(nexusReleaseAndDevelopmentSource);
         final UpdateSourceHandler updateSourceHandler = new UpdateSourceHandler(releaseHandlers, developmentHandlers);
         updater = new Updater(config, pluginVersion, updateSourceHandler, updateDownloader, this,
                 getServer().getScheduler(), InstantSource.system());
@@ -975,7 +982,7 @@ public class BetonQuest extends JavaPlugin {
     /**
      * Loads events and conditions to the maps
      */
-    @SuppressWarnings({"PMD.ExcessiveMethodLength", "PMD.NcssCount", "PMD.NPathComplexity", "PMD.CognitiveComplexity"})
+    @SuppressWarnings({"PMD.NcssCount", "PMD.NPathComplexity", "PMD.CognitiveComplexity"})
     public void loadData() {
         eventScheduling.stopAll();
 
@@ -1188,7 +1195,7 @@ public class BetonQuest extends JavaPlugin {
         loadData();
         // start objectives and update journals for every online profiles
         for (final Profile onlineProfile : PlayerConverter.getOnlineProfiles()) {
-            log.debug("Updating journal for player " + onlineProfile.getProfileName());
+            log.debug("Updating journal for player " + onlineProfile);
             final PlayerData playerData = instance.getPlayerData(onlineProfile);
             GlobalObjectives.startAll(onlineProfile);
             final Journal journal = playerData.getJournal();
@@ -1284,7 +1291,7 @@ public class BetonQuest extends JavaPlugin {
      * @param playerData PlayerData object to store
      */
     public void putPlayerData(final Profile profile, final PlayerData playerData) {
-        log.debug("Inserting data for " + profile.getProfileName());
+        log.debug("Inserting data for " + profile);
         playerDataMap.put(profile, playerData);
     }
 
@@ -1543,7 +1550,7 @@ public class BetonQuest extends JavaPlugin {
                 return "";
             }
             if (profile == null && !var.isStaticness()) {
-                log.warn(pack, "Variable '" + name + "' cannot be executed without a player reference!");
+                log.warn(pack, "Variable '" + name + "' cannot be executed without a profile reference!");
                 return "";
             }
             return var.getValue(profile);

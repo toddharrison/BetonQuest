@@ -27,14 +27,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.ExcessivePublicCount", "PMD.GodClass", "PMD.CommentRequired",
-        "PMD.AvoidFieldNameMatchingTypeName", "PMD.AvoidLiteralsInIfCondition"})
+        "PMD.AvoidFieldNameMatchingTypeName", "PMD.AvoidLiteralsInIfCondition", "PMD.TooManyMethods"})
 @CustomLog
 public class Instruction {
-    private static final Pattern NUMBER_PATTERN = Pattern.compile("(?:\\s|\\G|^)((\\+|-)?\\d+)(?:\\s|$)");
+    private static final Pattern NUMBER_PATTERN = Pattern.compile("(?:\\s|\\G|^)(([+\\-])?\\d+)(?:\\s|$)");
     private final QuestPackage pack;
     protected String instruction;
     protected String[] parts;
@@ -132,6 +133,23 @@ public class Instruction {
         return null;
     }
 
+    /**
+     * Gets an optional value with the given prefix.
+     *
+     * @param prefix the prefix of the optional value
+     * @return an {@link Optional} containing the value or an empty {@link Optional} if the value is not present
+     */
+    public Optional<String> getOptionalArgument(final String prefix) {
+        for (final String part : parts) {
+            if (part.toLowerCase(Locale.ROOT).startsWith(prefix.toLowerCase(Locale.ROOT) + ":")) {
+                lastOptional = prefix;
+                currentIndex = -1;
+                return Optional.of(part.substring(prefix.length() + 1));
+            }
+        }
+        return Optional.empty();
+    }
+
     public boolean hasArgument(final String argument) {
         for (final String part : parts) {
             if (part.equalsIgnoreCase(argument)) {
@@ -154,7 +172,7 @@ public class Instruction {
             return null;
         }
         try {
-            return new CompoundLocation(pack.getQuestPath(), string);
+            return new CompoundLocation(pack, string);
         } catch (final InstructionParseException e) {
             throw new PartParseException("Error while parsing location: " + e.getMessage(), e);
         }
@@ -169,7 +187,7 @@ public class Instruction {
             return null;
         }
         try {
-            return new VariableNumber(pack.getQuestPath(), string);
+            return new VariableNumber(pack, string);
         } catch (final InstructionParseException e) {
             throw new PartParseException("Could not parse a number: " + e.getMessage(), e);
         }

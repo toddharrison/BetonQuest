@@ -143,7 +143,7 @@ public class OpenedMenu implements Listener {
         for (int i = 0; i < items.length; i++) {
             content[i] = (items[i] == null) ? new ItemStack(Material.AIR) : items[i].generateItem(onlineProfile);
         }
-        LOG.debug(getId().getPackage(), "updated contents of menu " + getId() + " for " + onlineProfile.getProfileName());
+        LOG.debug(getId().getPackage(), "updated contents of menu " + getId() + " for " + onlineProfile);
         inventory.setContents(content);
     }
 
@@ -155,7 +155,7 @@ public class OpenedMenu implements Listener {
     }
 
     @EventHandler
-    @SuppressWarnings({"PMD.NPathComplexity", "PMD.CyclomaticComplexity", "PMD.PrematureDeclaration"})
+    @SuppressWarnings({"PMD.NPathComplexity", "PMD.CyclomaticComplexity", "PMD.PrematureDeclaration", "PMD.CognitiveComplexity"})
     public void onClick(final InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player)) {
             return;
@@ -187,36 +187,38 @@ public class OpenedMenu implements Listener {
                 return;
         }
         //call event
-        final MenuClickEvent clickEvent = new MenuClickEvent(onlineProfile, getId(), event.getSlot(), item.getId(), event.getClick());
-        Bukkit.getPluginManager().callEvent(clickEvent);
-        LOG.debug(getId().getPackage(), player.getName() + " clicked on slot " + event.getSlot() + " with item " + item.getId() + " in menu " + getId());
-        if (clickEvent.isCancelled()) {
-            LOG.debug(getId().getPackage(), "click of " + player.getName() + " in menu " + getId() + " was cancelled by a bukkit event listener");
-            return;
-        }
-        //done if already closed by a 3rd party listener
-        if (closed) {
-            return;
-        }
-
-        //run click events
-        final boolean close = item.onClick(player, event.getClick());
-
-        //check if the inventory was closed by an event (teleport event etc.)
-        if (closed) {
-            return;
-        }
-
-        if (getMenu(onlineProfile).equals(this)) {
-            //if close was set close the menu
-            if (close) {
-                this.close();
+        Bukkit.getServer().getScheduler().runTask(BetonQuest.getInstance(), () -> {
+            final MenuClickEvent clickEvent = new MenuClickEvent(onlineProfile, getId(), event.getSlot(), item.getId(), event.getClick());
+            Bukkit.getPluginManager().callEvent(clickEvent);
+            LOG.debug(getId().getPackage(), onlineProfile + " clicked on slot " + event.getSlot() + " with item " + item.getId() + " in menu " + getId());
+            if (clickEvent.isCancelled()) {
+                LOG.debug(getId().getPackage(), "click of " + onlineProfile + " in menu " + getId() + " was cancelled by a bukkit event listener");
+                return;
             }
-            // otherwise update the contents
-            else {
-                this.update();
+            //done if already closed by a 3rd party listener
+            if (closed) {
+                return;
             }
-        }
+
+            //run click events
+            final boolean close = item.onClick(player, event.getClick());
+
+            //check if the inventory was closed by an event (teleport event etc.)
+            if (closed) {
+                return;
+            }
+
+            if (getMenu(onlineProfile).equals(this)) {
+                //if close was set close the menu
+                if (close) {
+                    this.close();
+                }
+                // otherwise update the contents
+                else {
+                    this.update();
+                }
+            }
+        });
     }
 
     @EventHandler
@@ -231,7 +233,7 @@ public class OpenedMenu implements Listener {
         //call event
         final MenuCloseEvent closeEvent = new MenuCloseEvent(onlineProfile, getId());
         Bukkit.getPluginManager().callEvent(closeEvent);
-        LOG.debug(getId().getPackage(), player.getName() + " closed menu " + getId());
+        LOG.debug(getId().getPackage(), onlineProfile + " closed menu " + getId());
         //clean up
         HandlerList.unregisterAll(this);
         OPENED_MENUS.remove(onlineProfile.getProfileUUID());

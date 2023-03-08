@@ -1,11 +1,11 @@
 name: ${project.name}
 main: ${project.groupId}.${project.artifactId}.${project.name}
 version: ${betonquest.version}
+api-version: ${minecraft.api.version}
 description: ${project.description}
 website: ${project.organization.url}
 author: ${project.organization.name}
 authors: [ Wolf2323, SaltyAimbOtter, seyfahni, joblo2213, bundabrg, Co0sh ]
-api-version: ${minecraft.api.version}
 softdepend:
   - Skript
   - MMOLib
@@ -28,11 +28,13 @@ softdepend:
   - Quests
   - PlaceholderAPI
   - HolographicDisplays
+  - DecentHolograms
   - ProtocolLib
   - Brewery
   - Jobs
   - LuckPerms
   - AureliumSkills
+  - fake-block
 commands:
   betonquest:
     description: General quest command
@@ -52,12 +54,12 @@ commands:
   cancelquest:
     description: Opens the window with quest cancelers
     usage: /<command>
-    permission: betonquest.backpack
+    permission: betonquest.cancelquest
     aliases: [ bcq, bcancelquest, betoncancelquest, betonquestcancelquest ]
   compass:
     description: Opens the compass menu
     usage: /<command>
-    permission: betonquest.backpack
+    permission: betonquest.compass
     aliases: [ bc, bcompass, betoncompass, betonquestcompass ]
   questlang:
     description: Changes the language
@@ -71,8 +73,12 @@ permissions:
     default: true
   betonquest.backpack:
     default: true
+  betonquest.cancelquest:
+    default: true
+  betonquest.compass:
+    default: true
   betonquest.conversation:
     default: true
   betonquest.language:
     default: true
-  
+

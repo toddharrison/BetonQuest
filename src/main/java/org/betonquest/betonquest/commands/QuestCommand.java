@@ -53,6 +53,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -77,8 +78,9 @@ import java.util.stream.Stream;
 /**
  * Main admin command for quest editing.
  */
-@SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.ExcessiveClassLength", "PMD.GodClass", "PMD.NPathComplexity",
-        "PMD.TooManyMethods", "PMD.CommentRequired", "PMD.AvoidDuplicateLiterals", "PMD.AvoidLiteralsInIfCondition", "PMD.CognitiveComplexity"})
+@SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.GodClass", "PMD.NPathComplexity", "PMD.TooManyMethods",
+        "PMD.CommentRequired", "PMD.AvoidDuplicateLiterals", "PMD.AvoidLiteralsInIfCondition",
+        "PMD.CognitiveComplexity"})
 @CustomLog
 public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
 
@@ -107,9 +109,9 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         BetonQuest.getInstance().getCommand("betonquest").setTabCompleter(this);
     }
 
-    @SuppressWarnings({"PMD.ExcessiveMethodLength", "PMD.NcssCount"})
+    @SuppressWarnings("PMD.NcssCount")
     @Override
-    public boolean onCommand(final CommandSender sender, final Command cmd, final String alias, final String... args) {
+    public boolean onCommand(@NotNull final CommandSender sender, final Command cmd, @NotNull final String alias, @NotNull final String... args) {
 
         if ("betonquest".equalsIgnoreCase(cmd.getName())) {
             LOG.debug("Executing /betonquest command for user " + sender.getName()
@@ -261,7 +263,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
                 case "version":
                 case "ver":
                 case "v":
-                    displayVersionInfo(sender);
+                    displayVersionInfo(sender, alias);
                     break;
                 case "purge":
                     LOG.debug("Loading data asynchronously");
@@ -500,7 +502,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         // if the player is offline then get his PlayerData outside of the
         // list
         if (playerData == null) {
-            LOG.debug("Player is offline, loading his data");
+            LOG.debug("Profile is offline, loading his data");
             playerData = new PlayerData(profile);
         }
         // purge the player
@@ -532,7 +534,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         // if the player is offline then get his PlayerData outside of the
         // list
         if (playerData == null) {
-            LOG.debug("Player is offline, loading his data");
+            LOG.debug("Profile is offline, loading his data");
             playerData = new PlayerData(profile);
         }
         final Journal journal = playerData.getJournal();
@@ -630,7 +632,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         // if the player is offline then get his PlayerData outside of the
         // list
         if (playerData == null) {
-            LOG.debug("Player is offline, loading his data");
+            LOG.debug("Profile is offline, loading his data");
             playerData = new PlayerData(profile);
         }
         // if there are no arguments then list player's points
@@ -962,7 +964,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         // if the player is offline then get his PlayerData outside of the
         // list
         if (playerData == null) {
-            LOG.debug("Player is offline, loading his data");
+            LOG.debug("Profile is offline, loading his data");
             playerData = new PlayerData(profile);
         }
         // if there are no arguments then list player's tags
@@ -989,7 +991,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             case "a":
                 // add the tag
                 LOG.debug(
-                        "Adding tag " + tag + " for player " + profile.getProfileName());
+                        "Adding tag " + tag + " for " + profile);
                 playerData.addTag(tag);
                 sendMessage(sender, "tag_added");
                 break;
@@ -1000,7 +1002,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             case "d":
                 // remove the tag
                 LOG.debug(
-                        "Removing tag " + tag + " for player " + profile.getProfileName());
+                        "Removing tag " + tag + " from " + profile);
                 playerData.removeTag(tag);
                 sendMessage(sender, "tag_removed");
                 break;
@@ -1108,7 +1110,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
     /**
      * Lists, adds or removes objectives.
      */
-    @SuppressWarnings({"PMD.ExcessiveMethodLength", "PMD.NcssCount"})
+    @SuppressWarnings("PMD.NcssCount")
     private void handleObjectives(final CommandSender sender, final String... args) {
         final Profile profile = getTargetProfile(sender, args);
         if (profile == null) {
@@ -1118,7 +1120,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
         PlayerData playerData = instance.getPlayerData(profile);
         // if the player is offline then get his PlayerData outside the list
         if (playerData == null) {
-            LOG.debug("Player is offline, loading his data");
+            LOG.debug("Profile is offline, loading his data");
             playerData = new PlayerData(profile);
         }
         // if there are no arguments then list player's objectives
@@ -1172,7 +1174,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             case "add":
             case "a":
                 LOG.debug(
-                        "Adding new objective " + objectiveID + " for player " + profile.getProfileName());
+                        "Adding new objective " + objectiveID + " for " + profile);
                 // add the objective
                 if (isOnline) {
                     BetonQuest.newObjective(profile, objectiveID);
@@ -1187,7 +1189,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             case "r":
             case "d":
                 LOG.debug(
-                        "Deleting objective " + objectiveID + " for player " + profile.getProfileName());
+                        "Deleting objective " + objectiveID + " for " + profile);
                 objective.cancelObjectiveForPlayer(profile);
                 playerData.removeRawObjective(objectiveID);
                 sendMessage(sender, "objective_removed");
@@ -1195,7 +1197,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
             case "complete":
             case "c":
                 LOG.debug(
-                        "Completing objective " + objectiveID + " for player " + profile.getProfileName());
+                        "Completing objective " + objectiveID + " for " + profile);
                 if (isOnline) {
                     objective.completeObjective(profile);
                 } else {
@@ -1234,7 +1236,7 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
     /**
      * Renames stuff.
      */
-    @SuppressWarnings({"PMD.ExcessiveMethodLength", "PMD.NcssCount"})
+    @SuppressWarnings("PMD.NcssCount")
     private void handleRenaming(final CommandSender sender, final String... args) {
         if (args.length < 4) {
             sendMessage(sender, "arguments");
@@ -1560,9 +1562,9 @@ public class QuestCommand implements CommandExecutor, SimpleTabCompleter {
     }
 
     @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
-    private void displayVersionInfo(final CommandSender sender) {
+    private void displayVersionInfo(final CommandSender sender, final String commandAlias) {
         final Updater updater = BetonQuest.getInstance().getUpdater();
-        final String updateCommand = "/q update";
+        final String updateCommand = "/" + commandAlias + " update";
 
         final String lang = sender instanceof Player
                 ? BetonQuest.getInstance().getPlayerData(PlayerConverter.getID((Player) sender)).getLanguage()

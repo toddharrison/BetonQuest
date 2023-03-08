@@ -1,4 +1,5 @@
 INHERIT: mkdocs.yml
 plugins:
-  - meta:
-      meta_file: '**/.meta.yml'
+  typeset: { }
+  optimize:
+    enabled: !ENV [ CI, false ]

@@ -20,9 +20,17 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
     - All existing users must add aureliumskills: 'true' to their config.yml's hook section.
     - added AureliumStatsLevelCondition
     - added AureliumSkillsLevelExperienceEvent
+- add DecentHolograms Compatibility
+    - holograms from DecentHolograms are a direct alternative to HolographicDisplays
 - add LuckPerms context integration for tags
     - All existing users must add luckperms: 'true' to their config.yml's hook section.
+- add FakeBlock Compatibility
+    - added `fakeblock` event that has the arguments `showgroup` and `hidegroup` to show and hide FakeBlock groups
+    - added `hook.fake-block` config option, default: `true`
 - added Event Schedules to replace old static-events system
+- added support for Base64 encode custom heads
+    - can be created from items in inventory using the BetonQuest `item` command (Paper only, Bukkit/Spigot can be configured manually)
+    - can be given to players using the BetonQuest `give` command
 - NotifyIO "totemIO"
 - Support for MythicLib
 - player attribute to QuestCompassTargetChangeEvent
@@ -31,6 +39,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - allow access to objective variable properties from other packages
 - allow point variables from other packages
 - API method in objective API that starts and stops it per player
+- config option `default_hologram` to set hologram priority if multiple hologram plugins are loaded at once
 - config option `journal.show_in_backpack` to remove the journal from the backpack
 - config option `journal.lock_default_journal_slot` to lock the journal to the `default_journal_slot`
 - config option `journal.give_on_respawn` to add the journal to the inventory after the player respawns
@@ -45,6 +54,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - holograms
     - variable support
     - top lists ordered by point values of players
+    - `npcs` list now supports global variables as NPC ID in NPC Holograms
 - `freeze` event - ProtocolLib compatibility feature: Blocks the player from moving for the specified amount of ticks
 - `block` objective - properties: `absoluteAmount`, `absoluteLeft` and `absoluteTotal`
 - `command` objective
@@ -59,6 +69,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `mmoprofessionlevelup` objective can now check the main character level as well
 - `burning` condition
 - `inconversation` condition
+- `language` condition
 - `heroesattribute` condition - Heroes compatibility feature: Checks a player's level for a particular attribute against a value
 - `variable` condition - regex can now also be a variable
 - `mmspawn` event now has argument `target` Makes the spawned mob target the player
@@ -74,7 +85,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `block` objective - added property variables `absoluteLeft`, `absoluteTotal`, `absoluteAmount` that always return absolute values
 - `hunger` condition and event
 - `variable` condition - forceSync argument forces the condition to be checked on the main thread
-- `variable` condition - now supports variables as both the input and the regular expression 
+- `variable` condition - now supports variables as both the input and the regular expression
+- `command` event - now suppress console output
+- `cancelconversation` event
+- `time` event - now supports subtraction and world selection, which made it persistent and static
 - Things that are also added in 1.12.X:
     - new line support for `journal_lore` in `messages.yml`
     - FastAsyncWorldEdit compatibility
@@ -103,6 +117,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - all objectives that can be advanced without directly completing now support `left`, `amount` and `total` variables
     - the `left` and `amount` variables of some objectives were swapped and have been corrected: `left` is the amount
       left, `amount` is the amount done
+- NPC Holograms are reworked
+    - individual refresh rate for each hologram
+    - the boolean follow is now set per hologram
+    - the vector offset origin has been changed. The hologram is now directly above the NPCs head by default. This means all previously custom vectors are now increased by 3 blocks on the y-axis.
 - AureliumSkills updated to version Beta1.2.5
 - PikaMug Quests updated to version 4.1.3
 - Items now support AIR
@@ -117,6 +135,15 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - HolographicDisplays updated to 3.0.0
 - Added staticness indicator to variables that can be executed without a direct player connection
 - written book quest items can now be read
+- `experience` objective event and condition were reworked
+  - condition and objective do not support raw experience anymore
+  - all allow decimal level and variables now
+- changed backpack configuration. "" will hide the compass or canceler
+- `smelt` objective - now requires a QuestItem instead of a BlockSelector
+- `cancelquest` command - has its own permission now
+- `compass` command - has its own permission now
+- `language` command - is now persistent
+- `variable` condition supports escapable underscores to avoid replacement
 - Things that are also changed in 1.12.X:
     - math variable now allows rounding output with the ~ operator
     - French translation has been updated
@@ -139,6 +166,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - packet chat interceptor does not catch action bar anymore
 - time event does not work with floating point values
 - global variable recursive resolution cross packages
+- inaccurate location variable decimal rounding
+- NPC holograms from Citizens are not hidden correctly
 - `location` objective - is now more robust if the player changes a world
 - `brew` objective - now counts newly brewed potions even if there were already some potions of the desired type in
 - `chestput` objective - did now work with double chests
@@ -148,7 +177,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `pickrandom` event - did not calculated chance correctly
 - `pickrandom` event - did not allowed dashes in event names
 - `action` objective - ignored offhand at all
+- `enchant` objective - did not work at all, now has `amount` and `requirementMode` parameters
 - Things that are also fixed in 1.12.X:
+    - eating of items when entering the chest conversation io actually consumed the item 
+    - legacy `§x` HEX color format not working in some contexts
+    - ProtocolLib's based `packet` interceptor was fixed for MC 1.19, now ProtocolLib 5.0.0 is required
     - parsing of math variable
     - Citizens compatibility for not spawned NPCs
     - NotifyIOs are case-sensitive

@@ -39,7 +39,8 @@ import java.util.Objects;
 /**
  * Represents player's journal.
  */
-@SuppressWarnings({"PMD.CommentRequired", "PMD.AvoidLiteralsInIfCondition", "PMD.CyclomaticComplexity"})
+@SuppressWarnings({"PMD.CommentRequired", "PMD.AvoidLiteralsInIfCondition", "PMD.CyclomaticComplexity",
+        "PMD.TooManyMethods"})
 @CustomLog
 public class Journal {
 
@@ -241,7 +242,7 @@ public class Journal {
                     BetonQuest.createVariable(pack, variable);
                 } catch (final InstructionParseException e) {
                     LOG.warn(pack, "Error while creating variable '" + variable + "' on journal page '" + pointerName + "' in "
-                            + profile.getProfileName() + "'s journal: " + e.getMessage(), e);
+                            + profile + " journal: " + e.getMessage(), e);
                 }
                 text = text.replace(variable,
                         BetonQuest.getInstance().getVariableValue(packName, variable, profile));
@@ -285,7 +286,7 @@ public class Journal {
                                 continue;
                             }
                         } catch (final ObjectNotFoundException e) {
-                            LOG.warn(pack, "Error while generating main page in " + profile.getProfileName() + "'s journal: " + e.getMessage(), e);
+                            LOG.warn(pack, "Error while generating main page in " + profile + " journal: " + e.getMessage(), e);
                             continue;
                         }
                     }
@@ -311,7 +312,7 @@ public class Journal {
                             BetonQuest.createVariable(pack, variable);
                         } catch (final InstructionParseException e) {
                             LOG.warn(pack, "Error while creating variable '" + variable + "' on main page in "
-                                    + profile.getProfileName() + "'s journal: " + e.getMessage(), e);
+                                    + profile + " journal: " + e.getMessage(), e);
                         }
                         text = text.replace(variable,
                                 BetonQuest.getInstance().getVariableValue(packName, variable, profile));

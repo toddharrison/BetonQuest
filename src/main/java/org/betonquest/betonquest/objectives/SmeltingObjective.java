@@ -1,12 +1,11 @@
 package org.betonquest.betonquest.objectives;
 
-import lombok.CustomLog;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.CountingObjective;
 import org.betonquest.betonquest.api.profiles.OnlineProfile;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
-import org.betonquest.betonquest.utils.BlockSelector;
+import org.betonquest.betonquest.item.QuestItem;
 import org.betonquest.betonquest.utils.InventoryUtils;
 import org.betonquest.betonquest.utils.PlayerConverter;
 import org.bukkit.Bukkit;
@@ -23,14 +22,13 @@ import org.bukkit.inventory.PlayerInventory;
  * Requires the player to smelt some amount of items.
  */
 @SuppressWarnings("PMD.CommentRequired")
-@CustomLog
 public class SmeltingObjective extends CountingObjective implements Listener {
 
-    private final BlockSelector blockSelector;
+    private final QuestItem item;
 
     public SmeltingObjective(final Instruction instruction) throws InstructionParseException {
         super(instruction, "items_to_smelt");
-        blockSelector = new BlockSelector(instruction.next());
+        item = instruction.getQuestItem();
         targetAmount = instruction.getPositive();
     }
 
@@ -40,7 +38,7 @@ public class SmeltingObjective extends CountingObjective implements Listener {
         if (isSmeltingResultExtraction(event, inventoryType)) {
             final OnlineProfile onlineProfile = PlayerConverter.getID((Player) event.getWhoClicked());
             assert event.getCurrentItem() != null;
-            if (containsPlayer(onlineProfile) && blockSelector.match(event.getCurrentItem().getType()) && checkConditions(onlineProfile)) {
+            if (containsPlayer(onlineProfile) && item.compare(event.getCurrentItem()) && checkConditions(onlineProfile)) {
                 final int taken = calculateTakeAmount(event);
                 getCountingData(onlineProfile).progress(taken);
                 completeIfDoneOrNotify(onlineProfile);

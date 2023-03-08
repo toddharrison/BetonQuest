@@ -2,6 +2,7 @@ package org.betonquest.betonquest;
 
 import lombok.CustomLog;
 import org.betonquest.betonquest.api.Variable;
+import org.betonquest.betonquest.api.config.quest.QuestPackage;
 import org.betonquest.betonquest.api.profiles.Profile;
 import org.betonquest.betonquest.config.Config;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
@@ -10,35 +11,48 @@ import org.betonquest.betonquest.exceptions.QuestRuntimeException;
 /**
  * Represents a number which might also be a variable.
  */
-@SuppressWarnings("PMD.CommentRequired")
 @CustomLog
 public class VariableNumber {
 
+    /**
+     * The constant value of this variable number if no variable was set.
+     */
     private final double number;
-    private Variable variable;
 
     /**
-     * Parses the string as a number or saves it as a variable if it's not a
-     * number.
+     * The variable to parse to get the value of the variable number.
+     * If {@code null} then {@link #number} will be used.
+     */
+    private final Variable variable;
+
+    /**
+     * Parses the string as a variable or as a number if it's not a variable.
      *
-     * @param packName the package in which the variable is defined
-     * @param variable the string to parse
+     * @param pack the package in which the variable is defined
+     * @param tmp  the string to parse
      * @throws InstructionParseException If the variable could not be created.
      */
-    public VariableNumber(final String packName, final String variable) throws InstructionParseException {
-        if (variable.length() > 2 && variable.charAt(0) == '%' && variable.endsWith("%")) {
-            try {
-                this.variable = BetonQuest.createVariable(Config.getPackages().get(packName), variable);
-            } catch (final InstructionParseException e) {
-                throw new InstructionParseException("Could not create variable: " + e.getMessage(), e);
-            }
-            if (this.variable == null) {
-                throw new InstructionParseException("Could not create variable");
-            }
-            number = 0.0;
+    public VariableNumber(final QuestPackage pack, final String tmp) throws InstructionParseException {
+        if (tmp.length() > 2 && tmp.charAt(0) == '%' && tmp.endsWith("%")) {
+            this.variable = parseAsVariable(pack, tmp);
+            this.number = 0.0;
         } else {
-            number = Double.parseDouble(variable);
+            this.variable = null;
+            this.number = parseAsNumber(tmp);
         }
+    }
+
+    /**
+     * Parses the string as a variable or as a number if it's not a variable.
+     *
+     * @param packName the package in which the variable is defined
+     * @param tmp      the string to parse
+     * @throws InstructionParseException If the variable could not be created.
+     * @deprecated Use {@link #VariableNumber(QuestPackage, String)} instead.
+     */
+    @Deprecated
+    public VariableNumber(final String packName, final String tmp) throws InstructionParseException {
+        this(Config.getPackages().get(packName), tmp);
     }
 
     /**
@@ -48,6 +62,7 @@ public class VariableNumber {
      */
     public VariableNumber(final int number) {
         this.number = number;
+        this.variable = null;
     }
 
     /**
@@ -57,6 +72,28 @@ public class VariableNumber {
      */
     public VariableNumber(final double number) {
         this.number = number;
+        this.variable = null;
+    }
+
+    private Variable parseAsVariable(final QuestPackage pack, final String variable) throws InstructionParseException {
+        final Variable parsed;
+        try {
+            parsed = BetonQuest.createVariable(pack, variable);
+        } catch (final InstructionParseException e) {
+            throw new InstructionParseException("Could not create variable: " + e.getMessage(), e);
+        }
+        if (parsed == null) {
+            throw new InstructionParseException("Could not create variable");
+        }
+        return parsed;
+    }
+
+    private double parseAsNumber(final String variable) throws InstructionParseException {
+        try {
+            return Double.parseDouble(variable);
+        } catch (final NumberFormatException e) {
+            throw new InstructionParseException("Not a number: " + variable, e);
+        }
     }
 
     /**

@@ -1,6 +1,5 @@
 package org.betonquest.betonquest.menu.commands;
 
-import lombok.CustomLog;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -28,7 +27,7 @@ import java.util.Locale;
 /**
  * The plugins main command
  */
-@CustomLog
+
 @SuppressWarnings("PMD.CommentRequired")
 public class RPGMenuCommand extends SimpleCommand {
 
@@ -76,7 +75,8 @@ public class RPGMenuCommand extends SimpleCommand {
     }
 
     @Override
-    @SuppressWarnings({"PMD.SwitchDensity", "PMD.NPathComplexity", "PMD.CyclomaticComplexity", "PMD.NcssCount", "PMD.SwitchStmtsShouldHaveDefault", "PMD.ExcessiveMethodLength", "PMD.AvoidLiteralsInIfCondition", "PMD.CognitiveComplexity"})
+    @SuppressWarnings({"PMD.SwitchDensity", "PMD.NPathComplexity", "PMD.CyclomaticComplexity", "PMD.NcssCount",
+            "PMD.SwitchStmtsShouldHaveDefault", "PMD.AvoidLiteralsInIfCondition", "PMD.CognitiveComplexity"})
     public boolean simpleCommand(final CommandSender sender, final String alias, final String[] args) {
         if (args == null || args.length == 0) {
             //display command help

@@ -1,21 +1,28 @@
 package org.betonquest.betonquest.item;
 
-import com.destroystokyo.paper.profile.PlayerProfile;
-import com.destroystokyo.paper.profile.ProfileProperty;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.papermc.lib.PaperLib;
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.profiles.Profile;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.id.ItemID;
-import org.betonquest.betonquest.item.typehandler.*;
+import org.betonquest.betonquest.item.typehandler.BookHandler;
+import org.betonquest.betonquest.item.typehandler.ColorHandler;
+import org.betonquest.betonquest.item.typehandler.CustomModelDataHandler;
+import org.betonquest.betonquest.item.typehandler.DurabilityHandler;
+import org.betonquest.betonquest.item.typehandler.EnchantmentsHandler;
+import org.betonquest.betonquest.item.typehandler.FireworkHandler;
+import org.betonquest.betonquest.item.typehandler.HeadHandler;
+import org.betonquest.betonquest.item.typehandler.LoreHandler;
+import org.betonquest.betonquest.item.typehandler.NameHandler;
+import org.betonquest.betonquest.item.typehandler.PersistentDataContainerHandler;
+import org.betonquest.betonquest.item.typehandler.PotionHandler;
+import org.betonquest.betonquest.item.typehandler.UnbreakableHandler;
 import org.betonquest.betonquest.utils.BlockSelector;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
@@ -38,7 +45,7 @@ import java.util.Map.Entry;
 /**
  * Represents an item handled by the configuration.
  */
-@SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.GodClass", "PMD.CommentRequired", "PMD.CognitiveComplexity"})
+@SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.GodClass", "PMD.CommentRequired", "PMD.CognitiveComplexity", "MissingJavadoc", "deprecation"})
 public class QuestItem {
 
     private final BlockSelector selector;
@@ -49,7 +56,7 @@ public class QuestItem {
     private final UnbreakableHandler unbreakable = new UnbreakableHandler();
     private final PotionHandler potion = new PotionHandler();
     private final BookHandler book = new BookHandler();
-    private final HeadHandler head = new HeadHandler();
+    private final HeadHandler head = HeadHandler.getServerInstance();
     private final ColorHandler color = new ColorHandler();
     private final FireworkHandler firework = new FireworkHandler();
     private final CustomModelDataHandler customModelData = new CustomModelDataHandler();
@@ -93,69 +100,59 @@ public class QuestItem {
 
         selector = new BlockSelector(parts[0]);
 
-        for (final String part : parts) {
-            if (part.toLowerCase(Locale.ROOT).startsWith("durability:")) {
-                durability.set(cut(part));
-            } else if (part.toLowerCase(Locale.ROOT).startsWith("enchants:")) {
-                enchants.set(cut(part));
-            } else if ("enchants-containing".equals(part.toLowerCase(Locale.ROOT))) {
-                enchants.setNotExact();
-            } else if (part.toLowerCase(Locale.ROOT).startsWith("name:")) {
-                name.set(cut(part));
-            } else if (part.toLowerCase(Locale.ROOT).startsWith("lore:")) {
-                lore.set(cut(part));
-            } else if ("lore-containing".equals(part.toLowerCase(Locale.ROOT))) {
-                lore.setNotExact();
-            } else if (part.toLowerCase(Locale.ROOT).startsWith("unbreakable:")) {
-                unbreakable.set(cut(part));
-            } else if ("unbreakable".equals(part.toLowerCase(Locale.ROOT))) {
-                unbreakable.set("true");
-            } else if (part.toLowerCase(Locale.ROOT).startsWith("custom-model-data:")) {
-                customModelData.parse(cut(part));
-            } else if (part.toLowerCase(Locale.ROOT).startsWith("no-custom-model-data")) {
-                customModelData.forbid();
-            } else if (part.toLowerCase(Locale.ROOT).startsWith("title:")) {
-                book.setTitle(cut(part));
-            } else if (part.toLowerCase(Locale.ROOT).startsWith("author:")) {
-                book.setAuthor(cut(part));
-            } else if (part.toLowerCase(Locale.ROOT).startsWith("text:")) {
-                book.setText(cut(part));
-            } else if (part.toLowerCase(Locale.ROOT).startsWith("type:")) {
-                potion.setType(cut(part));
-            } else if ("extended".equals(part.toLowerCase(Locale.ROOT))) {
-                potion.setExtended("true");
-            } else if (part.toLowerCase(Locale.ROOT).startsWith("extended:")) {
-                potion.setExtended(cut(part));
-            } else if ("upgraded".equals(part.toLowerCase(Locale.ROOT))) {
-                potion.setUpgraded("true");
-            } else if (part.toLowerCase(Locale.ROOT).startsWith("upgraded:")) {
-                potion.setUpgraded(cut(part));
-            } else if (part.toLowerCase(Locale.ROOT).startsWith("effects:")) {
-                potion.setCustom(cut(part));
-            } else if ("effects-containing".equals(part.toLowerCase(Locale.ROOT))) {
-                potion.setNotExact();
-            } else if (part.toLowerCase(Locale.ROOT).startsWith("owner:")) {
-                head.setOwner(cut(part));
-            } else if (part.toLowerCase(Locale.ROOT).startsWith("player-id:")) {
-                head.setPlayerId(cut(part));
-            } else if (part.toLowerCase(Locale.ROOT).startsWith("texture:")) {
-                head.setTexture(cut(part));
-            } else if (part.toLowerCase(Locale.ROOT).startsWith("color:")) {
-                color.set(cut(part));
-            } else if (part.toLowerCase(Locale.ROOT).startsWith("firework:")) {
-                firework.setEffects(cut(part));
-            } else if (part.toLowerCase(Locale.ROOT).startsWith("power:")) {
-                firework.setPower(cut(part));
-            } else if ("firework-containing".equals(part.toLowerCase(Locale.ROOT))) {
-                firework.setNotExact();
-            } else if (part.toLowerCase(Locale.ROOT).startsWith("pdc:")) {
-                persistentDataContainer.set(cut(part));
+        // Skip the block selector part to process remaining arguments
+        for (int i = 1; i < parts.length; i++) {
+            final String part = parts[i];
+            final String argumentName = getArgumentName(part.toLowerCase(Locale.ROOT));
+            final String data = getArgumentData(part);
+
+            switch (argumentName) {
+                case "durability" -> durability.set(data);
+                case "enchants" -> enchants.set(data);
+                case "enchants-containing" -> enchants.setNotExact();
+                case "name" -> name.set(data);
+                case "lore" -> lore.set(data);
+                case "lore-containing" -> lore.setNotExact();
+                case "unbreakable" -> {
+                    if ("unbreakable".equals(data)) {
+                        unbreakable.set("true");
+                    } else {
+                        unbreakable.set(data);
+                    }
+                }
+                case "custom-model-data" -> customModelData.parse(data);
+                case "no-custom-model-data" -> customModelData.forbid();
+                case "title" -> book.setTitle(data);
+                case "author" -> book.setAuthor(data);
+                case "text" -> book.setText(data);
+                case "type" -> potion.setType(data);
+                case "extended" -> {
+                    if ("extended".equals(data)) {
+                        potion.setExtended("true");
+                    } else {
+                        potion.setExtended(data);
+                    }
+                }
+                case "upgraded" -> {
+                    if ("upgraded".equals(data)) {
+                        potion.setUpgraded("true");
+                    } else {
+                        potion.setUpgraded(data);
+                    }
+                }
+                case "effects" -> potion.setCustom(data);
+                case "effects-containing" -> potion.setNotExact();
+                case HeadHandler.META_OWNER -> head.setOwner(data);
+                case HeadHandler.META_PLAYER_ID -> head.setPlayerId(data);
+                case HeadHandler.META_TEXTURE -> head.setTexture(data);
+                case "color" -> color.set(data);
+                case "firework" -> firework.setEffects(data);
+                case "power" -> firework.setPower(data);
+                case "firework-containing" -> firework.setNotExact();
+                case "pdc" -> persistentDataContainer.set(data);
+                default -> throw new InstructionParseException("Unknown argument: " + argumentName);
             }
         }
-    }
-
-    private static String cut(final String uncut) {
-        return uncut.substring(uncut.indexOf(':') + 1);
     }
 
     /**
@@ -176,9 +173,7 @@ public class QuestItem {
         String author = "";
         String effects = "";
         String color = "";
-        String owner = "";
-        String skullPlayerId = "";
-        String skullTexture = "";
+        String skull = "";
         String firework = "";
         String unbreakable = "";
         String customModelData = "";
@@ -266,32 +261,7 @@ public class QuestItem {
                 }
             }
             if (meta instanceof SkullMeta) {
-                final SkullMeta skullMeta = (SkullMeta) meta;
-                if (skullMeta.hasOwner()) {
-                    owner = " owner:" + skullMeta.getOwner();
-                }
-
-                final OfflinePlayer ownerProfile = skullMeta.getOwningPlayer();
-                final PlayerProfile playerProfile = skullMeta.getPlayerProfile();
-                if (ownerProfile != null) {
-                    // For Bukkit / Spigot Server
-                    final UUID playerUniqueId = ownerProfile.getUniqueId();
-                    // TODO
-                    final String textures = ""; // TODO Implement for Bukkit / Spigot with deprecated APIs
-                    // TODO
-                    skullPlayerId = " player-id:" + playerUniqueId;
-//                    skullTexture = " texture:" + textures;
-                } else if (playerProfile != null) {
-                    // For Paper Server
-                    final UUID playerUniqueId = playerProfile.getId();
-                    final String textures = playerProfile.getProperties().stream()
-                            .filter(it -> it.getName().equals("textures"))
-                            .map(ProfileProperty::getValue)
-                            .findFirst()
-                            .orElse(null);
-                    skullPlayerId = " player-id:" + playerUniqueId;
-                    skullTexture = " texture:" + textures;
-                }
+                skull = HeadHandler.serializeSkullMeta((SkullMeta) meta);
             }
             if (meta instanceof FireworkMeta) {
                 final FireworkMeta fireworkMeta = (FireworkMeta) meta;
@@ -352,8 +322,32 @@ public class QuestItem {
         }
         // put it all together in a single string
         return item.getType() + durability + name + lore + enchants + title + author + text
-                + effects + color + owner + skullPlayerId + skullTexture + firework + unbreakable
-                + customModelData + persistentData;
+                + effects + color + skull + firework + unbreakable + customModelData + persistentData;
+    }
+
+    /**
+     * Returns the data behind the argument name.
+     * If the argument does not contain a colon, it returns the full argument.
+     *
+     * @param argument the full argument
+     * @return the data behind the argument name
+     */
+    private String getArgumentData(final String argument) {
+        return argument.substring(argument.indexOf(':') + 1);
+    }
+
+    /**
+     * Returns the argument name.
+     * If the argument does not contain a colon, it returns the full argument.
+     *
+     * @param argument the full argument
+     * @return the argument name
+     */
+    private String getArgumentName(final String argument) {
+        if (argument.contains(":")) {
+            return argument.substring(0, argument.indexOf(':'));
+        }
+        return argument;
     }
 
     @Override
@@ -454,30 +448,8 @@ public class QuestItem {
         }
         if (meta instanceof SkullMeta) {
             final SkullMeta skullMeta = (SkullMeta) item.getItemMeta();
-            if (!head.checkOwner(skullMeta.getOwner())) {
-                final OfflinePlayer ownerProfile = skullMeta.getOwningPlayer();
-                final PlayerProfile playerProfile = skullMeta.getPlayerProfile();
-                if (ownerProfile != null) {
-                    // For Bukkit / Spigot Server
-                    final UUID playerUniqueId = ownerProfile.getUniqueId();
-                    // TODO
-                    final String textures = ""; // TODO Implement for Bukkit / Spigot with deprecated APIs
-                    // TODO
-                    if (!head.checkPlayerId(playerUniqueId) || !head.checkTexture(textures)) {
-                        return false;
-                    }
-                } else if (playerProfile != null) {
-                    // For Paper Server
-                    final UUID playerUniqueId = playerProfile.getId();
-                    final String textures = playerProfile.getProperties().stream()
-                            .filter(it -> it.getName().equals("textures"))
-                            .map(ProfileProperty::getValue)
-                            .findFirst()
-                            .orElse(null);
-                    if (!head.checkPlayerId(playerUniqueId) || !head.checkTexture(textures)) {
-                        return false;
-                    }
-                }
+            if (!head.check(skullMeta)) {
+                return false;
             }
         }
         if (meta instanceof LeatherArmorMeta) {
@@ -576,25 +548,7 @@ public class QuestItem {
             bookMeta.setPages(book.getText());
         }
         if (meta instanceof SkullMeta) {
-            final SkullMeta skullMeta = (SkullMeta) meta;
-            final UUID playerId = head.getPlayerId();
-            final String texture = head.getTexture();
-
-            if (playerId == null || texture == null) {
-                skullMeta.setOwner(head.getOwner(profile));
-            } else {
-                if (PaperLib.isPaper()) {
-                    final PlayerProfile playerProfile = Bukkit.getServer().createProfile(playerId);
-                    playerProfile.getProperties().add(new ProfileProperty("textures", texture));
-                    skullMeta.setPlayerProfile(playerProfile);
-                } else {
-                    final org.bukkit.profile.PlayerProfile ownerProfile = Bukkit.getServer().createPlayerProfile(playerId);
-                    // TODO
-                    // TODO Support bukkit / spigot properties
-                    // TODO
-                    skullMeta.setOwnerProfile(ownerProfile);
-                }
-            }
+            head.populate((SkullMeta) meta, profile);
         }
         if (meta instanceof LeatherArmorMeta) {
             final LeatherArmorMeta armorMeta = (LeatherArmorMeta) meta;
@@ -697,16 +651,22 @@ public class QuestItem {
     }
 
     /**
-     * @return owner of the head
+     * @return owner of the head, used independently of player ID and texture
      */
-    public String getOwner() {
+    public Profile getOwner() {
         return head.getOwner(null);
     }
 
+    /**
+     * @return playerId of the head, used in combination with the texture
+     */
     public UUID getPlayerId() {
         return head.getPlayerId();
     }
 
+    /**
+     * @return texture URL of the head, used in combination with the player ID
+     */
     public String getTexture() {
         return head.getTexture();
     }
@@ -751,6 +711,13 @@ public class QuestItem {
      */
     public int getPower() {
         return firework.getPower();
+    }
+
+    /**
+     * @return the byte encoding of the persistent data container
+     */
+    public byte[] getPersistentDataContainer() {
+        return persistentDataContainer.get();
     }
 
     public enum Existence {

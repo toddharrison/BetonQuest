@@ -94,13 +94,13 @@ import org.betonquest.betonquest.conversation.SimpleInterceptor;
 import org.betonquest.betonquest.conversation.SlowTellrawConvIO;
 import org.betonquest.betonquest.conversation.TellrawConvIO;
 import org.betonquest.betonquest.database.AsyncSaver;
+import org.betonquest.betonquest.database.Backup;
 import org.betonquest.betonquest.database.Database;
 import org.betonquest.betonquest.database.GlobalData;
 import org.betonquest.betonquest.database.MySQL;
 import org.betonquest.betonquest.database.PlayerData;
 import org.betonquest.betonquest.database.SQLite;
 import org.betonquest.betonquest.database.Saver;
-import org.betonquest.betonquest.events.CancelEvent;
 import org.betonquest.betonquest.events.ChatEvent;
 import org.betonquest.betonquest.events.ChestClearEvent;
 import org.betonquest.betonquest.events.ChestGiveEvent;
@@ -118,28 +118,20 @@ import org.betonquest.betonquest.events.FolderEvent;
 import org.betonquest.betonquest.events.GiveEvent;
 import org.betonquest.betonquest.events.GiveJournalEvent;
 import org.betonquest.betonquest.events.GlobalPointEvent;
-import org.betonquest.betonquest.events.HungerEvent;
-import org.betonquest.betonquest.events.IfElseEvent;
 import org.betonquest.betonquest.events.KillEvent;
 import org.betonquest.betonquest.events.KillMobEvent;
-import org.betonquest.betonquest.events.LanguageEvent;
-import org.betonquest.betonquest.events.LeverEvent;
 import org.betonquest.betonquest.events.LightningEvent;
 import org.betonquest.betonquest.events.NotifyAllEvent;
 import org.betonquest.betonquest.events.NotifyEvent;
 import org.betonquest.betonquest.events.ObjectiveEvent;
 import org.betonquest.betonquest.events.OpSudoEvent;
-import org.betonquest.betonquest.events.PartyEvent;
 import org.betonquest.betonquest.events.PickRandomEvent;
 import org.betonquest.betonquest.events.PointEvent;
 import org.betonquest.betonquest.events.RunEvent;
 import org.betonquest.betonquest.events.ScoreboardEvent;
-import org.betonquest.betonquest.events.SetBlockEvent;
 import org.betonquest.betonquest.events.SpawnMobEvent;
 import org.betonquest.betonquest.events.SudoEvent;
 import org.betonquest.betonquest.events.TakeEvent;
-import org.betonquest.betonquest.events.TeleportEvent;
-import org.betonquest.betonquest.events.TimeEvent;
 import org.betonquest.betonquest.events.VariableEvent;
 import org.betonquest.betonquest.exceptions.InstructionParseException;
 import org.betonquest.betonquest.exceptions.ObjectNotFoundException;
@@ -216,18 +208,27 @@ import org.betonquest.betonquest.objectives.TameObjective;
 import org.betonquest.betonquest.objectives.VariableObjective;
 import org.betonquest.betonquest.quest.event.NullStaticEventFactory;
 import org.betonquest.betonquest.quest.event.burn.BurnEventFactory;
+import org.betonquest.betonquest.quest.event.cancel.CancelEventFactory;
+import org.betonquest.betonquest.quest.event.cancelconversation.CancelConversationEventFactory;
 import org.betonquest.betonquest.quest.event.damage.DamageEventFactory;
 import org.betonquest.betonquest.quest.event.door.DoorEventFactory;
+import org.betonquest.betonquest.quest.event.hunger.HungerEventFactory;
 import org.betonquest.betonquest.quest.event.journal.JournalEventFactory;
+import org.betonquest.betonquest.quest.event.language.LanguageEventFactory;
 import org.betonquest.betonquest.quest.event.legacy.FromClassQuestEventFactory;
 import org.betonquest.betonquest.quest.event.legacy.QuestEventFactory;
 import org.betonquest.betonquest.quest.event.legacy.QuestEventFactoryAdapter;
+import org.betonquest.betonquest.quest.event.lever.LeverEventFactory;
+import org.betonquest.betonquest.quest.event.logic.IfElseEventFactory;
+import org.betonquest.betonquest.quest.event.party.PartyEventFactory;
+import org.betonquest.betonquest.quest.event.setblock.SetBlockEventFactory;
 import org.betonquest.betonquest.quest.event.tag.TagGlobalEventFactory;
 import org.betonquest.betonquest.quest.event.tag.TagPlayerEventFactory;
+import org.betonquest.betonquest.quest.event.teleport.TeleportEventFactory;
+import org.betonquest.betonquest.quest.event.time.TimeEventFactory;
 import org.betonquest.betonquest.quest.event.velocity.VelocityEventFactory;
 import org.betonquest.betonquest.quest.event.weather.WeatherEventFactory;
 import org.betonquest.betonquest.utils.PlayerConverter;
-import org.betonquest.betonquest.utils.Utils;
 import org.betonquest.betonquest.variables.ConditionVariable;
 import org.betonquest.betonquest.variables.GlobalPointVariable;
 import org.betonquest.betonquest.variables.GlobalTagVariable;
@@ -709,12 +710,11 @@ public class BetonQuest extends JavaPlugin {
             }
         }
 
-        database.createTables(isMySQLUsed);
+        database.createTables();
 
         saver = new AsyncSaver();
         saver.start();
-
-        Utils.loadDatabaseFromBackup();
+        Backup.loadDatabaseFromBackup();
 
         new JoinQuitListener();
 
@@ -793,7 +793,7 @@ public class BetonQuest extends JavaPlugin {
         registerEvent("tag", new TagPlayerEventFactory(this, getSaver()));
         registerEvent("globaltag", new TagGlobalEventFactory(this));
         registerEvent("journal", new JournalEventFactory(this, InstantSource.system(), getSaver()));
-        registerEvents("teleport", TeleportEvent.class);
+        registerNonStaticEvent("teleport", new TeleportEventFactory(getServer(), getServer().getScheduler(), this));
         registerEvents("explosion", ExplosionEvent.class);
         registerEvents("lightning", LightningEvent.class);
         registerEvents("point", PointEvent.class);
@@ -807,12 +807,12 @@ public class BetonQuest extends JavaPlugin {
         registerEvents("deletepoint", DeletePointEvent.class);
         registerEvents("spawn", SpawnMobEvent.class);
         registerEvents("killmob", KillMobEvent.class);
-        registerEvents("time", TimeEvent.class);
+        registerEvent("time", new TimeEventFactory(getServer(), getServer().getScheduler(), this));
         registerNonStaticEvent("weather", new WeatherEventFactory(getServer(), getServer().getScheduler(), this));
         registerEvents("folder", FolderEvent.class);
-        registerEvents("setblock", SetBlockEvent.class);
+        registerEvent("setblock", new SetBlockEventFactory(getServer(), getServer().getScheduler(), this));
         registerNonStaticEvent("damage", new DamageEventFactory(getServer(), getServer().getScheduler(), this));
-        registerEvents("party", PartyEvent.class);
+        registerNonStaticEvent("party", new PartyEventFactory());
         registerEvents("clear", ClearEvent.class);
         registerEvents("run", RunEvent.class);
         registerEvents("givejournal", GiveJournalEvent.class);
@@ -822,13 +822,13 @@ public class BetonQuest extends JavaPlugin {
         registerEvents("chesttake", ChestTakeEvent.class);
         registerEvents("chestclear", ChestClearEvent.class);
         registerEvents("compass", CompassEvent.class);
-        registerEvents("cancel", CancelEvent.class);
+        registerNonStaticEvent("cancel", new CancelEventFactory());
         registerEvents("score", ScoreboardEvent.class);
-        registerEvents("lever", LeverEvent.class);
+        registerEvent("lever", new LeverEventFactory(getServer(), getServer().getScheduler(), this));
         registerEvent("door", new DoorEventFactory(getServer(), getServer().getScheduler(), this));
-        registerEvents("if", IfElseEvent.class);
+        registerEvent("if", new IfElseEventFactory());
         registerEvents("variable", VariableEvent.class);
-        registerEvents("language", LanguageEvent.class);
+        registerNonStaticEvent("language", new LanguageEventFactory(this));
         registerEvents("pickrandom", PickRandomEvent.class);
         registerEvents("experience", ExperienceEvent.class);
         registerEvents("notify", NotifyEvent.class);
@@ -837,7 +837,8 @@ public class BetonQuest extends JavaPlugin {
         registerEvents("freeze", FreezeEvent.class);
         registerNonStaticEvent("burn", new BurnEventFactory(getServer(), getServer().getScheduler(), this));
         registerNonStaticEvent("velocity", new VelocityEventFactory(getServer(), getServer().getScheduler(), this));
-        registerEvents("hunger", HungerEvent.class);
+        registerNonStaticEvent("hunger", new HungerEventFactory(getServer(), getServer().getScheduler(), this));
+        registerNonStaticEvent("cancelconversation", new CancelConversationEventFactory());
 
         registerObjectives("location", LocationObjective.class);
         registerObjectives("block", BlockObjective.class);
@@ -905,8 +906,8 @@ public class BetonQuest extends JavaPlugin {
         registerVariable("location", LocationVariable.class);
         registerVariable("math", MathVariable.class);
 
-        registerScheduleType("realtime-daily", RealtimeDailySchedule.class, new RealtimeDailyScheduler(this, lastExecutionCache));
-        registerScheduleType("realtime-cron", RealtimeCronSchedule.class, new RealtimeCronScheduler(this, lastExecutionCache));
+        registerScheduleType("realtime-daily", RealtimeDailySchedule.class, new RealtimeDailyScheduler(lastExecutionCache));
+        registerScheduleType("realtime-cron", RealtimeCronSchedule.class, new RealtimeCronScheduler(lastExecutionCache));
 
         new Compatibility();
         globalData = new GlobalData();

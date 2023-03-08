@@ -24,7 +24,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
     - holograms from DecentHolograms are a direct alternative to HolographicDisplays
 - add LuckPerms context integration for tags
     - All existing users must add luckperms: 'true' to their config.yml's hook section.
+- add FakeBlock Compatibility
+    - added `fakeblock` event that has the arguments `showgroup` and `hidegroup` to show and hide FakeBlock groups
+    - added `hook.fake-block` config option, default: `true`
 - added Event Schedules to replace old static-events system
+- added support for Base64 encode custom heads
+    - can be created from items in inventory using the BetonQuest `item` command (Paper only, Bukkit/Spigot can be configured manually)
+    - can be given to players using the BetonQuest `give` command
 - NotifyIO "totemIO"
 - Support for MythicLib
 - player attribute to QuestCompassTargetChangeEvent
@@ -81,6 +87,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `variable` condition - forceSync argument forces the condition to be checked on the main thread
 - `variable` condition - now supports variables as both the input and the regular expression
 - `command` event - now suppress console output
+- `cancelconversation` event
+- `time` event - now supports subtraction and world selection, which made it persistent and static
 - Things that are also added in 1.12.X:
     - new line support for `journal_lore` in `messages.yml`
     - FastAsyncWorldEdit compatibility
@@ -132,6 +140,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   - all allow decimal level and variables now
 - changed backpack configuration. "" will hide the compass or canceler
 - `smelt` objective - now requires a QuestItem instead of a BlockSelector
+- `cancelquest` command - has its own permission now
+- `compass` command - has its own permission now
+- `language` command - is now persistent
+- `variable` condition supports escapable underscores to avoid replacement
 - Things that are also changed in 1.12.X:
     - math variable now allows rounding output with the ~ operator
     - French translation has been updated
@@ -165,7 +177,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `pickrandom` event - did not calculated chance correctly
 - `pickrandom` event - did not allowed dashes in event names
 - `action` objective - ignored offhand at all
+- `enchant` objective - did not work at all, now has `amount` and `requirementMode` parameters
 - Things that are also fixed in 1.12.X:
+    - eating of items when entering the chest conversation io actually consumed the item 
+    - legacy `§x` HEX color format not working in some contexts
     - ProtocolLib's based `packet` interceptor was fixed for MC 1.19, now ProtocolLib 5.0.0 is required
     - parsing of math variable
     - Citizens compatibility for not spawned NPCs

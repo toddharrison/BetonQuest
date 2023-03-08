@@ -5,7 +5,7 @@ import org.betonquest.betonquest.item.QuestItem;
 import java.util.Arrays;
 import java.util.Base64;
 
-@SuppressWarnings("PMD.CommentRequired")
+@SuppressWarnings({"PMD.CommentRequired", "MissingJavadoc"})
 public class PersistentDataContainerHandler {
     private byte[] data;
     private QuestItem.Existence dataE = QuestItem.Existence.WHATEVER;

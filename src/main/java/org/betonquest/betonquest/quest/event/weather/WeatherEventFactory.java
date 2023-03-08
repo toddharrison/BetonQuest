@@ -1,6 +1,9 @@
 package org.betonquest.betonquest.quest.event.weather;
 
 import org.betonquest.betonquest.Instruction;
+import org.betonquest.betonquest.api.common.worldselector.ConstantWorldSelector;
+import org.betonquest.betonquest.api.common.worldselector.PlayerWorldSelector;
+import org.betonquest.betonquest.api.common.worldselector.WorldSelector;
 import org.betonquest.betonquest.api.quest.event.Event;
 import org.betonquest.betonquest.api.quest.event.EventFactory;
 import org.betonquest.betonquest.api.quest.event.StaticEvent;

@@ -14,6 +14,7 @@ import org.betonquest.betonquest.item.typehandler.FireworkHandler;
 import org.betonquest.betonquest.item.typehandler.HeadHandler;
 import org.betonquest.betonquest.item.typehandler.LoreHandler;
 import org.betonquest.betonquest.item.typehandler.NameHandler;
+import org.betonquest.betonquest.item.typehandler.PersistentDataContainerHandler;
 import org.betonquest.betonquest.item.typehandler.PotionHandler;
 import org.betonquest.betonquest.item.typehandler.UnbreakableHandler;
 import org.betonquest.betonquest.utils.BlockSelector;
@@ -33,20 +34,18 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.UUID;
 
 /**
  * Represents an item handled by the configuration.
  */
-@SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.GodClass", "PMD.CommentRequired", "PMD.CognitiveComplexity"})
+@SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.GodClass", "PMD.CommentRequired", "PMD.CognitiveComplexity", "MissingJavadoc", "deprecation"})
 public class QuestItem {
 
     private final BlockSelector selector;
@@ -61,6 +60,8 @@ public class QuestItem {
     private final ColorHandler color = new ColorHandler();
     private final FireworkHandler firework = new FireworkHandler();
     private final CustomModelDataHandler customModelData = new CustomModelDataHandler();
+    // *** Briar ***
+    private final PersistentDataContainerHandler persistentDataContainer = new PersistentDataContainerHandler();
 
     /**
      * Creates new instance of the quest item using the ID
@@ -149,6 +150,8 @@ public class QuestItem {
                 case "firework" -> firework.setEffects(data);
                 case "power" -> firework.setPower(data);
                 case "firework-containing" -> firework.setNotExact();
+                // *** Briar ***
+                case "pdc" -> persistentDataContainer.set(data);
                 //catch empty string caused by multiple whitespaces in instruction split
                 case "" -> {}
                 default -> throw new InstructionParseException("Unknown argument: " + argumentName);
@@ -178,6 +181,7 @@ public class QuestItem {
         String firework = "";
         String unbreakable = "";
         String customModelData = "";
+        String persistentData = "";
         if (item.getDurability() != 0) {
             durability = " durability:" + item.getDurability();
         }
@@ -310,10 +314,20 @@ public class QuestItem {
                     builder.append(':').append(effect.hasTrail()).append(':').append(effect.hasFlicker());
                 }
             }
+
+            // *** Briar ***
+            final PersistentDataContainer pdc = meta.getPersistentDataContainer();
+            if (!pdc.isEmpty()) {
+                try {
+                    persistentData = " pdc:" + Base64.getEncoder().encodeToString(pdc.serializeToBytes());
+                } catch (final IOException e) {
+                    // TODO Handle exception?
+                }
+            }
         }
         // put it all together in a single string
         return item.getType() + durability + name + lore + enchants + title + author + text
-                + effects + color + skull + firework + unbreakable + customModelData;
+                + effects + color + skull + firework + unbreakable + customModelData + persistentData;
     }
 
     /**
@@ -358,12 +372,15 @@ public class QuestItem {
                 && item.head.equals(head)
                 && item.color.equals(color)
                 && item.firework.equals(firework)
-                && item.customModelData.equals(customModelData);
+                && item.customModelData.equals(customModelData)
+                // *** Briar ***
+                && item.persistentDataContainer.equals(persistentDataContainer);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(selector, durability, name, lore, enchants, unbreakable, potion, book, head, color, firework, customModelData);
+        return Objects.hash(selector, durability, name, lore, enchants, unbreakable, potion, book, head, color, firework,
+                customModelData, persistentDataContainer);
     }
 
     /**
@@ -460,6 +477,20 @@ public class QuestItem {
             final FireworkEffectMeta fireworkMeta = (FireworkEffectMeta) item.getItemMeta();
             return firework.checkSingleEffect(fireworkMeta.getEffect());
         }
+
+        // *** Briar ***
+        final PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        if (!pdc.isEmpty()) {
+            try {
+                if (!persistentDataContainer.check(pdc.serializeToBytes())) {
+                    return false;
+                }
+            } catch (final IOException e) {
+                // TODO Handle exception?
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -544,6 +575,17 @@ public class QuestItem {
             final Damageable damageableMeta = (Damageable) meta;
             damageableMeta.setDamage(getDurability());
         }
+
+        // *** Briar ***
+        if (persistentDataContainer.get() != null) {
+            final PersistentDataContainer pdc = meta.getPersistentDataContainer();
+            try {
+                pdc.readFromBytes(persistentDataContainer.get(), true); // Clear existing persistent data
+            } catch (final IOException e) {
+                // TODO Handle exception?
+            }
+        }
+
         item.setItemMeta(meta);
         return item;
     }
@@ -679,6 +721,14 @@ public class QuestItem {
      */
     public int getPower() {
         return firework.getPower();
+    }
+
+    /**
+     * @return the byte encoding of the persistent data container
+     */
+    // *** Briar ***
+    public byte[] getPersistentDataContainer() {
+        return persistentDataContainer.get();
     }
 
     public enum Existence {

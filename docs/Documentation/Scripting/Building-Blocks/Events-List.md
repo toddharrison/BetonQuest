@@ -143,10 +143,13 @@ This event can open and close doors, trapdoors and fence gates. The syntax is ex
 ## Remove Potion Effect: `deleffect`
 
 Removes the specified potion effects from the player. Use `any` instead of a list of types to remove all potion effects from the player.
+Alternatively to `any`, you just can leave it blank.
 
 !!! example
     ```YAML
     deleffect ABSORPTION,BLINDNESS
+    deleffect any
+    deleffect
     ```
 
 ## Potion Effect: `effect`
@@ -160,7 +163,7 @@ Adds a specified potion effect to player. First argument is potion type. You can
 
 ## Explosion: `explosion`
 
-**static**
+**persistent**, **static**
 
 Creates an explosion. It can make fire and destroy blocks. You can also define power, so be careful not to blow your server away. Default TNT power is 4, while Wither on creation is 7. First argument can be 0 or 1 and states if explosion will generate fire (like Ghast's fireball). Second is also 0 or 1 but this defines if block will be destroyed or not. Third argument is the power (float number). At the end (4th attribute) there is location.
 
@@ -225,11 +228,16 @@ This event simply gives the player his journal. It acts the same way as **/j** c
 
 **persistent**, **static**
 
-This works the same way as the normal point event but instead to manipulating the points for a category of a specific player it manipulates points in a global category. These global categories are player independent, so you could for example add a point to such a global category every time a player does a quest and give some special rewards for the 100th player who does the quest.
+This works the same way as the normal [point event](#point-point) but instead to manipulating the points for a category of a specific 
+player it manipulates points in a global category. These global categories are player independent, so you could for 
+example add a point to such a global category every time a player does a quest and give some special rewards for 
+the 100th player who does the quest.
 
 !!! example
     ```YAML
-    globalpoint global_knownusers 1
+    globalpoint global_knownusers 1 action:add
+    globalpoint daily_login 0 action:set
+    globalpoint reputaion 2 action:multiply
     ```
 
 ## Global tag: `globaltag`
@@ -603,15 +611,29 @@ events:
     
 ## Give experience: `experience`
 
-Gives the specified amount of experience points to the player. You can give levels by adding the `level` argument.
-You can also define decimal numbers when giving levels, for example `experience 1.5 level` will give 1 level and half.
+This event allows you to manipulate player's experience. First you specify a number as the amount, then the modification action.
+You can use `action:addExperience`, `action:addLevel`, `action:setExperienceBar` and `action:setLevel` as modification types.
 
-!!! example
-    ```YAML
-    experience 15
-    experience 4 level
-    experience 4.5 level
-    ```
+To use this correctly, you need to understand this:
+
+* A player has experience points.
+* Experience levels, shown are shown as a number in the experience bar. Every level requires more experience points than the previous.  
+* The experience bar itself shows the percentage of the experience points needed to reach the next level.
+
+While `action:addExperience` only adds experience points, `action:addLevel` adds a level and keeps the current percentage.
+`action:setExperienceBar` sets the progress of the bar. Decimal values between `0` and `1` represent the fill level.
+This changes the underlying experience points, it's **not** just a visual change.
+`action:setLevel` sets only the level, expect if you specify a decimal number, then the experience bar will be
+set to the specified percentage.
+
+```YAML title="Example"
+add15XP: "experience 15 action:addExperience"
+add4andAHalfLevel: "experience 4.5 action:addLevel"
+remove2Level: "experience -2 action:addLevel"
+setXPBar: "experience 0.5 action:setExperienceBar"
+resetLevel: "experience 0.01 action:setLevel"
+```
+
 ## Burn: `burn`
 
 | Parameter  | Syntax            | Default Value               | Explanation                                                        |

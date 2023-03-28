@@ -1,40 +1,33 @@
-package org.betonquest.betonquest.quest.event.point;
+package org.betonquest.betonquest.quest.event.scoreboard;
 
 /**
- * The type of point modification.
+ * The type of score modification.
  */
-public enum Point {
-
+public enum ScoreModification {
     /**
      * Adds the count to the current value.
      */
-    ADD((current, count) -> current + (int) count, "point_given"),
+    ADD((current, count) -> current + (int) count),
     /**
      * Subtracts the count from the current value.
      */
-    SUBTRACT((current, count) -> current - (int) count, "point_taken"),
+    SUBTRACT((current, count) -> current - (int) count),
     /**
      * Sets the current value to the count.
      */
-    SET((current, count) -> (int) count, "point_set"),
+    SET((current, count) -> (int) count),
     /**
      * Multiplies the current value by the count.
      */
-    MULTIPLY((current, count) -> (int) (current * count), "point_multiplied");
+    MULTIPLY((current, count) -> (int) (current * count));
 
     /**
-     * The calculator to use for this point type.
+     * The calculator to use.
      */
     private final Calculator calculator;
 
-    /**
-     * The name of the category of the modification.
-     */
-    private final String notifyCategory;
-
-    Point(final Calculator calculator, final String notifyCategory) {
+    ScoreModification(final Calculator calculator) {
         this.calculator = calculator;
-        this.notifyCategory = notifyCategory;
     }
 
     /**
@@ -46,15 +39,6 @@ public enum Point {
      */
     public int modify(final int current, final double count) {
         return calculator.calculate(current, count);
-    }
-
-    /**
-     * Returns the name of the category of the modification.
-     *
-     * @return the name of the category of the modification
-     */
-    public String getNotifyCategory() {
-        return notifyCategory;
     }
 
     /**

@@ -92,6 +92,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `time` event - now supports subtraction and world selection, which made it persistent and static
 - `globalpoint` event - new syntax for manipulating global points
 - `experience` event - it's now possible to change xp, change and set levels and set the xp bar
+<<<<<<< HEAD
+=======
+- `deleteglobalpoint` event
+- `score` event - more options for manipulating the scoreboard
+- `item` variable - new `name` and `lore` argument and now supports items from other packages
+>>>>>>> upstream/main
 - Things that are also added in 1.12.X:
     - new line support for `journal_lore` in `messages.yml`
     - FastAsyncWorldEdit compatibility
@@ -147,6 +153,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `compass` command - has its own permission now
 - `language` command - is now persistent
 - `variable` condition supports escapable underscores to avoid replacement
+- `kill` event - now kills the player, instead of dealing damage, which is more reliable
 - Things that are also changed in 1.12.X:
     - math variable now allows rounding output with the ~ operator
     - French translation has been updated
@@ -182,6 +189,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `pickrandom` event - did not allowed dashes in event names
 - `action` objective - ignored offhand at all
 - `enchant` objective - did not work at all, now has `amount` and `requirementMode` parameters
+- Hologram topX line not working with profiles
 - Things that are also fixed in 1.12.X:
     - eating of items when entering the chest conversation io actually consumed the item 
     - legacy `§x` HEX color format not working in some contexts

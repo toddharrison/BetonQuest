@@ -128,6 +128,16 @@ Clear all player points in a specified category.
     ```YAML
     deletepoint npc_attitude
     ```
+    
+## Delete Globalpoint: `deleteglobalpoint`
+
+**persistent**, **static**
+
+Removes the specified category from the global points list.
+
+```YAML
+deleteBonus: "deleteglobalpoint bonus"
+```
 
 ## Door: `door`
 
@@ -418,20 +428,17 @@ There must be two `%%` before the event's name if variables are used, one is fro
 
 **persistent**
 
-Gives the player a specified amount of points in a specified category. Amount can be negative if you want to subtract points.
-You can also use an asterisk to do multiplication (or division, if you use a fraction).
-First argument after the event name must be a category, and the second one - amount of points to give/take/multiply.
-This event also supports an optional `notify` argument that will display information about the change using the notification system.
+This event allows you to manipulate player's points in a specified category. First you can specify a number of points, 
+then the modification action. For that, you can use `action:add`, `action:subtract`, `action:set` and `action:multiply` 
+as modification types. This event also supports an optional `notify` argument that will display information about the 
+change using the notification system.
 
-!!! example
-    ```YAML
-    point npc_attitude 10
-    ```
-    
-!!! example    
-    ```YAML
-    point village_reputation *0.75
-    ```
+```YAML title="Example"
+gainAttitude: "point npc_attitude 5 action:add"
+loseAttitude: "point npc_attitude 2 action:subtract"
+resetCombo: "point combo 0 action:set"
+boostPoints: "point points 1.25 action:multiply notify"
+```
 
 ## Run events: `run`
 
@@ -449,12 +456,18 @@ Don't use conditions here, it behaves strangely.
 
 ## Scoreboard: `score`
 
-This event works in the same way as `point` event, the only difference is that is uses scoreboards instead of points. You can add, subtract, multiply and divide scores in objectives on the scoreboard. The first argument is the name of the objective, second one is a number. It can be positive for addition, negative for subtraction or prefixed with an asterisk for multiplication. Multiplying by fractions is the same as dividing.
+**persistent**
 
-!!! example
-    ```YAML
-    score kills 1
-    ```
+This event works in the same way as [point](#point-point), the only difference being that it uses scoreboards instead of 
+points. You can use `action:add`, `action:subtract`, `action:set` and `action:multiply` to change the value.
+It's only possible to change the value, you have to create the scoreboard target first.
+
+```YAML title="Example"
+gotKill: "score kill 1 action:add"
+gotKilled: "score kill 1 action:subtract"
+resetKill: "score kill 0 action:set"
+applyBonus: "score kill 1.2 action:multiply"
+```
 
 ## Set Block: `setblock`
 

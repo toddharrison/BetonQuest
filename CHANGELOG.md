@@ -56,6 +56,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
     - top lists ordered by point values of players
     - `npcs` list now supports global variables as NPC ID in NPC Holograms
 - menus now support global variables
+- amount of objectives now support variables
 - `freeze` event - ProtocolLib compatibility feature: Blocks the player from moving for the specified amount of ticks
 - `block` objective - properties: `absoluteAmount`, `absoluteLeft` and `absoluteTotal`
 - `command` objective
@@ -92,12 +93,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `time` event - now supports subtraction and world selection, which made it persistent and static
 - `globalpoint` event - new syntax for manipulating global points
 - `experience` event - it's now possible to change xp, change and set levels and set the xp bar
-<<<<<<< HEAD
-=======
 - `deleteglobalpoint` event
 - `score` event - more options for manipulating the scoreboard
 - `item` variable - new `name` and `lore` argument and now supports items from other packages
->>>>>>> upstream/main
+- `randomnumber` variable added - supports variables
+- `give` event - new `backpack` argument to place items in the backpack (if a valid QuestItem)
 - Things that are also added in 1.12.X:
     - new line support for `journal_lore` in `messages.yml`
     - FastAsyncWorldEdit compatibility
@@ -154,6 +154,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `language` command - is now persistent
 - `variable` condition supports escapable underscores to avoid replacement
 - `kill` event - now kills the player, instead of dealing damage, which is more reliable
+- `lightning` event - now has a new noDamage argument
 - Things that are also changed in 1.12.X:
     - math variable now allows rounding output with the ~ operator
     - French translation has been updated

@@ -1,7 +1,6 @@
 package org.betonquest.betonquest.item;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import lombok.val;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.Journal;
 import org.betonquest.betonquest.api.profiles.OnlineProfile;
@@ -247,7 +246,7 @@ public class QuestItemHandler implements Listener {
         }
 
         // this prevents players from placing "quest item" blocks
-        val itemInHand = event.getItemInHand();
+        final ItemStack itemInHand = event.getItemInHand();
         if (Utils.isQuestItem(itemInHand)) {
 
             // *** Briar ***

@@ -17,6 +17,7 @@ import org.betonquest.betonquest.item.typehandler.NameHandler;
 import org.betonquest.betonquest.item.typehandler.PersistentDataContainerHandler;
 import org.betonquest.betonquest.item.typehandler.PotionHandler;
 import org.betonquest.betonquest.item.typehandler.UnbreakableHandler;
+import org.betonquest.betonquest.item.typehandler.*;
 import org.betonquest.betonquest.utils.BlockSelector;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -24,6 +25,7 @@ import org.bukkit.DyeColor;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.Damageable;
@@ -70,6 +72,9 @@ public class QuestItem {
     private final FireworkHandler firework = new FireworkHandler();
 
     private final CustomModelDataHandler customModelData = new CustomModelDataHandler();
+
+    private final FlagHandler flags = new FlagHandler();
+
     // *** Briar ***
     private final PersistentDataContainerHandler persistentDataContainer = new PersistentDataContainerHandler();
 
@@ -160,6 +165,7 @@ public class QuestItem {
                 case "firework" -> firework.setEffects(data);
                 case "power" -> firework.setPower(data);
                 case "firework-containing" -> firework.setNotExact();
+                case "flags" -> flags.parse(data);
                 // *** Briar ***
                 case "pdc" -> persistentDataContainer.set(data);
                 //catch empty string caused by multiple whitespaces in instruction split
@@ -192,6 +198,7 @@ public class QuestItem {
         String firework = "";
         String unbreakable = "";
         String customModelData = "";
+        String flags = "";
         String persistentData = "";
         if (item.getDurability() != 0) {
             durability = " durability:" + item.getDurability();
@@ -318,6 +325,9 @@ public class QuestItem {
                     builder.append(':').append(effect.hasTrail()).append(':').append(effect.hasFlicker());
                 }
             }
+            if (meta.getItemFlags().size() > 0) {
+                flags = " flags:" + String.join(",", meta.getItemFlags().stream().map(ItemFlag::name).sorted().toList());
+            }
 
             // *** Briar ***
             final PersistentDataContainer pdc = meta.getPersistentDataContainer();
@@ -331,7 +341,7 @@ public class QuestItem {
         }
         // put it all together in a single string
         return item.getType() + durability + name + lore + enchants + title + author + text
-                + effects + color + skull + firework + unbreakable + customModelData + persistentData;
+                + effects + color + skull + firework + unbreakable + customModelData + flags + persistentData;
     }
 
     /**
@@ -376,6 +386,8 @@ public class QuestItem {
                 && item.color.equals(color)
                 && item.firework.equals(firework)
                 && item.customModelData.equals(customModelData)
+                && item.flags.equals(flags)
+
                 // *** Briar ***
                 && item.persistentDataContainer.equals(persistentDataContainer);
     }
@@ -383,7 +395,7 @@ public class QuestItem {
     @Override
     public int hashCode() {
         return Objects.hash(selector, durability, name, lore, enchants, unbreakable, potion, book, head, color, firework,
-                customModelData, persistentDataContainer);
+                customModelData, flags, persistentDataContainer);
     }
 
     /**
@@ -421,6 +433,9 @@ public class QuestItem {
             return false;
         }
         if (!customModelData.check(meta)) {
+            return false;
+        }
+        if (!flags.check(meta)) {
             return false;
         }
         // advanced meta checks
@@ -526,6 +541,9 @@ public class QuestItem {
         meta.setDisplayName(name.get());
         meta.setLore(lore.get());
         meta.setUnbreakable(unbreakable.isUnbreakable());
+        if (flags.get() != null) {
+            flags.get().forEach(meta::addItemFlags);
+        }
         if (customModelData.getExistence() == Existence.REQUIRED) {
             meta.setCustomModelData(customModelData.get());
         }
@@ -717,6 +735,13 @@ public class QuestItem {
      */
     public int getPower() {
         return firework.getPower();
+    }
+
+    /**
+     * @return the set of ItemFlags
+     */
+    public Set<ItemFlag> getFlags() {
+        return flags.get();
     }
 
     /**

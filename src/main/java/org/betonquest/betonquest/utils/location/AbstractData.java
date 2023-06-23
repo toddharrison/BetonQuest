@@ -19,17 +19,17 @@ abstract class AbstractData<T extends Cloneable> {
     /**
      * This regex matches everything except ';'.
      */
-    public final static String REGEX_DATA = "[^;]+";
+    public static final String REGEX_DATA = "[^;]+";
 
     /**
      * This regex matches a variable with 1-n parameters.
      */
-    public final static String REGEX_VARIABLE = "%(.*?)%";
+    public static final String REGEX_VARIABLE = "%(.*?)%";
 
     /**
      * The compiled Pattern of REGEX_VARIABLE.
      */
-    private final static Pattern PATTERN_VARIABLE = Pattern.compile(REGEX_VARIABLE);
+    private static final Pattern PATTERN_VARIABLE = Pattern.compile(REGEX_VARIABLE);
 
     /**
      * This object is used if the input string does not contain any {@link Variable}s.
@@ -115,13 +115,13 @@ abstract class AbstractData<T extends Cloneable> {
     }
 
     private T parseVariableObject(final Profile profile) throws QuestRuntimeException {
-        if (profile == null) {
-            throw new QuestRuntimeException("Variable cannot be accessed without the player."
-                    + " Consider changing it to absolute coordinates");
-        }
         final String[] variables = new String[this.objectVariables.size()];
         for (int i = 0; i < this.objectVariables.size(); i++) {
             final Variable var = this.objectVariables.get(i);
+            if (profile == null && !var.isStaticness()) {
+                throw new QuestRuntimeException("Variable " + var + " cannot be accessed without the player."
+                        + " Consider changing it to absolute coordinates");
+            }
             variables[i] = var.getValue(profile);
         }
         final String result = String.format(objectFormatted, (Object[]) variables);

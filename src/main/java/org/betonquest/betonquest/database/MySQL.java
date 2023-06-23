@@ -161,6 +161,7 @@ public class MySQL extends Database {
         try (Statement statement = connection.createStatement()) {
             statement.executeUpdate("CREATE TABLE " + prefix + "profile ("
                     + "profileID CHAR(36) PRIMARY KEY NOT NULL)");
+            deleteDuplicates(statement, "player", null);
             statement.executeUpdate("INSERT INTO " + prefix + "profile "
                     + "(profileID) SELECT playerID FROM " + prefix + "player");
             deleteOrphaned(statement, "backpack");
@@ -200,11 +201,14 @@ public class MySQL extends Database {
                     + "DROP COLUMN id, "
                     + "ADD PRIMARY KEY (profileID, tag), "
                     + "ADD FOREIGN KEY (profileID) REFERENCES " + prefix + "profile (profileID) ON DELETE CASCADE");
-            deleteDuplicates(statement, "player", null);
             statement.executeUpdate("ALTER TABLE " + prefix + "player "
                     + "MODIFY COLUMN playerID CHAR(36) NOT NULL, "
                     + "MODIFY COLUMN conversation VARCHAR(510), "
-                    + "ADD COLUMN active_profile CHAR(36) NOT NULL DEFAULT (playerID) AFTER playerID, "
+                    + "ADD COLUMN active_profile CHAR(36) AFTER playerID");
+            statement.executeUpdate("UPDATE " + prefix + "player "
+                    + "SET active_profile = playerID");
+            statement.executeUpdate("ALTER TABLE " + prefix + "player "
+                    + "MODIFY COLUMN active_profile CHAR(36) NOT NULL, "
                     + "DROP PRIMARY KEY, "
                     + "DROP COLUMN id, "
                     + "ADD PRIMARY KEY (playerID), "

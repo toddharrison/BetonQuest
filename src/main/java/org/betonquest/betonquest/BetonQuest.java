@@ -101,7 +101,6 @@ import org.betonquest.betonquest.database.MySQL;
 import org.betonquest.betonquest.database.PlayerData;
 import org.betonquest.betonquest.database.SQLite;
 import org.betonquest.betonquest.database.Saver;
-import org.betonquest.betonquest.events.ChatEvent;
 import org.betonquest.betonquest.events.ChestGiveEvent;
 import org.betonquest.betonquest.events.ClearEvent;
 import org.betonquest.betonquest.events.CommandEvent;
@@ -195,6 +194,7 @@ import org.betonquest.betonquest.objectives.VariableObjective;
 import org.betonquest.betonquest.quest.event.NullStaticEventFactory;
 import org.betonquest.betonquest.quest.event.burn.BurnEventFactory;
 import org.betonquest.betonquest.quest.event.cancel.CancelEventFactory;
+import org.betonquest.betonquest.quest.event.chat.ChatEventFactory;
 import org.betonquest.betonquest.quest.event.chest.ChestClearEventFactory;
 import org.betonquest.betonquest.quest.event.chest.ChestTakeEventFactory;
 import org.betonquest.betonquest.quest.event.conversation.CancelConversationEventFactory;
@@ -283,7 +283,7 @@ import java.util.regex.Pattern;
         "PMD.CommentRequired", "PMD.AvoidDuplicateLiterals", "PMD.AvoidFieldNameMatchingMethodName",
         "PMD.AtLeastOneConstructor", "PMD.ExcessivePublicCount", "PMD.TooManyFields"})
 public class BetonQuest extends JavaPlugin {
-    private final static int BSTATS_METRICS_ID = 551;
+    private static final int BSTATS_METRICS_ID = 551;
 
     private static final Map<String, Class<? extends Condition>> CONDITION_TYPES = new HashMap<>();
 
@@ -724,7 +724,7 @@ public class BetonQuest extends JavaPlugin {
         log.debug("BetonQuest " + version + " is starting...");
         log.debug(jreInfo);
 
-        Config.setup(this);
+        Config.setup(this, config);
         Notify.load();
 
         final boolean mySQLEnabled = config.getBoolean("mysql.enabled", true);
@@ -872,7 +872,7 @@ public class BetonQuest extends JavaPlugin {
         registerNonStaticEvent("experience", new ExperienceEventFactory(getServer(), getServer().getScheduler(), this));
         registerNonStaticEvent("notify", new NotifyEventFactory(getServer(), getServer().getScheduler(), this));
         registerEvent("notifyall", new NotifyAllEventFactory(getServer(), getServer().getScheduler(), this));
-        registerEvents("chat", ChatEvent.class);
+        registerNonStaticEvent("chat", new ChatEventFactory(getServer(), getServer().getScheduler(), this));
         registerEvents("freeze", FreezeEvent.class);
         registerNonStaticEvent("burn", new BurnEventFactory(getServer(), getServer().getScheduler(), this));
         registerNonStaticEvent("velocity", new VelocityEventFactory(getServer(), getServer().getScheduler(), this));
@@ -1229,7 +1229,7 @@ public class BetonQuest extends JavaPlugin {
         } catch (final IOException e) {
             log.warn("Could not reload config! " + e.getMessage(), e);
         }
-        Config.setup(this);
+        Config.setup(this, config);
         Notify.load();
         lastExecutionCache.reload();
 
